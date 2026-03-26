@@ -22,5 +22,10 @@
                 <i class="fas fa-calendar-check me-2"></i> ລາຍການຈອງ
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/payments/index.php">
+                <i class="fas fa-money-bill-wave me-2 text-success"></i> ການຊຳລະເງິນ
+            </a>
+        </li>
     </ul>
 </nav>
