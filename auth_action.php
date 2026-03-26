@@ -13,7 +13,7 @@ if (isset($_POST['login'])) {
         $user = mysqli_fetch_assoc($query);
         
         // ກວດສອບລະຫັດຜ່ານ (ສົມທຽບຂໍ້ຄວາມທຳມະດາຕາມທີ່ເຈົ້າເພີ່ມໃນ SQL)
-        if ($password === $user['password']) {
+        if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['fullname'] = $user['fullname'];

@@ -5,6 +5,7 @@ $tables = [
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         duration VARCHAR(100),
+        max_seats INT DEFAULT 10, -- ເພີ່ມແຖວນີ້ເຂົ້າໄປ
         image VARCHAR(255),
         status ENUM('Active', 'Inactive') DEFAULT 'Active'
     )",
