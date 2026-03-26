@@ -1,5 +1,4 @@
 <?php 
-// 1. ດຶງໄຟລ໌ເຊື່ອມຕໍ່ (ຖອຍອອກ 2 ຊັ້ນເພື່ອໄປຫາ config)
 include '../../config/db.php'; 
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
@@ -49,20 +48,25 @@ include '../../includes/sidebar.php';
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="edit.php?id=<?php echo $row['tour_id']; ?>" class="btn btn-sm btn-outline-warning rounded-pill">ແກ້ໄຂ</a>
-                                    <a href="delete.php?id=<?php echo $row['tour_id']; ?>" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('ຢືນຢັນການລຶບ?')">ລຶບ</a>
+                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
+                                        <a href="edit.php?id=<?php echo $row['tour_id']; ?>" class="btn btn-sm btn-white text-warning border-end">
+                                            <i class="fas fa-edit"></i> ແກ້ໄຂ
+                                        </a>
+                                        
+                                        <!-- *** ຈຸດສຳຄັນ: ປ່ຽນປຸ່ມລຶບໃໝ່ *** -->
+                                        <a href="javascript:void(0)" 
+                                           onclick="confirmDelete(<?php echo $row['tour_id']; ?>, 'delete.php')" 
+                                           class="btn btn-sm btn-white text-danger">
+                                            <i class="fas fa-trash"></i> ລຶບ
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php 
                             endwhile; 
                         else:
                         ?>
-                            <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fas fa-box-open fa-3x mb-3 d-block opacity-25"></i>
-                                    ຍັງບໍ່ມີຂໍ້ມູນແພັກເກັດທົວ
-                                </td>
-                            </tr>
+                            <tr><td colspan="6" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນແພັກເກັດທົວ</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -70,5 +74,10 @@ include '../../includes/sidebar.php';
         </div>
     </div>
 </main>
+
+<style>
+    .btn-white { background-color: #fff; border: none; }
+    .btn-white:hover { background-color: #f8f9fa; }
+</style>
 
 <?php include '../../includes/footer.php'; ?>

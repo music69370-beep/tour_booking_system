@@ -39,7 +39,7 @@ function confirmDelete(id, url) {
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
-            // ສົ່ງໄປໄຟລ໌ລຶບ
+            // ສົ່ງໄປໄຟລ໌ລຶບ ພ້ອມສົ່ງ ID ໄປນຳ
             window.location.href = url + "?id=" + id;
         }
     })
