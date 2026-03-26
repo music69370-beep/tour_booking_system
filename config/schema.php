@@ -1,13 +1,23 @@
 <?php
 $tables = [
+    "vehicles" => "CREATE TABLE IF NOT EXISTS vehicles (
+        vehicle_id INT PRIMARY KEY AUTO_INCREMENT,
+        plate_number VARCHAR(20) NOT NULL,
+        model VARCHAR(100),
+        capacity INT,
+        driver_name VARCHAR(100),
+        driver_phone VARCHAR(20),
+        status ENUM('Available', 'Busy', 'Maintenance') DEFAULT 'Available'
+    )",
     "tours" => "CREATE TABLE IF NOT EXISTS tours (
         tour_id INT PRIMARY KEY AUTO_INCREMENT,
+        vehicle_id INT, -- ເພີ່ມບ່ອນເຊື່ອມຫາລົດ
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         duration VARCHAR(100),
-        itinerary TEXT,          -- ເພີ່ມແຜນການເດີນທາງ
-        meals INT DEFAULT 0,     -- ເພີ່ມຈຳນວນຄາບອາຫານ
-        activities TEXT,         -- ເພີ່ມກິດຈະກຳ
+        itinerary TEXT,
+        meals INT DEFAULT 0,
+        activities TEXT,
         max_seats INT DEFAULT 10,
         image VARCHAR(255),
         status ENUM('Active', 'Inactive') DEFAULT 'Active'
@@ -28,7 +38,6 @@ $tables = [
         status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
         booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
-    // --- ເພີ່ມສ່ວນນີ້ເຂົ້າໄປ ---
     "payments" => "CREATE TABLE IF NOT EXISTS payments (
         payment_id INT PRIMARY KEY AUTO_INCREMENT,
         booking_id INT,

@@ -14,6 +14,18 @@ include '../../includes/sidebar.php';
                     <label class="form-label fw-bold">ຊື່ແພັກເກັດທົວ</label>
                     <input type="text" name="tour_name" class="form-control" placeholder="ຕົວຢ່າງ: ທ່ຽວຫຼວງພະບາງ" required>
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">ເລືອກພາຫະນະ (ລົດທົວ)</label>
+                    <select name="vehicle_id" class="form-select" required>
+                        <option value="">-- ກະລຸນາເລືອກລົດ --</option>
+                        <?php 
+                        $res_v = mysqli_query($conn, "SELECT * FROM vehicles WHERE status = 'Available'");
+                        while($v = mysqli_fetch_assoc($res_v)) {
+                            echo "<option value='".$v['vehicle_id']."'>".$v['model']." (".$v['plate_number'].") - ".$v['capacity']." ບ່ອນນັ່ງ</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
                 <div class="col-md-3">
                     <label class="form-label fw-bold">ລາຄາ (ກີບ)</label>
                     <input type="number" name="price" class="form-control" required>
@@ -35,15 +47,15 @@ include '../../includes/sidebar.php';
                     <input type="file" name="image" class="form-control" accept="image/*" required>
                 </div>
                 <div class="col-md-12">
-                    <label class="form-label fw-bold text-danger">ລາຍລະອຽດແຜນການເດີນທາງ (ມື້ທີ 1, 2, 3... ແລະ ເວລາ)</label>
-                    <textarea name="itinerary" class="form-control" rows="5" placeholder="ຕົວຢ່າງ: &#10;08:00 - ເດີນທາງອອກຈາກວຽງຈັນ&#10;12:00 - ກິນເຂົ້າສວຍຢູ່ເຂື່ອນນ້ຳງື່ມ..."></textarea>
+                    <label class="form-label fw-bold text-danger">ລາຍລະອຽດແຜນການເດີນທາງ</label>
+                    <textarea name="itinerary" class="form-control" rows="4"></textarea>
                 </div>
                 <div class="col-md-12">
-                    <label class="form-label fw-bold text-success">ກິດຈະກຳຫຼັກ (Activities)</label>
-                    <textarea name="activities" class="form-control" rows="3" placeholder="ຕົວຢ່າງ: ຂີ່ເຮືອຊົມວິວ, ຕັກບາດຍາມເຊົ້າ, ທ່ຽວຕາດກວາງຊີ..."></textarea>
+                    <label class="form-label fw-bold text-success">ກິດຈະກຳຫຼັກ</label>
+                    <textarea name="activities" class="form-control" rows="2"></textarea>
                 </div>
                 <div class="col-12 mt-4 text-end">
-                    <button type="submit" name="save_tour" class="btn btn-primary px-5 rounded-pill shadow">ບັນທຶກຂໍ້ມູນທົວ</button>
+                    <button type="submit" name="save_tour" class="btn btn-primary px-5 rounded-pill shadow">ບັນທຶກຂໍ້ມູນ</button>
                     <a href="index.php" class="btn btn-light border px-4 rounded-pill ms-2">ຍົກເລີກ</a>
                 </div>
             </div>
