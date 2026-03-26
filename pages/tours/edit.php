@@ -20,32 +20,37 @@ $row = mysqli_fetch_assoc($res);
 
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label">ຊື່ແພັກເກັດທົວ</label>
+                    <label class="form-label fw-bold">ຊື່ແພັກເກັດທົວ</label>
                     <input type="text" name="tour_name" class="form-control" value="<?php echo $row['tour_name']; ?>" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">ລາຄາ (ກີບ)</label>
+                    <label class="form-label fw-bold">ລາຄາ (ກີບ)</label>
                     <input type="number" name="price" class="form-control" value="<?php echo $row['price']; ?>" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">ໄລຍະເວລາ</label>
+                    <label class="form-label fw-bold">ໄລຍະເວລາ</label>
                     <input type="text" name="duration" class="form-control" value="<?php echo $row['duration']; ?>">
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">ຮູບພາບ (ປະໄວ້ຖ້າບໍ່ຕ້ອງການປ່ຽນ)</label>
-                    <input type="file" name="image" class="form-control" accept="image/*">
-                    <img src="../../assets/uploads/tours/<?php echo $row['image']; ?>" class="mt-2 rounded" width="100">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">ຈຳນວນບ່ອນນັ່ງທັງໝົດ</label>
+                    <input type="number" name="max_seats" class="form-control" value="<?php echo $row['max_seats']; ?>" min="1" required>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">ສະຖານະ</label>
+                <div class="col-md-5">
+                    <label class="form-label fw-bold">ຮູບພາບ (ປະໄວ້ຖ້າບໍ່ຕ້ອງການປ່ຽນ)</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">ສະຖານະ</label>
                     <select name="status" class="form-select">
-                        <option value="Active" <?php if($row['status']=='Active') echo 'selected'; ?>>Active</option>
-                        <option value="Inactive" <?php if($row['status']=='Inactive') echo 'selected'; ?>>Inactive</option>
+                        <option value="Active" <?php if($row['status']=='Active') echo 'selected'; ?>>Active (ເປີດໃຫ້ຈອງ)</option>
+                        <option value="Inactive" <?php if($row['status']=='Inactive') echo 'selected'; ?>>Inactive (ປິດຊົ່ວຄາວ)</option>
                     </select>
                 </div>
-                <div class="col-12 mt-4">
-                    <button type="submit" name="update_tour" class="btn btn-warning px-5">ບັນທຶກການປ່ຽນແປງ</button>
-                    <a href="index.php" class="btn btn-light border px-4">ຍົກເລີກ</a>
+                <div class="col-12 mt-4 pt-3 border-top text-center">
+                    <img src="../../assets/uploads/tours/<?php echo $row['image']; ?>" class="rounded mb-3 border shadow-sm" width="200">
+                    <br>
+                    <button type="submit" name="update_tour" class="btn btn-warning px-5 rounded-pill shadow">ບັນທຶກການປ່ຽນແປງ</button>
+                    <a href="index.php" class="btn btn-light border px-4 rounded-pill ms-2">ຍົກເລີກ</a>
                 </div>
             </div>
         </form>

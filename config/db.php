@@ -12,13 +12,19 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', 'http://localhost/tour_booking_system/');
 }
 
-// --- ບ່ອນແກ້ໄຂ Logic ການປ້ອງກັນ ---
+// --- ບ່ອນແກ້ໄຂ: ເພີ່ມລາຍຊື່ໜ້າທີ່ລູກຄ້າເຂົ້າເບິ່ງໄດ້ໂດຍບໍ່ຕ້ອງ Login ---
 $current_page = basename($_SERVER['PHP_SELF']);
-// ເພີ່ມ auth_action.php ເຂົ້າໄປໃນເງື່ອນໄຂ
-$allowed_pages = ['login.php', 'auth_action.php', 'setup_db.php', 'schema.php'];
+$allowed_pages = [
+    'login.php', 
+    'auth_action.php', 
+    'setup_db.php', 
+    'index.php',           // ໜ້າລາຍການທົວ
+    'booking_form.php',     // ໜ້າຟອມຈອງ
+    'process_booking.php'   // ໜ້າບັນທຶກການຈອງ
+];
 
+// ກວດສອບສິດ: ຖ້າຢູ່ໜ້າທີ່ບໍ່ໄດ້ຮັບອະນຸຍາດ ແລະ ຍັງບໍ່ Login ໃຫ້ເດັ້ງໄປ Login
 if (!in_array($current_page, $allowed_pages) && !isset($_SESSION['user_id'])) {
-    // ກວດເຊັກ Path ໃຫ້ຖືກຕ້ອງ
     $path = (strpos($_SERVER['PHP_SELF'], 'pages/') !== false) ? '../../login.php' : 'login.php';
     header("Location: $path");
     exit();
