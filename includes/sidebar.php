@@ -27,6 +27,12 @@
                 <i class="fas fa-money-bill-wave me-2 text-success"></i> ການຊຳລະເງິນ
             </a>
         </li>
+        <!-- ຕື່ມໃສ່ລຸ່ມເມນູການຊຳລະເງິນ -->
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/users/index.php">
+                <i class="fas fa-user-shield me-2 text-danger"></i> ຈັດການຜູ້ໃຊ້
+            </a>
+        </li>
         <hr>
         <div class="px-3 mb-4 border-bottom pb-3">
             <small class="text-muted d-block">ຜູ້ໃຊ້ງານ:</small>

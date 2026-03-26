@@ -57,31 +57,48 @@
                 $remaining = $row['max_seats'] - $booked_count;
         ?>
         <div class="col-md-4">
+            <!-- ບ່ອນ Loop ສະແດງ Card ທົວ -->
             <div class="card tour-card shadow-sm h-100">
                 <img src="assets/uploads/tours/<?php echo $row['image']; ?>" class="card-img-top tour-img">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-bold text-dark mb-1"><?php echo $row['tour_name']; ?></h5>
-                    <p class="text-muted small mb-2"><i class="far fa-clock me-1"></i> ໄລຍະເວລາ: <?php echo $row['duration']; ?></p>
-                    
-                    <!-- ສະແດງບ່ອນນັ່ງ -->
-                    <div class="mb-3">
-                        <small class="text-muted"><i class="fas fa-chair me-1"></i> ບ່ອນນັ່ງຫວ່າງ:</small>
-                        <span class="badge <?php echo ($remaining <= 2) ? 'bg-danger' : 'bg-success'; ?> ms-1">
-                            <?php echo $remaining; ?> / <?php echo $row['max_seats']; ?>
-                        </span>
+                    <h5 class="card-title fw-bold text-dark"><?php echo $row['tour_name']; ?></h5>
+                    <div class="mb-2">
+                        <span class="badge bg-light text-primary border"><i class="fas fa-utensils me-1"></i> ອາຫານ <?php echo $row['meals']; ?> ຄາບ</span>
+                        <span class="badge bg-light text-success border"><i class="fas fa-clock me-1"></i> <?php echo $row['duration']; ?></span>
                     </div>
+                    
+                    <!-- ໂຊກິດຈະກຳຫຍໍ້ໆ -->
+                    <p class="small text-muted mb-3 text-truncate"><?php echo $row['activities']; ?></p>
 
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <div>
-                            <small class="text-muted d-block">ລາຄາເລີ່ມຕົ້ນ</small>
-                            <span class="price-tag"><?php echo number_format($row['price']); ?> <small style="font-size: 0.8rem;">ກີບ</small></span>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="price-tag text-danger fw-bold"><?php echo number_format($row['price']); ?> ກີບ</span>
                         
-                        <?php if($remaining > 0): ?>
-                            <a href="booking_form.php?tour_id=<?php echo $row['tour_id']; ?>" class="btn btn-primary rounded-pill px-4 shadow-sm">ຈອງເລີຍ</a>
-                        <?php else: ?>
-                            <button class="btn btn-secondary rounded-pill px-4" disabled>ເຕັມແລ້ວ</button>
-                        <?php endif; ?>
+                        <!-- ປຸ່ມເບິ່ງແຜນການເດີນທາງ -->
+                        <button class="btn btn-outline-info btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#modal<?php echo $row['tour_id']; ?>">ລາຍລະອຽດ</button>
+                        
+                        <a href="booking_form.php?tour_id=<?php echo $row['tour_id']; ?>" class="btn btn-primary btn-sm rounded-pill shadow-sm">ຈອງເລີຍ</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal ສະແດງແຜນການເດີນທາງ -->
+            <div class="modal fade" id="modal<?php echo $row['tour_id']; ?>" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content rounded-4 border-0">
+                        <div class="modal-header bg-primary text-white border-0">
+                            <h5 class="modal-title fw-bold">ແຜນການເດີນທາງ: <?php echo $row['tour_name']; ?></h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <h6 class="fw-bold text-primary"><i class="fas fa-map-marker-alt me-2"></i>ຕາຕະລາງການທ່ອງທ່ຽວ:</h6>
+                            <div class="bg-light p-3 rounded-3 mb-4" style="white-space: pre-line;">
+                                <?php echo $row['itinerary']; ?>
+                            </div>
+                            <h6 class="fw-bold text-success"><i class="fas fa-star me-2"></i>ກິດຈະກຳ ແລະ ສິ່ງທີ່ທ່ານຈະໄດ້ຮັບ:</h6>
+                            <p><?php echo $row['activities']; ?></p>
+                            <hr>
+                            <p class="mb-0 text-muted">ອາຫານທັງໝົດ: <strong><?php echo $row['meals']; ?></strong> ຄາບ</p>
+                        </div>
                     </div>
                 </div>
             </div>

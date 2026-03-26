@@ -5,7 +5,10 @@ $tables = [
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         duration VARCHAR(100),
-        max_seats INT DEFAULT 10, -- ເພີ່ມແຖວນີ້ເຂົ້າໄປ
+        itinerary TEXT,          -- ເພີ່ມແຜນການເດີນທາງ
+        meals INT DEFAULT 0,     -- ເພີ່ມຈຳນວນຄາບອາຫານ
+        activities TEXT,         -- ເພີ່ມກິດຈະກຳ
+        max_seats INT DEFAULT 10,
         image VARCHAR(255),
         status ENUM('Active', 'Inactive') DEFAULT 'Active'
     )",
