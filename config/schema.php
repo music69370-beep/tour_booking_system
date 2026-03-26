@@ -4,9 +4,18 @@ $tables = [
         vehicle_id INT PRIMARY KEY AUTO_INCREMENT,
         plate_number VARCHAR(20) NOT NULL,
         model VARCHAR(100),
+        vehicle_type VARCHAR(50),      -- ປະເພດລົດ
         capacity INT,
+        insurance_expiry DATE,        -- ວັນໝົດອາຍຸປະກັນໄພ
+        amenities TEXT,               -- ອຸປະກອນເສີມ
         driver_name VARCHAR(100),
         driver_phone VARCHAR(20),
+        license_number VARCHAR(50),   -- ເລກໃບຂັບຂີ່
+        license_expiry DATE,          -- ວັນໝົດອາຍຸໃບຂັບຂີ່
+        experience_years INT,         -- ປະສົບການ (ປີ)
+        emergency_contact VARCHAR(255), -- ຕິດຕໍ່ສຸກເສີນ
+        driver_image VARCHAR(255),    -- ຮູບຄົນຂັບ
+        license_image VARCHAR(255),   -- ຮູບໃບຂັບຂີ່
         status ENUM('Available', 'Busy', 'Maintenance') DEFAULT 'Available'
     )",
     "tours" => "CREATE TABLE IF NOT EXISTS tours (
