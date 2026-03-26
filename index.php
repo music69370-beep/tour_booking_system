@@ -242,25 +242,63 @@
             </div>
 
             <!-- Modal -->
+            <!-- ຊອກຫາບ່ອນສະແດງ Modal ໃນ index.php ຢູ່ນອກສຸດ ແລ້ວວາງ Code ນີ້ທັບ -->
             <div class="modal fade" id="modal<?php echo $row['tour_id']; ?>" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered">
-                    <div class="modal-content rounded-5 border-0">
-                        <div class="modal-header bg-primary text-white border-0 p-4">
-                            <h5 class="modal-title fw-bold fs-4"><?php echo $row['tour_name']; ?></h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body p-4 p-lg-5">
-                            <div class="row">
-                                <div class="col-md-6 mb-4 mb-md-0">
-                                    <img src="assets/uploads/tours/<?php echo $row['image']; ?>" class="img-fluid rounded-4 shadow">
-                                </div>
-                                <div class="col-md-6">
-                                    <h5 class="fw-bold text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>ແຜນການເດີນທາງ</h5>
-                                    <div class="bg-light p-3 rounded-4 mb-4" style="white-space: pre-line; max-height: 300px; overflow-y: auto;">
-                                        <?php echo $row['itinerary']; ?>
+                    <div class="modal-content rounded-5 border-0 overflow-hidden shadow-lg">
+                        <div class="modal-body p-0">
+                            <div class="row g-0">
+                                <!-- ເບື້ອງຊ້າຍ: Slide ຮູບພາບ -->
+                                <div class="col-md-6 bg-dark">
+                                    <?php 
+                                    $tid = $row['tour_id'];
+                                    $gal_res = mysqli_query($conn, "SELECT * FROM tour_images WHERE tour_id = $tid");
+                                    ?>
+                                    <div id="carousel<?php echo $tid; ?>" class="carousel slide h-100" data-bs-ride="carousel">
+                                        <div class="carousel-inner h-100">
+                                            <!-- ຮູບຫຼັກ -->
+                                            <div class="carousel-item active h-100">
+                                                <img src="assets/uploads/tours/<?php echo $row['image']; ?>" class="d-block w-100 h-100" style="object-fit: cover; min-height: 450px;">
+                                            </div>
+                                            <!-- ຮູບ Gallery -->
+                                            <?php while($gal = mysqli_fetch_assoc($gal_res)): ?>
+                                            <div class="carousel-item h-100">
+                                                <img src="assets/uploads/tours/<?php echo $gal['image_name']; ?>" class="d-block w-100 h-100" style="object-fit: cover; min-height: 450px;">
+                                            </div>
+                                            <?php endwhile; ?>
+                                        </div>
+                                        <!-- ປຸ່ມເລື່ອນ -->
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel<?php echo $tid; ?>" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon"></span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel<?php echo $tid; ?>" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon"></span>
+                                        </button>
                                     </div>
-                                    <h6 class="fw-bold text-success mb-2"><i class="fas fa-star me-2"></i>ກິດຈະກຳ:</h6>
-                                    <p class="small text-muted"><?php echo $row['activities']; ?></p>
+                                </div>
+
+                                <!-- ເບື້ອງຂວາ: ລາຍລະອຽດ -->
+                                <div class="col-md-6 p-4 p-lg-5 bg-white">
+                                    <button type="button" class="btn-close float-end shadow-none" data-bs-dismiss="modal"></button>
+                                    <h3 class="fw-bold text-primary mb-1"><?php echo $row['tour_name']; ?></h3>
+                                    <p class="text-muted small mb-4"><i class="far fa-clock me-1"></i> <?php echo $row['duration']; ?> | <i class="fas fa-utensils me-1"></i> <?php echo $row['meals']; ?> ຄາບ</p>
+                                    
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-dark mb-2"><i class="fas fa-map-marker-alt me-2 text-primary"></i>ແຜນການເດີນທາງ</h6>
+                                        <div class="bg-light p-3 rounded-4 small text-muted" style="white-space: pre-line; max-height: 200px; overflow-y: auto;">
+                                            <?php echo $row['itinerary'] ?: 'ຍັງບໍ່ມີຂໍ້ມູນແຜນການເດີນທາງ'; ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <h6 class="fw-bold text-dark mb-2"><i class="fas fa-star me-2 text-success"></i>ກິດຈະກຳຫຼັກ</h6>
+                                        <p class="small text-muted mb-0"><?php echo $row['activities'] ?: 'ຍັງບໍ່ມີຂໍ້ມູນກິດຈະກຳ'; ?></p>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-5">
+                                        <h4 class="fw-bold text-danger mb-0"><?php echo number_format($row['price']); ?> <small class="fs-6 text-muted">ກີບ</small></h4>
+                                        <a href="booking_form.php?tour_id=<?php echo $row['tour_id']; ?>" class="btn btn-primary rounded-pill px-4 shadow">ຈອງເລີຍ</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -5,7 +5,6 @@ include '../../includes/sidebar.php';
 ?>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0">
-    <!-- ເອີ້ນໃຊ້ Navbar -->
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 pb-5">
@@ -28,7 +27,7 @@ include '../../includes/sidebar.php';
                             <?php 
                             $res_v = mysqli_query($conn, "SELECT * FROM vehicles WHERE status = 'Available'");
                             while($v = mysqli_fetch_assoc($res_v)) {
-                                echo "<option value='".$v['vehicle_id']."' data-cap='".$v['capacity']."'>".$v['model']." (".$v['plate_number'].") - ".$v['capacity']." ບ່ອນນັ່ງ</option>";
+                                echo "<option value='".$v['vehicle_id']."' data-cap='".$v['capacity']."'>".$v['model']." (".$v['plate_number'].")</option>";
                             }
                             ?>
                         </select>
@@ -36,11 +35,11 @@ include '../../includes/sidebar.php';
 
                     <div class="col-md-3">
                         <label class="form-label fw-bold small">ລາຄາ (ກີບ)</label>
-                        <input type="number" name="price" class="form-control bg-light border-0 shadow-none" placeholder="0" required>
+                        <input type="number" name="price" class="form-control bg-light border-0 shadow-none" required>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small">ໄລຍະເວລາ</label>
-                        <input type="text" name="duration" class="form-control bg-light border-0 shadow-none" placeholder="3 ມື้ 2 ຄືນ">
+                        <input type="text" name="duration" class="form-control bg-light border-0 shadow-none" placeholder="3 ມື້ 2 ຄືນ">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small">ຈຳນວນຄາບອາຫານ</label>
@@ -48,13 +47,21 @@ include '../../includes/sidebar.php';
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-primary">ບ່ອນນັ່ງທັງໝົດ</label>
-                        <input type="number" name="max_seats" id="max_seats" class="form-control bg-white border-primary fw-bold" value="0" required>
+                        <input type="number" name="max_seats" id="max_seats" class="form-control bg-white border-primary fw-bold" required>
                     </div>
 
-                    <div class="col-md-12">
-                        <label class="form-label fw-bold small">ຮູບພາບປະກອບ</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-primary">ຮູບໜ້າປົກ (Cover Image)</label>
                         <input type="file" name="image" class="form-control bg-light border-0 shadow-none" accept="image/*" required>
                     </div>
+
+                    <!-- *** ເພີ່ມຊ່ອງອັບໂຫລດ Gallery *** -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-success">ຮູບພາບອື່ນໆປະກອບ (Gallery - ເລືອກໄດ້ຫຼາຍຮູບ)</label>
+                        <input type="file" name="gallery[]" class="form-control bg-light border-0 shadow-none" accept="image/*" multiple>
+                        <small class="text-muted small">* ກົດ Ctrl ຄ້າງໄວ້ເພື່ອເລືອກຫຼາຍຮູບ</small>
+                    </div>
+
                     <div class="col-md-12">
                         <label class="form-label fw-bold small text-danger">ລາຍລະອຽດແຜນການເດີນທາງ</label>
                         <textarea name="itinerary" class="form-control bg-light border-0 shadow-none" rows="4" placeholder="ມື້ທີ 1: ...&#10;ມື້ທີ 2: ..."></textarea>
