@@ -11,6 +11,12 @@
                 <i class="fas fa-map-marked-alt me-2"></i> ແພັກເກັດທົວ
             </a>
         </li>
+        <!-- ເພີ່ມເມນູນີ້ເຂົ້າໄປ -->
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/customers/index.php">
+                <i class="fas fa-users me-2"></i> ຈັດການລູກຄ້າ
+            </a>
+        </li>
         <li class="nav-item">
             <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/bookings/index.php">
                 <i class="fas fa-calendar-check me-2"></i> ລາຍການຈອງ
