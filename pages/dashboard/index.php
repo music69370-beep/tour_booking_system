@@ -40,96 +40,145 @@ while($row = mysqli_fetch_assoc($pop_query)) {
 }
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
-        <h2 class="fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>ພາບລວມລະບົບ</h2>
-        <span class="badge bg-white text-dark border p-2 rounded-pill shadow-sm">
-            <i class="far fa-calendar-alt me-1"></i> <?php echo date('d/m/Y'); ?>
-        </span>
-    </div>
+<!-- ສ່ວນເນື້ອຫາຫຼັກ -->
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0">
+    
+    <!-- ເອີ້ນໃຊ້ Navbar ທີ່ເຮົາສ້າງໃໝ່ (ຂໍ້ມູນຜູ້ໃຊ້ຈະຢູ່ທີ່ນີ້) -->
+    <?php include '../../includes/navbar.php'; ?>
 
-    <!-- 1. Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-primary text-white">
-                <div class="d-flex align-items-center">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-map-marked-alt fa-lg"></i></div>
-                    <div>
-                        <p class="mb-0 small">ແພັກເກັດທົວ</p>
-                        <h3 class="fw-bold mb-0"><?php echo $tours_count; ?></h3>
-                    </div>
-                </div>
-            </div>
+    <div class="px-4 pb-5">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
+            <h2 class="fw-bold text-dark"><i class="fas fa-th-large text-primary me-2"></i>ແຜງຄວບຄຸມ (Dashboard)</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </nav>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-success text-white">
-                <div class="d-flex align-items-center">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-users fa-lg"></i></div>
-                    <div>
-                        <p class="mb-0 small">ລູກຄ້າທັງໝົດ</p>
-                        <h3 class="fw-bold mb-0"><?php echo $customers_count; ?></h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning text-dark">
-                <div class="d-flex align-items-center">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-clock fa-lg"></i></div>
-                    <div>
-                        <p class="mb-0 small">ລໍຖ້າຢືນຢັນ</p>
-                        <h3 class="fw-bold mb-0"><?php echo $pending_count; ?></h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-danger text-white">
-                <div class="d-flex align-items-center">
-                    <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-wallet fa-lg"></i></div>
-                    <div>
-                        <p class="mb-0 small">ລາຍຮັບລວມ (ກີບ)</p>
-                        <h4 class="fw-bold mb-0"><?php echo number_format($total_revenue); ?></h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- 2. Charts Section -->
-    <!-- 2. Charts Section -->
-    <div class="row g-4 mb-5">
-        <!-- ກຣາຟເສັ້ນ (ລາຍຮັບ) -->
-        <div class="col-md-8">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-body p-3"> <!-- ຫຼຸດ padding ເຫຼືອ p-3 -->
-                    <h5 class="fw-bold mb-3 ms-2">ແນວໂນ້ມລາຍຮັບ (7 ວັນຫຼ້າສຸດ)</h5>
-                    <div style="height: 350px; width: 100%;"> <!-- ປັບສູງເປັນ 350px -->
+        <!-- 1. Stats Cards Section -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-primary text-white h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-map-marked-alt fa-lg"></i></div>
+                        <div>
+                            <p class="mb-0 small opacity-75">ແພັກເກັດທົວ</p>
+                            <h3 class="fw-bold mb-0"><?php echo $tours_count; ?></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-success text-white h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-users fa-lg"></i></div>
+                        <div>
+                            <p class="mb-0 small opacity-75">ລູກຄ້າທັງໝົດ</p>
+                            <h3 class="fw-bold mb-0"><?php echo $customers_count; ?></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning text-dark h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-clock fa-lg"></i></div>
+                        <div>
+                            <p class="mb-0 small opacity-75">ລໍຖ້າຢືນຢັນ</p>
+                            <h3 class="fw-bold mb-0"><?php echo $pending_count; ?></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-danger text-white h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-25 p-3 rounded-circle me-3"><i class="fas fa-wallet fa-lg"></i></div>
+                        <div>
+                            <p class="mb-0 small opacity-75">ລາຍຮັບລວມ (ກີບ)</p>
+                            <h4 class="fw-bold mb-0"><?php echo number_format($total_revenue); ?></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Charts Section -->
+        <div class="row g-4 mb-4">
+            <!-- ກຣາຟເສັ້ນ (ລາຍຮັບ) -->
+            <div class="col-md-8">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                    <h5 class="fw-bold mb-4">ແນວໂນ້ມລາຍຮັບ (7 ວັນຫຼ້າສຸດ)</h5>
+                    <div style="height: 350px;">
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- ກຣາຟວົງມົນ (ທົວຂາຍດີ) -->
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100">
-                <div class="card-body p-3"> <!-- ຫຼຸດ padding ເຫຼືອ p-3 -->
-                    <h5 class="fw-bold mb-3 ms-2 text-center">5 ອັນດັບທົວຂາຍດີ</h5>
-                    <div style="height: 350px; width: 100%;"> <!-- ປັບສູງເປັນ 350px -->
+            
+            <!-- ກຣາຟວົງມົນ (ທົວຂາຍດີ) -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                    <h5 class="fw-bold mb-4 text-center">5 ອັນດັບທົວຂາຍດີ</h5>
+                    <div style="height: 350px;">
                         <canvas id="tourPieChart"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Recent Bookings Table -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="fw-bold mb-0 text-dark">ລາຍການຈອງຫຼ້າສຸດ</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">ວັນທີຈອງ</th>
+                                <th>ຊື່ລູກຄ້າ</th>
+                                <th>ທົວ</th>
+                                <th class="text-end">ລາຄາລວມ</th>
+                                <th class="text-center">ສະຖານະ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $res = mysqli_query($conn, "
+                                SELECT b.*, c.fullname, t.tour_name 
+                                FROM bookings b 
+                                JOIN customers c ON b.customer_id=c.customer_id 
+                                JOIN tours t ON b.tour_id=t.tour_id 
+                                ORDER BY b.booking_id DESC LIMIT 5
+                            ");
+                            while($row = mysqli_fetch_assoc($res)):
+                            ?>
+                            <tr>
+                                <td class="ps-4 small text-muted"><?php echo date('d/m/Y H:i', strtotime($row['booking_date'])); ?></td>
+                                <td class="fw-bold"><?php echo $row['fullname']; ?></td>
+                                <td><?php echo $row['tour_name']; ?></td>
+                                <td class="text-end fw-bold text-danger"><?php echo number_format($row['total_price']); ?></td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill <?php echo ($row['status']=='Confirmed') ? 'bg-success' : 'bg-warning text-dark'; ?>">
+                                        <?php echo $row['status']; ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-<!-- ເອີ້ນໃຊ້ Chart.js CDN -->
+<!-- Chart.js Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // 1. Line Chart: ລາຍຮັບ
     // 1. Line Chart: ລາຍຮັບ
     const ctxLine = document.getElementById('revenueChart').getContext('2d');
     new Chart(ctxLine, {
@@ -139,22 +188,22 @@ while($row = mysqli_fetch_assoc($pop_query)) {
             datasets: [{
                 label: 'ລາຍຮັບ (ກີບ)',
                 data: <?php echo json_encode($chart_data); ?>,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
                 fill: true,
                 tension: 0.4,
                 borderWidth: 3,
                 pointRadius: 4,
-                pointBackgroundColor: '#0d6efd'
+                pointBackgroundColor: '#4e73df'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { left: 0, right: 10, top: 0, bottom: 0 } }, // ຕັ້ງ padding ເປັນ 0
+            layout: { padding: { left: 0, right: 10, top: 0, bottom: 0 } },
             plugins: { legend: { display: false } },
             scales: { 
-                y: { beginAtZero: true, grid: { display: true } },
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
                 x: { grid: { display: false } }
             }
         }
@@ -168,25 +217,18 @@ while($row = mysqli_fetch_assoc($pop_query)) {
             labels: <?php echo json_encode($tour_names); ?>,
             datasets: [{
                 data: <?php echo json_encode($tour_bookings); ?>,
-                backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#6c757d'],
+                backgroundColor: ['#4e73df', '#1cc88a', '#f6c23e', '#e74a3b', '#858796'],
                 borderWidth: 0,
-                hoverOffset: 15 // ເພີ່ມ effect ເວລາເອົາເມົາສ໌ໄປຊີ້
+                hoverOffset: 15
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: 10 }, // ເພີ່ມໄລຍະຫ່າງໜ້ອຍໜຶ່ງໃຫ້ວົງມົນບໍ່ຕິດຂອບເກີນໄປ
-            cutout: '65%', // ປັບຂະໜາດຮູທາງໃນ
+            layout: { padding: 10 },
+            cutout: '70%',
             plugins: { 
-                legend: { 
-                    position: 'bottom', 
-                    labels: { 
-                        usePointStyle: true, 
-                        padding: 15, // ຫຼຸດໄລຍະຫ່າງຂອງ Legend
-                        font: { size: 12 }
-                    } 
-                } 
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } } 
             }
         }
     });

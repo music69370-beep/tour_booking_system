@@ -4,22 +4,23 @@ include '../../includes/header.php';
 include '../../includes/sidebar.php'; 
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2 class="fw-bold"><i class="fas fa-users-cog text-danger me-2"></i>ຈັດການບັນຊີຜູ້ໃຊ້</h2>
-        <a href="add.php" class="btn btn-danger rounded-pill px-4 shadow-sm">
-            <i class="fas fa-user-plus me-1"></i> ເພີ່ມຜູ້ໃຊ້ໃໝ່
-        </a>
-    </div>
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0">
+    <?php include '../../includes/navbar.php'; ?>
 
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-0">
+    <div class="px-4 pb-5">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h2 class="fw-bold"><i class="fas fa-users-cog text-danger me-2"></i>ຈັດການບັນຊີຜູ້ໃຊ້</h2>
+            <a href="add.php" class="btn btn-danger rounded-pill px-4 shadow-sm">
+                <i class="fas fa-user-plus me-1"></i> ເພີ່ມຜູ້ໃຊ້ໃໝ່
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light">
+                    <thead class="bg-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-4 py-3">ID</th>
-                            <th>ຊື່ເຕັມ</th>
+                            <th class="ps-4 py-3">ຊື່ເຕັມ</th>
                             <th>ຊື່ຜູ້ໃຊ້ (Username)</th>
                             <th>ລະດັບສິດ</th>
                             <th class="text-center">ຈັດການ</th>
@@ -32,20 +33,16 @@ include '../../includes/sidebar.php';
                         while($row = mysqli_fetch_assoc($result)):
                         ?>
                             <tr>
-                                <td class="ps-4 text-muted">#<?php echo $row['user_id']; ?></td>
-                                <td class="fw-bold"><?php echo $row['fullname']; ?></td>
+                                <td class="ps-4 fw-bold text-dark"><?php echo $row['fullname']; ?></td>
                                 <td><span class="badge bg-light text-dark border"><?php echo $row['username']; ?></span></td>
                                 <td>
-                                    <?php if($row['role'] == 'Admin'): ?>
-                                        <span class="badge bg-danger">Administrator</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-primary">Staff</span>
-                                    <?php endif; ?>
+                                    <span class="badge <?php echo ($row['role'] == 'Admin') ? 'bg-danger' : 'bg-primary'; ?> rounded-pill">
+                                        <?php echo $row['role']; ?>
+                                    </span>
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group shadow-sm border rounded-pill">
+                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
                                         <a href="edit.php?id=<?php echo $row['user_id']; ?>" class="btn btn-sm btn-white text-warning border-end"><i class="fas fa-edit"></i></a>
-                                        <!-- ປ້ອງກັນບໍ່ໃຫ້ລຶບ Admin ໂຕເອງ -->
                                         <?php if($row['username'] != $_SESSION['username']): ?>
                                             <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['user_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
                                         <?php endif; ?>
@@ -59,7 +56,5 @@ include '../../includes/sidebar.php';
         </div>
     </div>
 </main>
-
-<style> .btn-white { background-color: #fff; border: none; } .btn-white:hover { background-color: #f8f9fa; } </style>
-
+<style> .btn-white { background: #fff; border: none; } .btn-white:hover { background: #f8f9fa; } </style>
 <?php include '../../includes/footer.php'; ?>

@@ -4,19 +4,21 @@ include '../../includes/header.php';
 include '../../includes/sidebar.php'; 
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 main-content">
-    <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h2 class="fw-bold"><i class="fas fa-money-bill-wave text-success me-2"></i>ປະຫວັດການຊຳລະເງິນ</h2>
-        <a href="add.php" class="btn btn-success rounded-pill px-4 shadow-sm">
-            <i class="fas fa-plus-circle me-1"></i> ບັນທຶກການຮັບເງິນ
-        </a>
-    </div>
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0">
+    <?php include '../../includes/navbar.php'; ?>
 
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-0">
+    <div class="px-4 pb-5">
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h2 class="fw-bold"><i class="fas fa-money-bill-wave text-success me-2"></i>ປະຫວັດການຊຳລະເງິນ</h2>
+            <a href="add.php" class="btn btn-success rounded-pill px-4 shadow-sm">
+                <i class="fas fa-plus-circle me-1"></i> ບັນທຶກການຮັບເງິນ
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light">
+                    <thead class="bg-light text-muted small text-uppercase">
                         <tr>
                             <th class="ps-4 py-3">ID ໃບບິນ</th>
                             <th>ID ການຈອງ</th>
@@ -44,10 +46,10 @@ include '../../includes/sidebar.php';
                                 <td class="fw-bold"><?php echo $row['fullname']; ?></td>
                                 <td class="text-success fw-bold"><?php echo number_format($row['amount']); ?> ກີບ</td>
                                 <td><span class="badge bg-info text-dark"><?php echo $row['payment_method']; ?></span></td>
-                                <td><?php echo date('d/m/Y H:i', strtotime($row['payment_date'])); ?></td>
+                                <td class="small text-muted"><?php echo date('d/m/Y H:i', strtotime($row['payment_date'])); ?></td>
                                 <td class="text-center">
-                                    <a href="../../assets/uploads/payments/<?php echo $row['payment_slip']; ?>" target="_blank">
-                                        <img src="../../assets/uploads/payments/<?php echo $row['payment_slip']; ?>" class="rounded shadow-sm" width="50">
+                                    <a href="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['payment_slip']; ?>" target="_blank">
+                                        <img src="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['payment_slip']; ?>" class="rounded shadow-sm border" width="45" height="45" style="object-fit: cover;">
                                     </a>
                                 </td>
                             </tr>
