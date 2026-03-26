@@ -40,8 +40,16 @@ include '../../includes/sidebar.php';
                                 <td><?php echo $row['email']; ?></td>
                                 <td><?php echo $row['address']; ?></td>
                                 <td class="text-center">
-                                    <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-outline-warning rounded-pill"><i class="fas fa-edit"></i></a>
-                                    <a href="delete.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('ຢືນຢັນການລຶບ?')"><i class="fas fa-trash"></i></a>
+                                    <div class="btn-group shadow-sm border rounded-pill">
+                                        <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-white text-warning border-end">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" 
+                                           onclick="confirmDelete(<?php echo $row['customer_id']; ?>, 'delete.php')" 
+                                           class="btn btn-sm btn-white text-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endwhile; else: ?>
@@ -53,5 +61,10 @@ include '../../includes/sidebar.php';
         </div>
     </div>
 </main>
+
+<style>
+    .btn-white { background-color: #fff; }
+    .btn-white:hover { background-color: #f8f9fa; }
+</style>
 
 <?php include '../../includes/footer.php'; ?>
