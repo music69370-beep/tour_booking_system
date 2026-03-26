@@ -27,5 +27,15 @@
                 <i class="fas fa-money-bill-wave me-2 text-success"></i> ການຊຳລະເງິນ
             </a>
         </li>
+        <hr>
+        <div class="px-3 mb-4 border-bottom pb-3">
+            <small class="text-muted d-block">ຜູ້ໃຊ້ງານ:</small>
+            <span class="fw-bold text-dark"><?php echo $_SESSION['fullname']; ?></span>
+        </div>
+        <li class="nav-item">
+            <a class="nav-link text-danger" href="<?php echo BASE_URL; ?>logout.php" onclick="return confirm('ຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?')">
+                <i class="fas fa-sign-out-alt me-2"></i> ອອກຈາກລະບົບ
+            </a>
+        </li>
     </ul>
 </nav>

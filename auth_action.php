@@ -1,22 +1,38 @@
 <?php
-include 'config/db.php';
+// ຕ້ອງເອີ້ນໃຊ້ db.php ກ່ອນ
+require_once 'config/db.php';
 
-if(isset($_POST['login'])) {
+if (isset($_POST['login'])) {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password'];
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
 
     $sql = "SELECT * FROM users WHERE username = '$username'";
-    $result = mysqli_query($conn, $sql);
-    $user = mysqli_fetch_assoc($result);
-
-    // ໃນທີ່ນີ້ເຮົາຈະເຊັກແບບງ່າຍໆກ່ອນ (ຖ້າໃຊ້ງານແທ້ຄວນໃຊ້ password_hash)
-    if($user && $password == $user['password']) {
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['fullname'] = $user['fullname'];
-        header("Location: pages/dashboard/index.php");
+    $query = mysqli_query($conn, $sql);
+    
+    if ($query && mysqli_num_rows($query) > 0) {
+        $user = mysqli_fetch_assoc($query);
+        
+        // ກວດສອບລະຫັດຜ່ານ (ສົມທຽບຂໍ້ຄວາມທຳມະດາຕາມທີ່ເຈົ້າເພີ່ມໃນ SQL)
+        if ($password === $user['password']) {
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['fullname'] = $user['fullname'];
+            
+            // Login ສຳເລັດ ເດັ້ງໄປ Dashboard
+            header("Location: pages/dashboard/index.php");
+            exit();
+        } else {
+            // ລະຫັດຜ່ານຜິດ
+            header("Location: login.php?error=wrong_password");
+            exit();
+        }
     } else {
-        header("Location: login.php?error=1");
+        // ບໍ່ພົບຊື່ຜູ້ໃຊ້
+        header("Location: login.php?error=user_not_found");
+        exit();
     }
+} else {
+    header("Location: login.php");
+    exit();
 }
 ?>
