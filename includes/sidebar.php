@@ -1,0 +1,20 @@
+<nav class="col-md-2 d-none d-md-block sidebar shadow-sm p-3">
+    <h4 class="text-primary fw-bold mb-4"><i class="fas fa-plane"></i> Tour Booking</h4>
+    <ul class="nav flex-column gap-2">
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/dashboard/index.php">
+                <i class="fas fa-th-large me-2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/tours/index.php">
+                <i class="fas fa-map-marked-alt me-2"></i> ແພັກເກັດທົວ
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="<?php echo BASE_URL; ?>pages/bookings/index.php">
+                <i class="fas fa-calendar-check me-2"></i> ລາຍການຈອງ
+            </a>
+        </li>
+    </ul>
+</nav>
