@@ -2,6 +2,8 @@
 include '../../config/db.php'; 
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
+
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 ?>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0">
@@ -43,7 +45,7 @@ include '../../includes/sidebar.php';
                         $result = mysqli_query($conn, $sql);
 
                         while($row = mysqli_fetch_assoc($result)):
-                            $wa_msg = "ສະບາຍດີ " . $row['fullname'] . ", ຂ້ອຍຕິດຕໍ່ຈາກ TourBooking ກ່ຽວກັບການຈອງ " . $row['tour_name'] . "...";
+                            $wa_msg = "ສະບາຍດີ " . $row['fullname'] . ", ຂ້ອຍຕິດຕໍ່ຈາກ TourBooking...";
                             $wa_url = "https://wa.me/856" . str_replace([' ', '-', '020'], '', $row['phone']) . "?text=" . urlencode($wa_msg);
                         ?>
                             <tr>
@@ -55,15 +57,35 @@ include '../../includes/sidebar.php';
                                 <td class="text-center"><?php echo $row['num_people']; ?> ຄົນ</td>
                                 <td class="text-end fw-bold text-danger"><?php echo number_format($row['total_price']); ?></td>
                                 <td class="text-center">
-                                    <span class="badge rounded-pill <?php echo ($row['status']=='Confirmed') ? 'bg-success' : 'bg-warning text-dark'; ?>">
-                                        <?php echo $row['status']; ?>
-                                    </span>
+                                    <?php 
+                                    $status = $row['status'];
+                                    if ($status == 'Confirmed') {
+                                        echo '<span class="badge rounded-pill bg-success px-3 py-2">ຢືນຢັນແລ້ວ</span>';
+                                    } elseif ($status == 'Cancelled') {
+                                        echo '<span class="badge rounded-pill bg-danger px-3 py-2">ຍົກເລີກແລ້ວ</span>';
+                                    } else {
+                                        echo '<span class="badge rounded-pill bg-warning text-dark px-3 py-2">ລໍຖ້າອະນຸມັດ</span>';
+                                    }
+                                    ?>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
-                                        <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-sm btn-white text-success border-end"><i class="fab fa-whatsapp"></i></a>
-                                        <a href="view.php?id=<?php echo $row['booking_id']; ?>" class="btn btn-sm btn-white text-primary border-end"><i class="fas fa-eye"></i></a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['booking_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
+                                        <!-- ປຸ່ມອະນຸມັດດ່ວນ (ເອີ້ນໃຊ້ confirmApprove ໃໝ່) -->
+                                        <?php if($status == 'Pending'): ?>
+                                            <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $row['booking_id']; ?>, 'approve.php')" class="btn btn-sm btn-white text-success border-end" title="ກົດອະນຸມັດ">
+                                                <i class="fas fa-check-circle"></i>
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-sm btn-white text-info border-end" title="ຕິດຕໍ່ WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </a>
+                                        <a href="view.php?id=<?php echo $row['booking_id']; ?>" class="btn btn-sm btn-white text-primary border-end">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['booking_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -74,7 +96,5 @@ include '../../includes/sidebar.php';
         </div>
     </div>
 </main>
-
 <style> .btn-white { background: #fff; border: none; } .btn-white:hover { background: #f8f9fa; } </style>
-
 <?php include '../../includes/footer.php'; ?>
