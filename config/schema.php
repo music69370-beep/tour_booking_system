@@ -86,11 +86,15 @@ $tables = [
         travel_date DATE NOT NULL,
         num_people INT,
         total_price DECIMAL(15,2),
+        refund_amount DECIMAL(15,2) DEFAULT 0,
+        cancellation_cost DECIMAL(15,2) DEFAULT 0,
         status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
+        cancel_reason TEXT,
         booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
     )",
+    
      "booking_tasks" => "CREATE TABLE IF NOT EXISTS booking_tasks (
         task_id INT PRIMARY KEY AUTO_INCREMENT,
         booking_id INT,

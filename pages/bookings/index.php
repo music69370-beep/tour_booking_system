@@ -3,12 +3,11 @@ include '../../config/db.php';
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 
-// 1. ຮັບຄ່າການກັ່ນຕອງ ແລະ ການຄົ້ນຫາ
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content">
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 pb-5">
@@ -20,7 +19,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
             </div>
         </div>
 
-        <!-- 2. ປຸ່ມກັ່ນຕອງສະຖານະ -->
+        <!-- Filter Buttons & Search -->
         <div class="row mb-4 g-3">
             <div class="col-md-8">
                 <div class="btn-group p-1 bg-white shadow-sm rounded-pill">
@@ -46,7 +45,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                         <tr>
                             <th class="ps-4 py-3">ວັນທີເດີນທາງ</th>
                             <th>ລູກຄ້າ</th>
-                            <th>ແພັກເກັດທົວ / ຄວາມຄືບໜ້າ</th>
+                            <th>ແພັກເກັດ / ໄກ້ / ລົດ</th>
                             <th class="text-end">ລາຄາລວມ</th>
                             <th class="text-center">ສະຖານະ</th>
                             <th class="text-center">ຈັດການ</th>
@@ -54,11 +53,13 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, 
+                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, t.cost_per_person, v.plate_number, g.fullname as guide_name,
                                 (SELECT payment_slip FROM payments WHERE booking_id = b.booking_id LIMIT 1) as slip
                                 FROM bookings b
                                 JOIN customers c ON b.customer_id = c.customer_id
-                                JOIN tours t ON b.tour_id = t.tour_id";
+                                JOIN tours t ON b.tour_id = t.tour_id
+                                LEFT JOIN vehicles v ON t.vehicle_id = v.vehicle_id
+                                LEFT JOIN guides g ON t.guide_id = g.guide_id";
                         
                         $where = [];
                         if ($status_filter != 'all') $where[] = "b.status = '$status_filter'";
@@ -71,13 +72,13 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                         if(mysqli_num_rows($result) > 0):
                             while($row = mysqli_fetch_assoc($result)):
                                 $status = $row['status'];
-                                $has_slip = !empty($row['slip']);
                                 $bid = $row['booking_id'];
-                                $wa_url = "https://wa.me/856" . str_replace([' ', '-', '020'], '', $row['phone']);
-
-                                // ຄຳນວນເປີເຊັນ Checklist
-                                $t_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total, SUM(is_completed) as done FROM booking_tasks WHERE booking_id = $bid"));
-                                $progress = ($t_count['total'] > 0) ? round(($t_count['done'] / $t_count['total']) * 100) : 0;
+                                $has_slip = !empty($row['slip']);
+                                $profit = ($status != 'Cancelled') ? ($row['total_price'] - ($row['cost_per_person'] * $row['num_people'])) : 0;
+                                
+                                // Checklist Progress
+                                $t_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tot, SUM(is_completed) as done FROM booking_tasks WHERE booking_id = $bid"));
+                                $perc = ($t_res['tot'] > 0) ? round(($t_res['done'] / $t_res['tot']) * 100) : 0;
                         ?>
                             <tr>
                                 <td class="ps-4">
@@ -87,58 +88,52 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 <td>
                                     <div class="fw-bold text-dark">
                                         <?php if($has_slip): ?>
-                                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#slipModal<?php echo $bid; ?>"><i class="fas fa-file-invoice-dollar text-success me-1"></i></a>
+                                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#slipModal<?php echo $bid; ?>"><i class="fas fa-file-invoice-dollar text-success me-1" title="ເບິ່ງສະລິບ"></i></a>
                                         <?php endif; ?>
                                         <?php echo $row['fullname']; ?>
                                     </div>
                                     <small class="text-muted"><?php echo $row['phone']; ?></small>
                                 </td>
                                 <td>
-                                    <div class="small fw-bold"><?php echo $row['tour_name']; ?> (<?php echo $row['num_people']; ?> ຄົນ)</div>
-                                    <!-- ແຖບຄວາມຄືບໜ້າວຽກ -->
-                                    <div class="d-flex align-items-center mt-1">
-                                        <div class="progress flex-grow-1" style="height: 5px; max-width: 100px;">
-                                            <div class="progress-bar bg-warning" style="width: <?php echo $progress; ?>%"></div>
-                                        </div>
-                                        <small class="ms-2 text-muted" style="font-size: 0.65rem;"><?php echo $progress; ?>% ພ້ອມ</small>
+                                    <div class="small fw-bold text-dark"><?php echo $row['tour_name']; ?> (<?php echo $row['num_people']; ?> ຄົນ)</div>
+                                    <div class="text-muted mb-1" style="font-size: 0.7rem;"><i class="fas fa-user-tie me-1"></i><?php echo $row['guide_name'] ?: 'ຍັງບໍ່ມີໄກ້'; ?> | <i class="fas fa-bus me-1"></i><?php echo $row['plate_number'] ?: 'ຍັງບໍ່ມີລົດ'; ?></div>
+                                    <div class="progress" style="height: 4px; width: 100px;" title="ການກຽມຕົວ: <?php echo $perc; ?>%">
+                                        <div class="progress-bar bg-warning" style="width: <?php echo $perc; ?>%"></div>
                                     </div>
                                 </td>
-                                <td class="text-end fw-bold text-danger"><?php echo number_format($row['total_price']); ?> ກີບ</td>
+                                <td class="text-end">
+                                    <div class="fw-bold text-danger"><?php echo number_format($row['total_price']); ?></div>
+                                    <small class="text-success" style="font-size: 0.7rem;"><?php echo ($status != 'Cancelled') ? 'ກຳໄລ: +'.number_format($profit) : '<span class="text-danger">ຍົກເລີກແລ້ວ</span>'; ?></small>
+                                </td>
                                 <td class="text-center">
                                     <?php 
                                     if ($status == 'Confirmed') echo '<span class="badge rounded-pill bg-success px-3 py-2">ຢືນຢັນແລ້ວ</span>';
-                                    elseif ($status == 'Cancelled') echo '<span class="badge rounded-pill bg-danger px-3 py-2">ຍົກເລີກ</span>';
+                                    elseif ($status == 'Cancelled') echo '<span class="badge rounded-pill bg-danger px-3 py-2">ຍົກເລີກແລ້ວ</span>';
                                     else echo '<span class="badge rounded-pill bg-warning text-dark px-3 py-2">ລໍຖ້າອະນຸມັດ</span>';
                                     ?>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
                                         <?php if($status == 'Pending'): ?>
-                                            <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm <?php echo $has_slip ? 'btn-success text-white' : 'btn-white text-muted'; ?> border-end"><i class="fas fa-check-circle"></i></a>
+                                            <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm <?php echo $has_slip ? 'btn-success text-white' : 'btn-white text-muted'; ?> border-end" title="ອະນຸມັດ"><i class="fas fa-check-circle"></i></a>
                                         <?php endif; ?>
                                         <?php if($status != 'Cancelled'): ?>
-                                            <a href="javascript:void(0)" onclick="confirmCancel(<?php echo $bid; ?>, 'cancel.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm btn-white text-secondary border-end"><i class="fas fa-times-circle"></i></a>
+                                            <a href="cancel_form.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-secondary border-end" title="ຍົກເລີກ"><i class="fas fa-times-circle"></i></a>
                                         <?php endif; ?>
-                                        <a href="<?php echo $wa_url; ?>" target="_blank" class="btn btn-sm btn-white text-info border-end"><i class="fab fa-whatsapp"></i></a>
-                                        <a href="view.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-primary border-end"><i class="fas fa-eye"></i></a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $bid; ?>, 'delete.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
+                                        <a href="view.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-primary border-end" title="ເບິ່ງລາຍລະອຽດ"><i class="fas fa-eye"></i></a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $bid; ?>, 'delete.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm btn-white text-danger" title="ລຶບ"><i class="fas fa-trash"></i></a>
                                     </div>
                                 </td>
                             </tr>
-
-                            <!-- Modal ສະແດງສະລິບ -->
+                            
+                            <!-- Slip Modal -->
                             <?php if($has_slip): ?>
                             <div class="modal fade" id="slipModal<?php echo $bid; ?>" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content rounded-4 border-0">
-                                        <div class="modal-body text-center p-4">
-                                            <img src="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['slip']; ?>" class="img-fluid rounded-3 shadow" style="max-height: 500px;">
-                                            <div class="mt-4">
-                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ປິດ</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body text-center p-4">
+                                    <h5 class="fw-bold mb-3">ຫຼັກຖານການໂອນເງິນ</h5>
+                                    <img src="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['slip']; ?>" class="img-fluid rounded-3 shadow" style="max-height: 500px;">
+                                    <div class="mt-4"><button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ປິດ</button></div>
+                                </div></div></div>
                             </div>
                             <?php endif; ?>
 
