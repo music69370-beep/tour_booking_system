@@ -39,10 +39,20 @@ include '../../includes/sidebar.php';
                                 <td><i class="fas fa-phone-alt me-1 text-muted small"></i> <?php echo $row['phone']; ?></td>
                                 <td class="small text-muted"><?php echo $row['address'] ?: '-'; ?></td>
                                 <td class="text-center">
-                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
-                                        <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-white text-warning border-end"><i class="fas fa-edit"></i></a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['customer_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
-                                    </div>
+                                    <td class="text-center">
+                                        <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
+                                            <!-- ປຸ່ມແກ້ໄຂ -->
+                                            <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-white text-warning border-end">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <!-- ປຸ່ມລຶບ (ເອີ້ນໃຊ້ confirmDelete ຈາກ footer) -->
+                                            <a href="javascript:void(0)" 
+                                            onclick="confirmDelete(<?php echo $row['customer_id']; ?>, 'delete.php')" 
+                                            class="btn btn-sm btn-white text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
