@@ -33,14 +33,15 @@ include '../../includes/sidebar.php';
                         </select>
                     </div>
                     <!-- ຊອກຫາບ່ອນເລືອກລົດ (vehicle_id) ແລ້ວເພີ່ມ Code ນີ້ລຸ່ມມັນ -->
+                    <!-- ຊອກຫາສ່ວນເລືອກໄກ້ ໃນ add.php ແລ້ວວາງໂຕນີ້ໃສ່ໃຫ້ເປະ -->
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">ເລືອກໄກ້ຜູ້ນຳທ່ຽວ</label>
                         <select name="guide_id" class="form-select bg-light border-0 shadow-none" required>
                             <option value="">-- ກະລຸນາເລືອກໄກ້ --</option>
                             <?php 
-                            $res_g = mysqli_query($conn, "SELECT * FROM guides WHERE status = 'Available'");
+                            $res_g = mysqli_query($conn, "SELECT * FROM guides"); // ລອງດຶງທຸກຄົນມາກ່ອນ
                             while($g = mysqli_fetch_assoc($res_g)) {
-                                echo "<option value='".$g['guide_id']."'>".$g['fullname']." (ເວົ້າໄດ້: ".$g['languages'].")</option>";
+                                echo "<option value='".$g['guide_id']."'>".$g['fullname']."</option>";
                             }
                             ?>
                         </select>
