@@ -46,15 +46,25 @@ function confirmDelete(id, url) {
 function confirmApprove(id, url) {
     Swal.fire({
         title: 'ຢືນຢັນການອະນຸມັດ?',
-        text: "ທ່ານຕ້ອງການອະນຸມັດການຈອງນີ້ແທ້ບໍ່?",
+        text: "ລະບົບຈະອັບເດດສະຖານະ ແລະ ສົ່ງ Email ໃບຢັ້ງຢືນຫາລູກຄ້າ",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#198754',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'ອະນຸມັດທັນທີ',
-        cancelButtonText: 'ປິດ'
+        confirmButtonText: 'ອະນຸມັດ ແລະ ສົ່ງ Email',
+        cancelButtonText: 'ຍົກເລີກ',
+        reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
+            // ໂຊ Loading ບອກໃຫ້ແອດມິນລໍຖ້າ
+            Swal.fire({
+                title: 'ກຳລັງດຳເນີນການ...',
+                text: 'ກະລຸນາລໍຖ້າຈັກຄູ່ ລະບົບກຳລັງສົ່ງ Email ຫາລູກຄ້າ',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading()
+                }
+            });
             navigateTo(id, url);
         }
     })

@@ -80,22 +80,23 @@ if(!$data) { echo "ບໍ່ພົບຂໍ້ມູນການຈອງ"; exit
                 </div>
 
                 <!-- ຟອມອັບໂຫລດໃບບິນ -->
+                <!-- ຊອກຫາແຖວຟອມໃນ checkout.php ແລ້ວກວດເບິ່ງວ່າຄົບຕາມນີ້ບໍ່ -->
                 <form action="pages/payments/save.php" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="booking_id" value="<?php echo $booking_id; ?>">
                     <input type="hidden" name="payment_method" value="BCEL One (Scan QR)">
                     <input type="hidden" name="payment_date" value="<?php echo date('Y-m-d H:i:s'); ?>">
-                    <!-- ສົ່ງມາຈາກໜ້າບ້ານ -->
+                    
+                    <!-- *** ຈຸດສຳຄັນ: ຕ້ອງມີແຖວນີ້ເພື່ອບອກວ່າ ແມ່ນລູກຄ້າເປັນຄົນສົ່ງ *** -->
                     <input type="hidden" name="from_customer" value="1"> 
 
                     <div class="mb-4">
-                        <label class="form-label fw-bold"><i class="fas fa-cloud-upload-alt me-2"></i>ອັບໂຫລດໃບບິນ (Slip)</label>
+                        <label class="form-label fw-bold">ອັບໂຫລດໃບບິນ (Slip)</label>
                         <input type="file" name="payment_slip" class="form-control" accept="image/*" required>
                     </div>
 
                     <button type="submit" name="save_payment" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow">
                         ຢືນຢັນການສົ່ງຫຼັກຖານ
                     </button>
-                    <a href="index.php" class="btn btn-link w-100 text-muted mt-2 text-decoration-none">ຈ່າຍພາຍຫຼັງ</a>
                 </form>
             </div>
         </div>
