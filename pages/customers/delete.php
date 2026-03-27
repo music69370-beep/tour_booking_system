@@ -4,19 +4,32 @@ include '../../config/db.php';
 if (isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
 
-    // ກວດສອບກ່ອນວ່າລູກຄ້ານີ້ມີການຈອງທົວຄ້າງໄວ້ບໍ່ (ເພື່ອປ້ອງກັນຂໍ້ມູນ Error)
-    $check_booking = mysqli_query($conn, "SELECT booking_id FROM bookings WHERE customer_id = '$id'");
-    
-    if (mysqli_num_rows($check_booking) > 0) {
-        // ຖ້າມີການຈອງ ຫ້າມລຶບ ແຕ່ໃຫ້ແຈ້ງເຕືອນ
+    // ເລີ່ມ Transaction ເພື່ອຄວາມປອດໄພ
+    mysqli_begin_transaction($conn);
+
+    try {
+        // 1. ລຶບລາຍຊື່ຜູ້ຮ່ວມທາງ ທີ່ຜູກກັບການຈອງຂອງລູກຄ້ານີ້
+        mysqli_query($conn, "DELETE FROM booking_participants WHERE booking_id IN (SELECT booking_id FROM bookings WHERE customer_id = '$id')");
+
+        // 2. ລຶບປະຫວັດການຈ່າຍເງິນ ຂອງລູກຄ້ານີ້
+        mysqli_query($conn, "DELETE FROM payments WHERE booking_id IN (SELECT booking_id FROM bookings WHERE customer_id = '$id')");
+
+        // 3. ລຶບການຈອງ (Bookings) ຂອງລູກຄ້ານີ້
+        mysqli_query($conn, "DELETE FROM bookings WHERE customer_id = '$id'");
+
+        // 4. ລຶບຕົວລູກຄ້າ (Customer)
+        mysqli_query($conn, "DELETE FROM customers WHERE customer_id = '$id'");
+
+        // ຢືນຢັນການລຶບທັງໝົດ
+        mysqli_commit($conn);
+        header("Location: index.php?msg=deleted");
+        exit();
+
+    } catch (Exception $e) {
+        // ຖ້າຜິດພາດ ໃຫ້ຍົກເລີກທຸກຢ່າງ
+        mysqli_rollback($conn);
         header("Location: index.php?msg=error");
-    } else {
-        // ຖ້າບໍ່ມີການຈອງ ສາມາດລຶບໄດ້ເລີຍ
-        $sql = "DELETE FROM customers WHERE customer_id = '$id'";
-        if (mysqli_query($conn, $sql)) {
-            header("Location: index.php?msg=deleted");
-            exit();
-        }
+        exit();
     }
 }
 header("Location: index.php");
