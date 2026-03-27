@@ -91,7 +91,14 @@ $tables = [
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
     )",
-
+     "booking_tasks" => "CREATE TABLE IF NOT EXISTS booking_tasks (
+        task_id INT PRIMARY KEY AUTO_INCREMENT,
+        booking_id INT,
+        task_label VARCHAR(255) NOT NULL,
+        is_completed TINYINT(1) DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
+    )",
     "booking_participants" => "CREATE TABLE IF NOT EXISTS booking_participants (
         part_id INT PRIMARY KEY AUTO_INCREMENT,
         booking_id INT,
