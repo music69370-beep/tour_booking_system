@@ -23,19 +23,18 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
         body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f0f2f5; }
         .summary-card { border-radius: 20px; border: none; position: sticky; top: 100px; }
         .form-card { border-radius: 20px; border: none; }
-        .price-total { font-size: 2rem; color: #ff4757; font-weight: 700; }
     </style>
 </head>
 <body>
 
 <div class="container my-5">
     <div class="row g-4">
-        <!-- ເບື້ອງຊ້າຍ: ຟອມກອກຂໍ້ມູນ -->
         <div class="col-lg-7">
             <div class="card form-card shadow-sm p-4 p-md-5 bg-white">
                 <h3 class="fw-bold text-primary mb-4"><i class="fas fa-edit me-2"></i>ຂໍ້ມູນການຈອງ</h3>
                 
                 <form action="process_booking.php" method="POST">
+                    <!-- ສົ່ງຂໍ້ມູນເບື້ອງຫຼັງ -->
                     <input type="hidden" name="tour_id" value="<?php echo $tour_id; ?>">
                     <input type="hidden" name="price" id="tour_price" value="<?php echo $tour['price']; ?>">
 
@@ -47,6 +46,10 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ເບີໂທລະສັບ (WhatsApp)</label>
                             <input type="text" name="phone" class="form-control bg-light border-0 py-2" placeholder="020..." required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Email (ສຳລັບຮັບໃບຢັ້ງຢືນ)</label>
+                            <input type="email" name="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">ວັນທີເດີນທາງ</label>
@@ -65,43 +68,28 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         <div id="participant_inputs"></div>
                     </div>
 
-                    <!-- Notes -->
                     <div class="mt-4">
-                        <label class="form-label fw-bold small text-muted">ໝາຍເຫດ (ເຊັ່ນ: ແພ້ອາຫານ ຫຼື ສິ່ງທີ່ຕ້ອງການພິເສດ)</label>
+                        <label class="form-label fw-bold small text-muted">ໝາຍເຫດ</label>
                         <textarea name="note" class="form-control bg-light border-0" rows="3" placeholder="ລະບຸທີ່ນີ້..."></textarea>
                     </div>
 
                     <div class="mt-5 border-top pt-4">
                         <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">ຢືນຢັນການຈອງ</button>
-                        <a href="index.php" class="btn btn-link w-100 text-muted mt-2 text-decoration-none">ຍົກເລີກ</a>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- ເບື້ອງຂວາ: ສະຫຼຸບແພັກເກັດ -->
         <div class="col-lg-5">
             <div class="card summary-card shadow-lg overflow-hidden">
                 <img src="assets/uploads/tours/<?php echo $tour['image']; ?>" class="w-100" style="height: 200px; object-fit: cover;">
                 <div class="card-body p-4 bg-white">
-                    <span class="badge bg-primary mb-2"><?php echo $tour['category']; ?></span>
                     <h4 class="fw-bold"><?php echo $tour['tour_name']; ?></h4>
-                    <p class="text-muted small"><i class="fas fa-map-marker-alt text-danger me-2"></i>ນັດພົບ: <?php echo $tour['meeting_point']; ?></p>
-                    
-                    <hr>
-                    
-                    <h6 class="fw-bold text-success small"><i class="fas fa-check-circle me-2"></i>ສິ່ງທີ່ທ່ານຈະໄດ້ຮັບ:</h6>
-                    <div class="small text-muted mb-3" style="white-space: pre-line;"><?php echo $tour['whats_included']; ?></div>
-                    
-                    <div class="bg-light p-3 rounded-4 mt-4">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">ລາຄາຕໍ່ຄົນ:</span>
-                            <span class="fw-bold"><?php echo number_format($tour['price']); ?> ກີບ</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">ລາຄາລວມທັງໝົດ:</span>
-                            <span class="price-total" id="display_total"><?php echo number_format($tour['price']); ?></span>
-                        </div>
+                    <p class="text-muted small">ນັດພົບ: <?php echo $tour['meeting_point']; ?></p>
+                    <div class="bg-light p-3 rounded-4 mt-4 text-center">
+                        <span class="text-muted d-block">ລາຄາລວມທັງໝົດ:</span>
+                        <h2 class="text-danger fw-bold mb-0" id="display_total"><?php echo number_format($tour['price']); ?></h2>
+                        <small class="fw-bold">ກີບ</small>
                     </div>
                 </div>
             </div>
@@ -126,12 +114,10 @@ function generateParticipants() {
         }
     } else { section.style.display = 'none'; }
 }
-
 function updateTotal() {
     const price = document.getElementById('tour_price').value;
     const num = document.getElementById('num_people').value;
-    const total = price * num;
-    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(total);
+    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(price * num);
 }
 </script>
 </body>
