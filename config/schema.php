@@ -19,7 +19,7 @@ $tables = [
         status ENUM('Available', 'Busy', 'Maintenance') DEFAULT 'Available'
     )", 
 
-        "guides" => "CREATE TABLE IF NOT EXISTS guides (
+    "guides" => "CREATE TABLE IF NOT EXISTS guides (
         guide_id INT PRIMARY KEY AUTO_INCREMENT,
         fullname VARCHAR(100) NOT NULL,
         license_id VARCHAR(50),
@@ -43,7 +43,7 @@ $tables = [
     "tours" => "CREATE TABLE IF NOT EXISTS tours (
         tour_id INT PRIMARY KEY AUTO_INCREMENT,
         vehicle_id INT,
-        guide_id INT, -- ເພີ່ມບ່ອນເຊື່ອມຫາໄກ້
+        guide_id INT,
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         duration VARCHAR(100),
@@ -55,7 +55,6 @@ $tables = [
         status ENUM('Active', 'Inactive') DEFAULT 'Active'
     )",
 
-    // --- ເພີ່ມຕາຕະລາງເກັບຮູບພາບ Gallery ບ່ອນນີ້ ---
     "tour_images" => "CREATE TABLE IF NOT EXISTS tour_images (
         image_id INT PRIMARY KEY AUTO_INCREMENT,
         tour_id INT,
@@ -75,10 +74,21 @@ $tables = [
         booking_id INT PRIMARY KEY AUTO_INCREMENT,
         customer_id INT,
         tour_id INT,
+        travel_date DATE NOT NULL, -- *** ເພີ່ມ Column ນີ້ເພື່ອໃຊ້ກັບປະຕິທິນ ***
         num_people INT,
         total_price DECIMAL(15,2),
         status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
-        booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
+    )",
+
+    "booking_participants" => "CREATE TABLE IF NOT EXISTS booking_participants (
+        part_id INT PRIMARY KEY AUTO_INCREMENT,
+        booking_id INT,
+        participant_name VARCHAR(255),
+        participant_phone VARCHAR(20),
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
     )",
 
     "payments" => "CREATE TABLE IF NOT EXISTS payments (
@@ -87,7 +97,8 @@ $tables = [
         amount DECIMAL(15,2),
         payment_method VARCHAR(50),
         payment_slip VARCHAR(255),
-        payment_date DATETIME
+        payment_date DATETIME,
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE -- *** ເພີ່ມ FK ເພື່ອຄວາມປອດໄພຂອງຂໍ້ມູນ ***
     )",
 
     "users" => "CREATE TABLE IF NOT EXISTS users (
@@ -96,12 +107,5 @@ $tables = [
         password VARCHAR(255) NOT NULL,
         fullname VARCHAR(100),
         role ENUM('Admin', 'Staff') DEFAULT 'Staff'
-    )",
-    "booking_participants" => "CREATE TABLE IF NOT EXISTS booking_participants (
-        part_id INT PRIMARY KEY AUTO_INCREMENT,
-        booking_id INT,
-        participant_name VARCHAR(255),
-        participant_phone VARCHAR(20), -- ເພີ່ມ Column ເບີໂທ
-        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
     )"
 ];

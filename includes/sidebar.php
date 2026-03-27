@@ -90,6 +90,11 @@
                         <i class="fas fa-users me-2"></i> ລາຍຊື່ລູກຄ້າ
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/bookings/calendar.php">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i> ປະຕິທິນການຈອງ
+                    </a>
+                </li>
             </ul>
 
             <!-- Category: SYSTEM -->
