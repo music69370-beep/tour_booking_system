@@ -12,23 +12,27 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', 'http://localhost/tour_booking_system/');
 }
 
-$current_page = basename($_SERVER['PHP_SELF']);
-// --- ເພີ່ມ checkout.php ເຂົ້າໃນລາຍຊື່ Allowed Pages ---
-$allowed_pages = [
-    'login.php', 
-    'auth_action.php', 
-    'setup_db.php', 
-    'index.php', 
-    'booking_form.php', 
-    'process_booking.php',
-    'register.php', 
-    'register_action.php',
-    'checkout.php' // <--- ໜ້າໃໝ່ສຳລັບລູກຄ້າຈ່າຍເງິນ
-];
+// --- ລະບົບປ່ຽນພາສາ ---
+if (isset($_GET['lang'])) {
+    $_SESSION['lang'] = $_GET['lang'];
+}
 
-if (!in_array($current_page, $allowed_pages) && !isset($_SESSION['user_id'])) {
-    $path = (strpos($_SERVER['PHP_SELF'], 'pages/') !== false) ? '../../login.php' : 'login.php';
-    header("Location: $path");
+// ຖ້າຍັງບໍ່ເລືອກພາສາ ໃຫ້ເປັນພາສາລາວ (lao) ໂດຍເລີ່ມຕົ້ນ
+$current_lang = isset($_SESSION['lang']) ? $_SESSION['lang'] : 'lao';
+
+if ($current_lang == 'eng') {
+    include 'lang_eng.php';
+} else {
+    include 'lang_lao.php';
+}
+
+// ຄວາມປອດໄພ (Allowed Pages)
+$current_page = basename($_SERVER['PHP_SELF']);
+$frontend_pages = ['index.php', 'booking_form.php', 'process_booking.php', 'checkout.php', 'check_status.php', 'save_review.php', 'login.php', 'auth_action.php', 'register.php', 'register_action.php', 'setup_db.php'];
+
+if (!in_array($current_page, $frontend_pages) && !isset($_SESSION['user_id'])) {
+    $redirect_path = (strpos($_SERVER['PHP_SELF'], 'pages/') !== false) ? '../../login.php' : 'login.php';
+    header("Location: $redirect_path");
     exit();
 }
 ?>
