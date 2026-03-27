@@ -1,5 +1,5 @@
 <?php
-// ກວດສອບ Path ປັດຈຸບັນ
+// ກວດສອບ Path ປັດຈຸບັນເພື່ອເຮັດສີຄ້າງ (Active State)
 $current_page = $_SERVER['PHP_SELF'];
 ?>
 
@@ -25,7 +25,7 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
             </ul>
 
-            <!-- Category: ENTRY FORMS (ປ້ອນຂໍ້ມູນ) -->
+            <!-- Category: ENTRY FORMS (ຟອມປ້ອນຂໍ້ມູນໃໝ່) -->
             <h6 class="sidebar-heading px-3 mt-4 mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
                 ການບັນທຶກຂໍ້ມູນ (Entry Forms)
             </h6>
@@ -55,6 +55,12 @@ $current_page = $_SERVER['PHP_SELF'];
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
+                       href="<?php echo BASE_URL; ?>pages/coupons/add.php">
+                        <i class="fas fa-ticket-alt me-2 <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ສ້າງຄູປອງໃໝ່
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/customers/add.php">
                         <i class="fas fa-user-tag me-2 <?php echo (strpos($current_page, 'customers/add.php') !== false) ? 'text-white' : 'text-secondary'; ?>"></i> ເພີ່ມຂໍ້ມູນລູກຄ້າ
@@ -68,13 +74,13 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
             </ul>
 
-            <!-- Category: REPORTS & LISTS (ລາຍການທັງໝົດ) -->
+            <!-- Category: REPORTS & LISTS (ລາຍງານ ແລະ ລາຍການທັງໝົດ) -->
             <h6 class="sidebar-heading px-3 mt-4 mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
                 ລາຍງານ ແລະ ຈັດການ (Reports)
             </h6>
             <ul class="nav flex-column mb-3">
                 <li class="nav-item">
-                    <a class="nav-link text-dark py-2 rounded <?php echo (strpos($current_page, 'bookings/calendar.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'bookings/calendar.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/bookings/calendar.php">
                         <i class="fas fa-calendar-alt me-2 <?php echo (strpos($current_page, 'bookings/calendar.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ປະຕິທິນການຈອງ
                     </a>
@@ -89,6 +95,12 @@ $current_page = $_SERVER['PHP_SELF'];
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'payments/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/payments/index.php">
                         <i class="fas fa-file-invoice-dollar me-2 <?php echo (strpos($current_page, 'payments/index.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ປະຫວັດການຮັບເງິນ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
+                       href="<?php echo BASE_URL; ?>pages/coupons/index.php">
+                        <i class="fas fa-tags me-2 <?php echo (strpos($current_page, 'coupons/index.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ລາຍການຄູປອງທັງໝົດ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -140,7 +152,6 @@ $current_page = $_SERVER['PHP_SELF'];
 </nav>
 
 <style>
-    /* CSS ສໍາລັບ Sidebar */
     .sidebar { 
         height: 100vh; 
         overflow-y: auto; 
@@ -152,7 +163,7 @@ $current_page = $_SERVER['PHP_SELF'];
     }
     .nav-link { 
         font-size: 0.85rem; 
-        transition: all 0.2s; 
+        transition: all 0.2s ease-in-out; 
         padding: 10px 15px; 
         margin: 4px 10px; 
         border-radius: 10px !important; 
