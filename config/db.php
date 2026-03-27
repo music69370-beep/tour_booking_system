@@ -13,7 +13,7 @@ if (!defined('BASE_URL')) {
 }
 
 $current_page = basename($_SERVER['PHP_SELF']);
-// --- ເພີ່ມ register.php ແລະ register_action.php ບ່ອນນີ້ ---
+// --- ເພີ່ມ checkout.php ເຂົ້າໃນລາຍຊື່ Allowed Pages ---
 $allowed_pages = [
     'login.php', 
     'auth_action.php', 
@@ -22,7 +22,8 @@ $allowed_pages = [
     'booking_form.php', 
     'process_booking.php',
     'register.php', 
-    'register_action.php'
+    'register_action.php',
+    'checkout.php' // <--- ໜ້າໃໝ່ສຳລັບລູກຄ້າຈ່າຍເງິນ
 ];
 
 if (!in_array($current_page, $allowed_pages) && !isset($_SESSION['user_id'])) {

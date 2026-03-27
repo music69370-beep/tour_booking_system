@@ -4,7 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// 1. ຕັ້ງຄ່າ Toast (ແຈ້ງເຕືອນມຸມຂວາເທິງ ສໍາລັບຂໍ້ຄວາມສັ້ນໆ)
+// 1. ຕັ້ງຄ່າ Toast (ແຈ້ງເຕືອນມຸມຂວາເທິງ)
 const Toast = Swal.mixin({
     toast: true,
     position: 'top-end',
@@ -44,7 +44,7 @@ function confirmDelete(id, url) {
     })
 }
 
-// 4. ຟັງຊັນຢືນຢັນການອະນຸມັດ (ເພີ່ມໃໝ່ - Pop-up ກາງຈໍ)
+// 4. ຟັງຊັນຢືນຢັນການອະນຸມັດ (Pop-up ກາງຈໍ)
 function confirmApprove(id, url) {
     Swal.fire({
         title: 'ຢືນຢັນການອະນຸມັດ?',
@@ -55,6 +55,25 @@ function confirmApprove(id, url) {
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'ອະນຸມັດທັນທີ',
         cancelButtonText: 'ຍົກເລີກ',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url + "?id=" + id;
+        }
+    })
+}
+
+// 5. ຟັງຊັນຢືນຢັນການຍົກເລີກ (Pop-up ກາງຈໍ)
+function confirmCancel(id, url) {
+    Swal.fire({
+        title: 'ຢືນຢັນການຍົກເລີກ?',
+        text: "ທ່ານຕ້ອງການຍົກເລີກລາຍການຈອງນີ້ແທ້ບໍ່?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'ຍົກເລີກລາຍການ',
+        cancelButtonText: 'ປິດ',
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
