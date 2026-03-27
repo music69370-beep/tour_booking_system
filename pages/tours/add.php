@@ -61,7 +61,7 @@ include '../../includes/sidebar.php';
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold small text-primary">ບ່ອນນັ່ງທັງໝົດ</label>
-                        <input type="number" name="max_seats" id="max_seats" class="form-control bg-white border-primary fw-bold" required>
+                        <input type="number" name="max_seats" id="max_seats" value="10" class="form-control bg-light border-primary fw-bold" readonly>
                     </div>
 
                     <div class="col-md-6">
