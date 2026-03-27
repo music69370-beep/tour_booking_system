@@ -46,7 +46,7 @@ $tables = [
         guide_id INT,
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
-        cost_per_person DECIMAL(15,2) DEFAULT 0, -- ເພີ່ມ Column ຕົ້ນທຶນ
+        cost_per_person DECIMAL(15,2) DEFAULT 0,
         duration VARCHAR(100),
         itinerary TEXT,
         meals INT DEFAULT 0,
@@ -75,7 +75,7 @@ $tables = [
         booking_id INT PRIMARY KEY AUTO_INCREMENT,
         customer_id INT,
         tour_id INT,
-        travel_date DATE NOT NULL, -- *** ເພີ່ມ Column ນີ້ເພື່ອໃຊ້ກັບປະຕິທິນ ***
+        travel_date DATE NOT NULL,
         num_people INT,
         total_price DECIMAL(15,2),
         status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
@@ -99,7 +99,7 @@ $tables = [
         payment_method VARCHAR(50),
         payment_slip VARCHAR(255),
         payment_date DATETIME,
-        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE -- *** ເພີ່ມ FK ເພື່ອຄວາມປອດໄພຂອງຂໍ້ມູນ ***
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
     )",
 
     "users" => "CREATE TABLE IF NOT EXISTS users (
@@ -108,5 +108,18 @@ $tables = [
         password VARCHAR(255) NOT NULL,
         fullname VARCHAR(100),
         role ENUM('Admin', 'Staff') DEFAULT 'Staff'
+    )",
+
+    // --- ເພີ່ມຕາຕະລາງ Reviews ບ່ອນນີ້ ---
+    "reviews" => "CREATE TABLE IF NOT EXISTS reviews (
+        review_id INT PRIMARY KEY AUTO_INCREMENT,
+        tour_id INT,
+        customer_id INT,
+        rating INT CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        review_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status ENUM('Pending', 'Approved') DEFAULT 'Pending',
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
     )"
 ];

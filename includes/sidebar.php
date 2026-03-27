@@ -95,6 +95,12 @@
                         <i class="fas fa-calendar-alt me-2 text-primary"></i> ປະຕິທິນການຈອງ
                     </a>
                 </li>
+                <!-- ຕື່ມໃສ່ລຸ່ມເມນູ "ຈັດການຜູ້ໃຊ້" -->
+                <li class="nav-item">
+                    <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/reviews/index.php">
+                        <i class="fas fa-comment-dots me-2 text-warning"></i> ຈັດການຄຳຍ້ອງຍໍ
+                    </a>
+                </li>
             </ul>
 
             <!-- Category: SYSTEM -->
