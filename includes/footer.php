@@ -4,7 +4,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// 1. ຕັ້ງຄ່າ Toast (ແຈ້ງເຕືອນມຸມຂວາເທິງ)
 const Toast = Swal.mixin({
     toast: true,
     position: 'top-end',
@@ -13,23 +12,23 @@ const Toast = Swal.mixin({
     timerProgressBar: true
 });
 
-// 2. ກວດເຊັກ Parameter "msg" ຈາກ URL
 const urlParams = new URLSearchParams(window.location.search);
 const msg = urlParams.get('msg');
+if (msg === 'success') Toast.fire({ icon: 'success', title: 'ບັນທຶກຂໍ້ມູນສຳເລັດ!' });
+else if (msg === 'updated') Toast.fire({ icon: 'success', title: 'ອັບເດດຂໍ້ມູນສຳເລັດ!' });
+else if (msg === 'deleted') Toast.fire({ icon: 'info', title: 'ລຶບຂໍ້ມູນຮຽບຮ້ອຍແລ້ວ!' });
 
-if (msg === 'success') {
-    Toast.fire({ icon: 'success', title: 'ບັນທຶກຂໍ້ມູນສຳເລັດແລ້ວ!' });
-} else if (msg === 'updated') {
-    Toast.fire({ icon: 'success', title: 'ອັບເດດຂໍ້ມູນສຳເລັດແລ້ວ!' });
-} else if (msg === 'deleted') {
-    Toast.fire({ icon: 'info', title: 'ລຶບຂໍ້ມູນຮຽບຮ້ອຍແລ້ວ!' });
+// ຟັງຊັນລວມສຳລັບສົ່ງໄປຫາ URL
+function navigateTo(id, url) {
+    // ຖ້າ url ມີ ? ຢູ່ແລ້ວ ໃຫ້ໃຊ້ &id=, ຖ້າບໍ່ມີໃຫ້ໃຊ້ ?id=
+    const separator = url.includes('?') ? '&' : '?';
+    window.location.href = url + separator + "id=" + id;
 }
 
-// 3. ຟັງຊັນຢືນຢັນການລຶບ (Pop-up ກາງຈໍ)
 function confirmDelete(id, url) {
     Swal.fire({
         title: 'ຢືນຢັນການລຶບ?',
-        text: "ທ່ານແນ່ໃຈບໍ່ວ່າຈະລຶບຂໍ້ມູນນີ້? ເມື່ອລຶບແລ້ວບໍ່ສາມາດກູ້ຄືນໄດ້!",
+        text: "ຂໍ້ມູນນີ້ຈະຖືກລຶບອອກຈາກລະບົບຖາວອນ!",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -39,12 +38,11 @@ function confirmDelete(id, url) {
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = url + "?id=" + id;
+            navigateTo(id, url);
         }
     })
 }
 
-// 4. ຟັງຊັນຢືນຢັນການອະນຸມັດ (Pop-up ກາງຈໍ)
 function confirmApprove(id, url) {
     Swal.fire({
         title: 'ຢືນຢັນການອະນຸມັດ?',
@@ -54,16 +52,14 @@ function confirmApprove(id, url) {
         confirmButtonColor: '#198754',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'ອະນຸມັດທັນທີ',
-        cancelButtonText: 'ຍົກເລີກ',
-        reverseButtons: true
+        cancelButtonText: 'ປິດ'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = url + "?id=" + id;
+            navigateTo(id, url);
         }
     })
 }
 
-// 5. ຟັງຊັນຢືນຢັນການຍົກເລີກ (Pop-up ກາງຈໍ)
 function confirmCancel(id, url) {
     Swal.fire({
         title: 'ຢືນຢັນການຍົກເລີກ?',
@@ -73,11 +69,10 @@ function confirmCancel(id, url) {
         confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'ຍົກເລີກລາຍການ',
-        cancelButtonText: 'ປິດ',
-        reverseButtons: true
+        cancelButtonText: 'ປິດ'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = url + "?id=" + id;
+            navigateTo(id, url);
         }
     })
 }
