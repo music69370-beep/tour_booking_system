@@ -39,6 +39,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/guides/add.php">
+                        <i class="fas fa-user-tie me-2 text-primary"></i> ເພີ່ມໄກ້ຜູ້ນຳທ່ຽວ
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/customers/add.php">
                         <i class="fas fa-user-plus me-2 text-secondary"></i> ເພີ່ມຂໍ້ມູນລູກຄ້າ
                     </a>
@@ -73,6 +78,11 @@
                 <li class="nav-item">
                     <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/vehicles/index.php">
                         <i class="fas fa-shuttle-van me-2"></i> ລາຍການລົດທັງໝົດ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark py-2 rounded" href="<?php echo BASE_URL; ?>pages/guides/index.php">
+                        <i class="fas fa-id-badge me-2"></i> ລາຍການໄກ້ທັງໝົດ
                     </a>
                 </li>
                 <li class="nav-item">

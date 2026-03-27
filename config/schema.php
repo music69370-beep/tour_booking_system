@@ -17,11 +17,33 @@ $tables = [
         driver_image VARCHAR(255),
         license_image VARCHAR(255),
         status ENUM('Available', 'Busy', 'Maintenance') DEFAULT 'Available'
-    )",
+    )", 
 
+        "guides" => "CREATE TABLE IF NOT EXISTS guides (
+        guide_id INT PRIMARY KEY AUTO_INCREMENT,
+        fullname VARCHAR(100) NOT NULL,
+        license_id VARCHAR(50),
+        license_expiry DATE,
+        languages VARCHAR(255),
+        specialization VARCHAR(255),
+        exp_years INT,
+        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(100),
+        address TEXT,
+        bank_name VARCHAR(100),
+        bank_account VARCHAR(50),
+        emergency_contact_name VARCHAR(100),
+        emergency_contact_phone VARCHAR(20),
+        first_aid_certified TINYINT(1) DEFAULT 0,
+        image VARCHAR(255),
+        doc_attachment VARCHAR(255),
+        status ENUM('Available', 'Busy') DEFAULT 'Available'
+    )",
+    
     "tours" => "CREATE TABLE IF NOT EXISTS tours (
         tour_id INT PRIMARY KEY AUTO_INCREMENT,
         vehicle_id INT,
+        guide_id INT, -- ເພີ່ມບ່ອນເຊື່ອມຫາໄກ້
         tour_name VARCHAR(255) NOT NULL,
         price DECIMAL(15,2) NOT NULL,
         duration VARCHAR(100),
