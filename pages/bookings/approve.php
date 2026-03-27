@@ -1,17 +1,12 @@
 <?php
 include '../../config/db.php';
-
 if (isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
+    $status = isset($_GET['status']) ? $_GET['status'] : 'all'; // ຮັບຄ່າ status ເດີມ
 
-    // ອັບເດດສະຖານະເປັນ Confirmed
-    $sql = "UPDATE bookings SET status = 'Confirmed' WHERE booking_id = '$id'";
-
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php?msg=updated");
+    if (mysqli_query($conn, "UPDATE bookings SET status = 'Confirmed' WHERE booking_id = '$id'")) {
+        header("Location: index.php?msg=updated&status=$status"); // ສົ່ງຄ່າ status ກັບຄືນ
         exit();
-    } else {
-        echo "Error: " . mysqli_error($conn);
     }
 }
 ?>
