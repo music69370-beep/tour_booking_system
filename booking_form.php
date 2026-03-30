@@ -39,6 +39,10 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         <div class="col-md-12"><label class="form-label fw-bold small"><?php echo $lang['form_email']; ?></label><input type="email" name="email" class="form-control bg-light border-0" required></div>
                         <div class="col-md-6"><label class="form-label fw-bold small"><?php echo $lang['form_date']; ?></label><input type="date" name="travel_date" class="form-control border-primary" required></div>
                         <div class="col-md-6"><label class="form-label fw-bold small"><?php echo $lang['form_pax']; ?></label><input type="number" name="num_people" id="num_people" class="form-control fw-bold" value="1" min="1" max="<?php echo $remaining; ?>" oninput="updateTotal();" required></div>
+                        <div class="mt-4">
+                        <label class="form-label fw-bold small text-muted">ໝາຍເຫດ</label>
+                        <textarea name="note" class="form-control bg-light border-0" rows="3" placeholder="ລະບຸທີ່ນີ້..."></textarea>
+                    </div>
                     </div>
 
                     <!-- Promo Code Section -->
