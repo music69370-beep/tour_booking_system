@@ -12,7 +12,7 @@ if (isset($_POST['save_coupon'])) {
     $tour_id = !empty($_POST['specific_tour_id']) ? $_POST['specific_tour_id'] : 'NULL';
     $expiry = $_POST['expiry_date'];
     
-    // ເຊັກສະຖານະຈາກ Checkbox/Switch
+    // Logic ເຊັກສະຖານະຈາກ Switch: ຖ້າມີການສົ່ງຄ່າ 'Active' ມາໃຫ້ເປັນ 'Active', ຖ້າບໍ່ມີໃຫ້ເປັນ 'Inactive'
     $status = (isset($_POST['status']) && $_POST['status'] == 'Active') ? 'Active' : 'Inactive';
 
     // ກວດສອບລະຫັດຊ້ຳ

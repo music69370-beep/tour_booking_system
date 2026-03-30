@@ -18,11 +18,11 @@ include '../../includes/sidebar.php';
                 <!-- ສ່ວນທີ 1: ຂໍ້ມູນສ່ວນຫຼຸດ -->
                 <div class="col-md-7">
                     <div class="card border-0 shadow-sm rounded-4 p-4">
-                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-percentage me-2"></i>1. ຕັ້ງຄ່າສ່ວນຫຼຸດ</h5>
+                        <h5 class="fw-bold mb-4 text-primary">1. ຕັ້ງຄ່າສ່ວນຫຼຸດ</h5>
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label fw-bold small">ລະຫັດຄູປອງ (Promo Code)</label>
-                                <input type="text" name="code" class="form-control bg-light border-0 py-2 fw-bold text-primary" style="text-transform: uppercase;" placeholder="ຕົວຢ່າງ: DISCOUNT2024" required>
+                                <input type="text" name="code" class="form-control bg-light border-0 py-2 fw-bold text-primary" style="text-transform: uppercase;" placeholder="ຕົວຢ່າງ: BEEP2024" required>
                             </div>
                             
                             <div class="col-md-6">
@@ -33,20 +33,17 @@ include '../../includes/sidebar.php';
                                 </select>
                             </div>
 
-                            <!-- ບ໋ອກນີ້ຈະປ່ຽນ Label ແລະ Placeholder ອັດຕະໂນມັດ -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-primary" id="value_label">ມູນຄ່າສ່ວນຫຼຸດ (ກີບ)</label>
                                 <input type="number" name="discount_value" id="discount_value" class="form-control bg-light border-0 py-2 fw-bold" placeholder="0" required>
                             </div>
 
-                            <!-- ບ໋ອກເພພານສ່ວນຫຼຸດ: ຈະໂຊສະເພາະຕອນເລືອກ Percent (%) -->
                             <div class="col-md-12" id="max_discount_div" style="display:none;">
-                                <label class="form-label fw-bold small text-danger">ເພພານສ່ວນຫຼຸດສູງສຸດ (Max Discount Cap)</label>
+                                <label class="form-label fw-bold small text-danger">ເພພານສ່ວນຫຼຸດສູງສຸດ (ກີບ)</label>
                                 <div class="input-group">
                                     <input type="number" name="max_discount" class="form-control border-danger bg-white" value="0">
                                     <span class="input-group-text border-danger bg-danger text-white">ກີບ</span>
                                 </div>
-                                <small class="text-muted">ລະບຸຍອດເງິນສູງສຸດທີ່ຈະຫຼຸດໃຫ້ (ຕົວຢ່າງ: ຫຼຸດ 10% ແຕ່ບໍ່ເກີນ 50,000 ກີບ)</small>
                             </div>
 
                             <div class="col-md-12 border-top pt-3">
@@ -60,12 +57,11 @@ include '../../includes/sidebar.php';
                 <!-- ສ່ວນທີ 2: ເງື່ອນໄຂການນຳໃຊ້ -->
                 <div class="col-md-5">
                     <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-                        <h5 class="fw-bold mb-4 text-success"><i class="fas fa-user-shield me-2"></i>2. ເງື່ອນໄຂການນຳໃຊ້</h5>
+                        <h5 class="fw-bold mb-4 text-success">2. ເງື່ອນໄຂການນຳໃຊ້</h5>
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label fw-bold small">ຍອດຊື້ຂັ້ນຕ່ຳ (Minimum Spend)</label>
                                 <input type="number" name="min_spend" class="form-control bg-light border-0" value="0">
-                                <small class="text-muted">ຕ້ອງຈອງຢ່າງໜ້ອຍເທົ່າໃດ ຈຶ່ງຈະໃຊ້ໂຄ້ດນີ້ໄດ້</small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">ຈຳນວນສິດທັງໝົດ</label>
@@ -84,6 +80,14 @@ include '../../includes/sidebar.php';
                                     while($t = mysqli_fetch_assoc($tours)) echo "<option value='".$t['tour_id']."'>".$t['tour_name']."</option>";
                                     ?>
                                 </select>
+                            </div>
+                            <div class="col-md-12 mt-4 pt-3 border-top">
+                                <label class="form-label fw-bold small d-block mb-3">ສະຖານະເລີ່ມຕົ້ນ</label>
+                                <div class="form-check form-switch">
+                                    <!-- ຕັ້ງຄ່າ name="status" ແລະ value="Active" ພ້ອມ checked -->
+                                    <input class="form-check-input" type="checkbox" name="status" value="Active" id="activeSw" checked style="width: 3em; height: 1.5em; cursor: pointer;">
+                                    <label class="form-check-label fw-bold ms-2 mt-1" for="activeSw" style="cursor: pointer;">ເປີດໃຊ້ງານທັນທີ</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -108,21 +112,15 @@ function handleTypeChange() {
     const maxDiv = document.getElementById('max_discount_div');
 
     if (type === 'Percent') {
-        // ເມື່ອເລືອກເປັນ ເປີເຊັນ (%)
         valueLabel.innerHTML = 'ລະບຸເປີເຊັນສ່ວນຫຼຸດ (%)';
-        valueLabel.classList.replace('text-primary', 'text-success');
         discountValue.placeholder = 'ຕົວຢ່າງ: 10';
-        maxDiv.style.display = 'block'; // ໂຊບ໋ອກເພພານ
+        maxDiv.style.display = 'block';
     } else {
-        // ເມື່ອເລືອກເປັນ ຈຳນວນເງິນ (Fixed)
         valueLabel.innerHTML = 'ມູນຄ່າສ່ວນຫຼຸດ (ກີບ)';
-        valueLabel.classList.replace('text-success', 'text-primary');
         discountValue.placeholder = 'ຕົວຢ່າງ: 50000';
-        maxDiv.style.display = 'none'; // ຊ່ອນບ໋ອກເພພານ
+        maxDiv.style.display = 'none';
     }
 }
-
-// ເອີ້ນໃຊ້ທັນທີທີ່ໂຫລດໜ້າ ເພື່ອເຊັກຄ່າເລີ່ມຕົ້ນ
 handleTypeChange();
 </script>
 
