@@ -3,84 +3,169 @@ include '../../config/db.php';
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 
+// ຮັບຄ່າຄົ້ນຫາ (ຖ້າມີ)
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content">
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 pb-5">
         <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
-            <h2 class="fw-bold text-dark font-lao"><i class="fas fa-map-marked-alt text-primary me-2"></i>ລາຍການແພັກເກັດທົວ</h2>
+            <h2 class="fw-bold text-dark"><i class="fas fa-map-marked-alt text-primary me-2"></i>ລາຍງານແພັກເກັດທົວທັງໝົດ</h2>
             <div class="d-flex gap-2">
                 <form action="" method="GET" class="input-group shadow-sm rounded-pill overflow-hidden border">
-                    <input type="text" name="search" class="form-control border-0 px-3 shadow-none font-lao" placeholder="ຄົ້ນຫາ..." value="<?php echo $search; ?>">
+                    <input type="text" name="search" class="form-control border-0 px-3 shadow-none" placeholder="ຄົ້ນຫາຊື່ ຫຼື ລະຫັດ..." value="<?php echo $search; ?>">
                     <button class="btn btn-white bg-white border-0" type="submit"><i class="fas fa-search text-muted"></i></button>
                 </form>
-                <a href="add.php" class="btn btn-primary rounded-pill px-4 shadow-sm font-lao">+ ເພີ່ມທົວ</a>
+                <a href="add.php" class="btn btn-primary rounded-pill px-4 shadow-sm">+ ເພີ່ມທົວໃໝ່</a>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="bg-light text-muted small text-uppercase">
-                        <tr>
-                            <th class="ps-4 py-3">ຮູບພາບ</th>
-                            <th>ຊື່ແພັກເກັດ</th>
-                            <th class="text-center">ບ່ອນນັ່ງ (ຫວ່າງ)</th>
-                            <th class="text-end">ລາຄາຂາຍ</th>
-                            <th class="text-center">ສະຖານະ</th>
-                            <th class="text-center">ຈັດການ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $sql = "SELECT t.*, v.plate_number, g.fullname as guide_name FROM tours t LEFT JOIN vehicles v ON t.vehicle_id = v.vehicle_id LEFT JOIN guides g ON t.guide_id = g.guide_id";
-                        if ($search != '') $sql .= " WHERE t.tour_name LIKE '%$search%'";
-                        $sql .= " ORDER BY t.tour_id DESC";
-                        $result = mysqli_query($conn, $sql);
-
-                        if(mysqli_num_rows($result) > 0):
-                            while($row = mysqli_fetch_assoc($result)):
-                                $tid = $row['tour_id'];
-                                $booked = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as total FROM bookings WHERE tour_id = $tid AND status != 'Cancelled'"));
-                                $remaining = $row['max_seats'] - ($booked['total'] ?? 0);
-                        ?>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light text-muted small text-uppercase">
                             <tr>
-                                <td class="ps-4">
-                                    <img src="<?php echo BASE_URL; ?>assets/uploads/tours/<?php echo $row['image']; ?>" class="rounded-3 border" width="70" height="45" style="object-fit: cover;">
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark"><?php echo $row['tour_name']; ?></div>
-                                    <small class="text-muted">Code: <?php echo $row['tour_code']; ?></small>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge <?php echo ($remaining <= 2) ? 'bg-danger' : 'bg-info text-dark'; ?> rounded-pill">
-                                        <?php echo $remaining; ?> / <?php echo $row['max_seats']; ?>
-                                    </span>
-                                </td>
-                                <td class="text-end fw-bold text-danger"><?php echo number_format($row['price']); ?></td>
-                                <td class="text-center">
-                                    <span class="badge rounded-pill <?php echo ($row['status'] == 'Active') ? 'bg-success' : 'bg-secondary'; ?>">
-                                        <?php echo $row['status']; ?>
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group shadow-sm border rounded-pill">
-                                        <a href="edit.php?id=<?php echo $tid; ?>" class="btn btn-sm btn-white text-warning border-end"><i class="fas fa-edit"></i></a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $tid; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
-                                    </div>
-                                </td>
+                                <th class="ps-4 py-3">ຮູບພາບ</th>
+                                <th>ຂໍ້ມູນແພັກເກັດ</th>
+                                <th>ພາຫະນະ / ໄກ້</th>
+                                <th class="text-center">ບ່ອນນັ່ງ (ຫວ່າງ)</th>
+                                <th class="text-end">ລາຄາ / ກຳໄລ</th>
+                                <th class="text-center">ສະຖານະ</th>
+                                <th class="text-center">ຈັດການ</th>
                             </tr>
-                        <?php endwhile; else: ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນ</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php
+                            // SQL ດຶງຂໍ້ມູນທົວ ພ້ອມ Join ເອົາຂໍ້ມູນລົດ ແລະ ໄກ້
+                            $sql = "SELECT t.*, v.plate_number, v.model as car_model, g.fullname as guide_name 
+                                    FROM tours t
+                                    LEFT JOIN vehicles v ON t.vehicle_id = v.vehicle_id
+                                    LEFT JOIN guides g ON t.guide_id = g.guide_id";
+                            
+                            if ($search != '') {
+                                $sql .= " WHERE t.tour_name LIKE '%$search%' OR t.tour_code LIKE '%$search%'";
+                            }
+                            
+                            $sql .= " ORDER BY t.tour_id DESC";
+                            $result = mysqli_query($conn, $sql);
+
+                            if(mysqli_num_rows($result) > 0):
+                                while($row = mysqli_fetch_assoc($result)):
+                                    // ຄຳນວນບ່ອນນັ່ງຫວ່າງ
+                                    $tid = $row['tour_id'];
+                                    $booked_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as total FROM bookings WHERE tour_id = $tid AND status != 'Cancelled'"));
+                                    $booked_count = $booked_res['total'] ?? 0;
+                                    $remaining = $row['max_seats'] - $booked_count;
+                                    
+                                    // ຄຳນວນກຳໄລເບື້ອງຕົ້ນຕໍ່ຄົນ
+                                    $profit_per_pax = $row['price'] - $row['cost_per_person'];
+                            ?>
+                                <tr>
+                                    <td class="ps-4">
+                                        <img src="<?php echo BASE_URL; ?>assets/uploads/tours/<?php echo $row['image']; ?>" 
+                                             class="rounded-3 border shadow-sm" width="80" height="50" style="object-fit: cover;">
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark"><?php echo $row['tour_name']; ?></div>
+                                        <div class="d-flex gap-2 mt-1">
+                                            <span class="badge bg-light text-primary border small fw-normal"><?php echo $row['tour_code']; ?></span>
+                                            <span class="badge bg-primary-subtle text-primary small fw-normal"><?php echo $row['category']; ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-dark mb-1">
+                                            <i class="fas fa-bus me-1 text-muted"></i> <?php echo $row['car_model'] ?: 'ຍັງບໍ່ໄດ້ລະບຸ'; ?>
+                                            <span class="text-muted small">(<?php echo $row['plate_number']; ?>)</span>
+                                        </div>
+                                        <div class="small text-dark">
+                                            <i class="fas fa-user-tie me-1 text-muted"></i> <?php echo $row['guide_name'] ?: 'ຍັງບໍ່ມີໄກ້'; ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="fw-bold <?php echo ($remaining <= 2) ? 'text-danger' : 'text-success'; ?>">
+                                            <?php echo $remaining; ?> / <?php echo $row['max_seats']; ?>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">ຂັ້ນຕ່ຳ: <?php echo $row['min_pax']; ?> ຄົນ</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="fw-bold text-danger"><?php echo number_format($row['price']); ?></div>
+                                        <small class="text-success fw-bold" style="font-size: 0.7rem;">ກຳໄລ: +<?php echo number_format($profit_per_pax); ?></small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill <?php echo ($row['status'] == 'Active') ? 'bg-success' : 'bg-secondary'; ?>">
+                                            <?php echo ($row['status'] == 'Active') ? 'ເປີດ' : 'ປິດ'; ?>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
+                                            <!-- ປຸ່ມເບິ່ງລາຍລະອຽດທັງໝົດ (Modal) -->
+                                            <button class="btn btn-sm btn-white text-info border-end" data-bs-toggle="modal" data-bs-target="#viewTour<?php echo $tid; ?>" title="ເບິ່ງລາຍລະອຽດ">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="edit.php?id=<?php echo $tid; ?>" class="btn btn-sm btn-white text-warning border-end" title="ແກ້ໄຂ">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $tid; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal ສະແດງຂໍ້ມູນທົວແບບລະອຽດ -->
+                                <div class="modal fade" id="viewTour<?php echo $tid; ?>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content rounded-5 border-0 shadow-lg">
+                                            <div class="modal-header border-0 bg-primary text-white p-4">
+                                                <h5 class="modal-title fw-bold"><i class="fas fa-info-circle me-2"></i>ລາຍລະອຽດແພັກເກັດທົວ</h5>
+                                                <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body p-4 p-lg-5">
+                                                <div class="row g-4">
+                                                    <div class="col-md-5">
+                                                        <img src="<?php echo BASE_URL; ?>assets/uploads/tours/<?php echo $row['image']; ?>" class="img-fluid rounded-4 shadow-sm mb-3">
+                                                        <div class="bg-light p-3 rounded-4">
+                                                            <h6 class="fw-bold text-primary mb-2">ຈຸດເດັ່ນ (Highlights)</h6>
+                                                            <p class="small text-muted mb-0"><?php echo nl2br($row['highlights']); ?></p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-7">
+                                                        <h4 class="fw-bold mb-1"><?php echo $row['tour_name']; ?></h4>
+                                                        <p class="text-muted small mb-4">ID: <?php echo $row['tour_code']; ?> | <?php echo $row['category']; ?></p>
+                                                        
+                                                        <div class="row g-3">
+                                                            <div class="col-6"><small class="text-muted">ໄລຍະເວລາ:</small><p class="fw-bold mb-0"><?php echo $row['duration']; ?></p></div>
+                                                            <div class="col-6"><small class="text-muted">ອາຫານ:</small><p class="fw-bold mb-0"><?php echo $row['meals']; ?> ຄາບ</p></div>
+                                                            <div class="col-12"><small class="text-muted">ສະຖານທີ່ນັດພົບ:</small><p class="fw-bold mb-0"><?php echo $row['meeting_point']; ?></p></div>
+                                                            <div class="col-12"><hr class="my-2"></div>
+                                                            <div class="col-6"><h6 class="text-success fw-bold small">ສິ່ງທີ່ລວມ:</h6><p class="small text-muted"><?php echo nl2br($row['whats_included']); ?></p></div>
+                                                            <div class="col-6"><h6 class="text-danger fw-bold small">ບໍ່ລວມ:</h6><p class="small text-muted"><?php echo nl2br($row['whats_excluded']); ?></p></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            <?php endwhile; else: ?>
+                                <tr><td colspan="7" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນແພັກເກັດທົວ</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </main>
-<style> .btn-white { background:#fff; border:none; } .btn-white:hover { background:#f8f9fa; } </style>
+
+<style>
+    .btn-white { background-color: #fff; border: none; }
+    .btn-white:hover { background-color: #f8f9fa; }
+    .bg-primary-subtle { background-color: #e7f1ff; }
+</style>
+
 <?php include '../../includes/footer.php'; ?>
