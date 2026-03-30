@@ -3,6 +3,8 @@
 if(!isset($_GET['tour_id'])) { header("Location: index.php"); exit(); }
 
 $tour_id = mysqli_real_escape_string($conn, $_GET['tour_id']);
+
+// ດຶງຂໍ້ມູນທົວ
 $res = mysqli_query($conn, "SELECT * FROM tours WHERE tour_id = '$tour_id' AND status = 'Active'");
 $tour = mysqli_fetch_assoc($res);
 
@@ -12,8 +14,8 @@ if(!$tour) { header("Location: index.php"); exit(); }
 $booked = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as total FROM bookings WHERE tour_id = $tour_id AND status != 'Cancelled'"));
 $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
 
-// ກວດສອບລາຄາ (ກັນເໜືອຄວາມຄາດໝາຍ)
-$base_price = (float)$tour['price'];
+// ລາຄາພື້ນຖານຈາກຖານຂໍ້ມູນ
+$base_price = (float)$tour['price']; 
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo ($current_lang == 'lao') ? 'lo' : 'en'; ?>">
@@ -45,11 +47,12 @@ $base_price = (float)$tour['price'];
         <!-- ເບື້ອງຊ້າຍ: ຟອມກອກຂໍ້ມູນ -->
         <div class="col-lg-7">
             <div class="card form-card shadow-sm p-4 p-md-5 bg-white">
-                <h3 class="fw-bold text-primary mb-4"><i class="fas fa-edit me-2"></i><?php echo $lang['form_title']; ?></h3>
+                <h3 class="fw-bold text-primary mb-1"><i class="fas fa-edit me-2"></i><?php echo $lang['form_title']; ?></h3>
+                <p class="text-muted mb-4 small"><?php echo ($current_lang=='lao')?'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນເພື່ອສຳຮອງບ່ອນນັ່ງ':'Please fill in all details to reserve your seats'; ?></p>
                 
                 <form action="process_booking.php" method="POST">
                     <input type="hidden" name="tour_id" value="<?php echo $tour_id; ?>">
-                    <!-- ໃສ່ລາຄາລົງໃນ hidden input ໃຫ້ເປະ -->
+                    <!-- *** ຈຸດສຳຄັນ: ໃສ່ລາຄາລົງໃນ Hidden Input *** -->
                     <input type="hidden" name="price" id="tour_price" value="<?php echo $base_price; ?>">
 
                     <div class="row g-3">
@@ -65,13 +68,20 @@ $base_price = (float)$tour['price'];
                             <label class="form-label fw-bold small"><?php echo $lang['form_email']; ?></label>
                             <input type="email" name="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com" required>
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-primary"><?php echo $lang['form_date']; ?></label>
-                            <input type="date" name="travel_date" class="form-control py-2 border-primary" value="<?php echo date('Y-m-d'); ?>" required>
+                            <label class="form-label fw-bold text-danger"><?php echo $lang['form_date']; ?></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-danger text-danger"><i class="fas fa-calendar-alt"></i></span>
+                                <input type="text" class="form-control border-danger fw-bold text-danger bg-white" 
+                                       value="<?php echo date('d/m/Y', strtotime($tour['start_date'])); ?> - <?php echo date('d/m/Y', strtotime($tour['end_date'])); ?>" readonly>
+                                <input type="hidden" name="travel_date" value="<?php echo $tour['start_date']; ?>">
+                            </div>
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label fw-bold"><?php echo $lang['form_pax']; ?></label>
-                            <input type="number" name="num_people" id="num_people" class="form-control py-2 fw-bold text-primary" value="1" min="1" max="<?php echo $remaining; ?>" oninput="generateParticipants(); updateTotal();" required>
+                            <input type="number" name="num_people" id="num_people" class="form-control py-2 fw-bold text-primary border-primary" value="1" min="1" max="<?php echo $remaining; ?>" oninput="generateParticipants(); updateTotal();" required>
                             <small class="text-muted">ຫວ່າງ: <?php echo $remaining; ?> ບ່ອນ</small>
                         </div>
                     </div>
@@ -92,7 +102,7 @@ $base_price = (float)$tour['price'];
 
                     <div class="mt-4">
                         <label class="form-label fw-bold small text-muted"><?php echo $lang['form_note']; ?></label>
-                        <textarea name="note" class="form-control bg-light border-0" rows="3" placeholder="..."></textarea>
+                        <textarea name="note" class="form-control bg-light border-0" rows="3"></textarea>
                     </div>
 
                     <div class="mt-5 border-top pt-4">
@@ -110,13 +120,15 @@ $base_price = (float)$tour['price'];
         <!-- ເບື້ອງຂວາ: ສະຫຼຸບລາຄາ -->
         <div class="col-lg-5">
             <div class="card summary-card shadow-lg bg-white overflow-hidden border-0">
-                <img src="assets/uploads/tours/<?php echo $tour['image']; ?>" class="w-100" style="height: 200px; object-fit: cover;">
+                <div class="p-0 position-relative">
+                    <img src="assets/uploads/tours/<?php echo $tour['image']; ?>" class="w-100" style="height: 200px; object-fit: cover;">
+                </div>
                 <div class="card-body p-4 text-center">
                     <h4 class="fw-bold text-dark mb-4"><?php echo $tour['tour_name']; ?></h4>
                     
                     <div class="d-flex justify-content-between mb-2 small text-muted">
                         <span><?php echo ($current_lang=='lao')?'ລາຄາປົກກະຕິ':'Subtotal'; ?>:</span>
-                        <!-- ເພີ່ມ id="subtotal_display" ບ່ອນນີ້ -->
+                        <!-- *** ໂຊລາຄາເລີ່ມຕົ້ນດ້ວຍ PHP ເລີຍ *** -->
                         <span id="subtotal_display"><?php echo number_format($base_price); ?> LAK</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3 small text-success fw-bold">
@@ -126,6 +138,7 @@ $base_price = (float)$tour['price'];
 
                     <div class="bg-light p-4 rounded-4 border">
                         <span class="text-muted d-block small fw-bold text-uppercase mb-1"><?php echo $lang['form_total']; ?></span>
+                        <!-- *** ໂຊລາຄາລວມເລີ່ມຕົ້ນດ້ວຍ PHP ເລີຍ *** -->
                         <h1 class="price-total mb-0" id="display_total"><?php echo number_format($base_price); ?></h1>
                         <span class="fw-bold text-muted small">LAK</span>
                     </div>
@@ -224,7 +237,5 @@ window.onload = function() {
     generateParticipants();
 };
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
