@@ -38,13 +38,13 @@ if (!in_array($current_page, $frontend_pages) && !isset($_SESSION['user_id'])) {
     exit();
 }
 
-// *** ຈຳກັດສິດ Staff: ຫ້າມເຂົ້າ Folder ຜູ້ໃຊ້, ການເງິນ ແລະ ຄູປອງ ***
+// *** ປັບປຸງການຈຳກັດສິດ Staff ***
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff') {
+    // ບລັອກສະເພາະ ຈັດການຜູ້ໃຊ້ ແລະ ຄູປອງ
+    // ສ່ວນ payments/index.php (ລາຍງານ) ເຮົາຈະໄປລັອກໃນຕົວໄຟລ໌ນັ້ນແທນ ເພື່ອໃຫ້ Staff ເຂົ້າ add.php ໄດ້
     if (strpos($current_path, 'pages/users/') !== false || 
-        strpos($current_path, 'pages/coupons/') !== false || 
-        strpos($current_path, 'pages/payments/') !== false) {
+        strpos($current_path, 'pages/coupons/') !== false) {
         
-        // ຖ້າ Staff ພະຍາຍາມເຂົ້າ ໃຫ້ດີດໄປໜ້າ Dashboard
         header("Location: " . (strpos($current_path, 'pages/') !== false ? '../dashboard/index.php' : 'pages/dashboard/index.php'));
         exit();
     }
