@@ -1,6 +1,13 @@
 <?php
 // ກວດສອບ Path ປັດຈຸບັນເພື່ອເຮັດສີຄ້າງ (Active State)
 $current_page = $_SERVER['PHP_SELF'];
+
+// ຟັງຊັນກວດສອບສິດ Admin (ຖ້າຍັງບໍ່ມີໃນ db.php ໃຫ້ໃຊ້ໂຕນີ້)
+if (!function_exists('isAdmin')) {
+    function isAdmin() {
+        return isset($_SESSION['role']) && $_SESSION['role'] === 'Admin';
+    }
+}
 ?>
 
 <nav class="col-md-2 d-none d-md-block sidebar shadow-sm p-0 bg-white">
@@ -54,12 +61,17 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-user-plus me-2 <?php echo (strpos($current_page, 'guides/add.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ເພີ່ມໄກ້ຜູ້ນຳທ່ຽວ
                     </a>
                 </li>
+
+                <!-- ສິດ Admin: ສ້າງຄູປອງ -->
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/coupons/add.php">
                         <i class="fas fa-ticket-alt me-2 <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ສ້າງຄູປອງໃໝ່
                     </a>
                 </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/customers/add.php">
@@ -91,6 +103,9 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-list-ul me-2 <?php echo (strpos($current_page, 'bookings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການຈອງທັງໝົດ
                     </a>
                 </li>
+
+                <!-- ສິດ Admin: ລາຍງານການເງິນ ແລະ ຄູປອງ -->
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'payments/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/payments/index.php">
@@ -103,6 +118,8 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-tags me-2 <?php echo (strpos($current_page, 'coupons/index.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ລາຍການຄູປອງທັງໝົດ
                     </a>
                 </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/tours/index.php">
@@ -135,15 +152,26 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
             </ul>
 
-            <!-- Category: SYSTEM -->
+            <!-- Category: SYSTEM (Admin Only) -->
+            <?php if(isAdmin()): ?>
             <h6 class="sidebar-heading px-3 mt-4 mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
                 ຕັ້ງຄ່າລະບົບ (System)
             </h6>
-            <ul class="nav flex-column mb-5">
+            <ul class="nav flex-column mb-3">
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'users/') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/users/index.php">
                         <i class="fas fa-users-cog me-2 <?php echo (strpos($current_page, 'users/') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ຈັດການຜູ້ໃຊ້
+                    </a>
+                </li>
+            </ul>
+            <?php endif; ?>
+
+            <hr class="mx-3 mt-4">
+            <ul class="nav flex-column mb-5">
+                <li class="nav-item">
+                    <a class="nav-link text-danger py-2 rounded fw-bold" href="<?php echo BASE_URL; ?>logout.php" onclick="return confirm('ຕ້ອງການອອກຈາກລະບົບແທ້ບໍ່?')">
+                        <i class="fas fa-sign-out-alt me-2"></i> ອອກຈາກລະບົບ
                     </a>
                 </li>
             </ul>
