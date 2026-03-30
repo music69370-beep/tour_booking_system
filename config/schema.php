@@ -69,6 +69,8 @@ $tables = [
         category VARCHAR(100),
         price DECIMAL(15,2) NOT NULL,
         cost_per_person DECIMAL(15,2) DEFAULT 0,
+        start_date DATE,          -- ວັນທີເລີ່ມທົວ
+        end_date DATE,            -- ວັນທີສິ້ນສຸດທົວ
         duration VARCHAR(100),
         meeting_point VARCHAR(255),
         itinerary TEXT,
@@ -81,9 +83,7 @@ $tables = [
         max_seats INT DEFAULT 10,
         min_pax INT DEFAULT 1,
         image VARCHAR(255),
-        status ENUM('Active', 'Inactive') DEFAULT 'Active',
-        FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE SET NULL,
-        FOREIGN KEY (guide_id) REFERENCES guides(guide_id) ON DELETE SET NULL
+        status ENUM('Active', 'Inactive') DEFAULT 'Active'
     )",
 
     // 5. ຕາຕະລາງເກັບຮູບພາບ Gallery ຂອງທົວ

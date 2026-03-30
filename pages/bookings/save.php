@@ -2,18 +2,17 @@
 include '../../config/db.php';
 
 if (isset($_POST['save_booking'])) {
-    $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
-    $tour_id = mysqli_real_escape_string($conn, $_POST['tour_id']);
-    $travel_date = mysqli_real_escape_string($conn, $_POST['travel_date']);
+    $customer_id = $_POST['customer_id'];
+    $tour_id = $_POST['tour_id'];
+    $travel_date = $_POST['travel_date'];
     $num_people = intval($_POST['num_people']);
-    $total_price = mysqli_real_escape_string($conn, $_POST['total_price']); // ຈາກ JS ຄຳນວນມາແລ້ວ
+    $total_price = $_POST['total_price'];
     $note = mysqli_real_escape_string($conn, $_POST['note']);
 
-    // ບັນທຶກການຈອງ
-    $sql_book = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, total_price, note, status) 
-                 VALUES ('$customer_id', '$tour_id', '$travel_date', '$num_people', '$total_price', '$note', 'Pending')";
+    $sql = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, total_price, note, status) 
+            VALUES ('$customer_id', '$tour_id', '$travel_date', $num_people, '$total_price', '$note', 'Pending')";
 
-    if (mysqli_query($conn, $sql_book)) {
+    if (mysqli_query($conn, $sql)) {
         $booking_id = mysqli_insert_id($conn);
 
         // ບັນທຶກຜູ້ຮ່ວມທາງ
@@ -26,10 +25,8 @@ if (isset($_POST['save_booking'])) {
         }
 
         // ສ້າງ Checklist ວຽກ
-        $default_tasks = ['ກວດເຊັກຍອດເງິນຊຳລະ', 'ຈອງໂຮງແຮມ/ທີ່ພັກ', 'ຕິດຕໍ່ລົດ ແລະ ຄົນຂັບ', 'ມອບໝາຍໄກ້ຜູ້ນຳທ່ຽວ', 'ກຽມນ້ຳດື່ມ'];
-        foreach ($default_tasks as $task) {
-            mysqli_query($conn, "INSERT INTO booking_tasks (booking_id, task_label) VALUES ($booking_id, '$task')");
-        }
+        $tasks = ['ກວດເຊັກຍອດເງິນ', 'ຈອງທີ່ພັກ', 'ຕິດຕໍ່ລົດ ແລະ ຄົນຂັບ', 'ມອບໝາຍໄກ້', 'ກຽມນ້ຳດື່ມ'];
+        foreach ($tasks as $t) mysqli_query($conn, "INSERT INTO booking_tasks (booking_id, task_label) VALUES ($booking_id, '$t')");
 
         header("Location: index.php?msg=success");
         exit();
