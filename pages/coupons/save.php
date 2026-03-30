@@ -11,7 +11,16 @@ if (isset($_POST['save_coupon'])) {
     $user_lim = $_POST['limit_per_user'] ?: 1;
     $tour_id = !empty($_POST['specific_tour_id']) ? $_POST['specific_tour_id'] : 'NULL';
     $expiry = $_POST['expiry_date'];
-    $status = isset($_POST['status']) ? 'Active' : 'Inactive';
+    
+    // ເຊັກສະຖານະຈາກ Checkbox/Switch
+    $status = (isset($_POST['status']) && $_POST['status'] == 'Active') ? 'Active' : 'Inactive';
+
+    // ກວດສອບລະຫັດຊ້ຳ
+    $check = mysqli_query($conn, "SELECT code FROM coupons WHERE code = '$code'");
+    if (mysqli_num_rows($check) > 0) {
+        header("Location: add.php?msg=duplicate");
+        exit();
+    }
 
     $sql = "INSERT INTO coupons (code, discount_type, discount_value, min_spend, max_discount, total_limit, limit_per_user, specific_tour_id, expiry_date, status) 
             VALUES ('$code', '$type', '$val', '$min', '$max', '$total_lim', '$user_lim', $tour_id, '$expiry', '$status')";
