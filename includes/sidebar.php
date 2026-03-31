@@ -7,7 +7,7 @@ $current_page = $_SERVER['PHP_SELF'];
     <div class="position-sticky">
         <!-- Logo Section -->
         <div class="p-3 text-center border-bottom bg-primary text-white shadow-sm">
-            <h4 class="fw-bold mb-0"><i class="fas fa-plane-departure me-2"></i>Tour System</h4>
+            <h4 class="fw-bold mb-0"><i class="fas fa-plane-departure me-2"></i>ລະບົບບໍລິຫານ ຈອງທົວ</h4>
         </div>
         
         <div class="sidebar-content p-2">
