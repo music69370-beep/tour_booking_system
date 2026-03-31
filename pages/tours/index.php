@@ -32,7 +32,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 <th>ຂໍ້ມູນແພັກເກັດ</th>
                                 <th>ພາຫະນະ / ໄກ້</th>
                                 <th class="text-center">ບ່ອນນັ່ງ (ຫວ່າງ)</th>
-                                <th class="text-end">ລາຄາ / ກຳໄລ</th>
+                                <th class="text-end">ລາຄາຂາຍ/ທ່ານ</th>
                                 <th class="text-center">ສະຖານະ</th>
                                 <th class="text-center">ຈັດການ</th>
                             </tr>
@@ -77,7 +77,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                     </td>
                                     <td>
                                         <div class="small text-dark mb-1">
-                                            <i class="fas fa-bus me-1 text-muted"></i> <?php echo $row['car_model'] ?: 'ຍັງບໍ່ໄດ້ລະບຸ'; ?>
+                                            <i class="fas fa-bus me-1 text-muted"></i> <?php echo $row['car_model'] ?: 'ຍັງບໍ່ໄດ້ກຳນົດ'; ?>
                                             <span class="text-muted small">(<?php echo $row['plate_number']; ?>)</span>
                                         </div>
                                         <div class="small text-dark">
@@ -108,14 +108,16 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                             <a href="edit.php?id=<?php echo $tid; ?>" class="btn btn-sm btn-white text-warning border-end" title="ແກ້ໄຂ">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $tid; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ">
+                                            <a href="javascript:void(0)" 
+                                               onclick="confirmDelete(<?php echo $tid; ?>, 'delete.php')" 
+                                               class="btn btn-sm btn-white text-danger" title="ລຶບ">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         </div>
                                     </td>
                                 </tr>
 
-                                <!-- Modal ສະແດງຂໍ້ມູນທົວແບບລະອຽດ -->
+                                <!-- Modal ສະແດງຂໍ້ມູນທົວແບບລະອຽດ (ປັບປຸງໃຫ້ໂຊວັນທີ) -->
                                 <div class="modal fade" id="viewTour<?php echo $tid; ?>" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-lg modal-dialog-centered">
                                         <div class="modal-content rounded-5 border-0 shadow-lg">
@@ -125,24 +127,51 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                             </div>
                                             <div class="modal-body p-4 p-lg-5">
                                                 <div class="row g-4">
-                                                    <div class="col-md-5">
+                                                    <div class="col-md-5 text-center">
                                                         <img src="<?php echo BASE_URL; ?>assets/uploads/tours/<?php echo $row['image']; ?>" class="img-fluid rounded-4 shadow-sm mb-3">
-                                                        <div class="bg-light p-3 rounded-4">
-                                                            <h6 class="fw-bold text-primary mb-2">ຈຸດເດັ່ນ (Highlights)</h6>
-                                                            <p class="small text-muted mb-0"><?php echo nl2br($row['highlights']); ?></p>
+                                                        <div class="bg-light p-3 rounded-4 text-start">
+                                                            <h6 class="fw-bold text-primary mb-2 small text-uppercase">ຈຸດເດັ່ນ (Highlights)</h6>
+                                                            <p class="small text-muted mb-0" style="white-space: pre-line;"><?php echo $row['highlights']; ?></p>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-7">
-                                                        <h4 class="fw-bold mb-1"><?php echo $row['tour_name']; ?></h4>
+                                                        <h4 class="fw-bold mb-1 text-dark"><?php echo $row['tour_name']; ?></h4>
                                                         <p class="text-muted small mb-4">ID: <?php echo $row['tour_code']; ?> | <?php echo $row['category']; ?></p>
                                                         
                                                         <div class="row g-3">
+                                                            <!-- ສ່ວນທີ່ເພີ່ມໃໝ່: ວັນທີເລີ່ມ ແລະ ວັນທີສິ້ນສຸດ -->
+                                                            <div class="col-6">
+                                                                <small class="text-muted">ວັນທີເລີ່ມເດີນທາງ:</small>
+                                                                <p class="fw-bold mb-0 text-success">
+                                                                    <i class="fas fa-calendar-check me-1"></i> <?php echo date('d/m/Y', strtotime($row['start_date'])); ?>
+                                                                </p>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <small class="text-muted">ວັນທີສິ້ນສຸດທົວ:</small>
+                                                                <p class="fw-bold mb-0 text-danger">
+                                                                    <i class="fas fa-calendar-times me-1"></i> <?php echo date('d/m/Y', strtotime($row['end_date'])); ?>
+                                                                </p>
+                                                            </div>
+
                                                             <div class="col-6"><small class="text-muted">ໄລຍະເວລາ:</small><p class="fw-bold mb-0"><?php echo $row['duration']; ?></p></div>
                                                             <div class="col-6"><small class="text-muted">ອາຫານ:</small><p class="fw-bold mb-0"><?php echo $row['meals']; ?> ຄາບ</p></div>
-                                                            <div class="col-12"><small class="text-muted">ສະຖານທີ່ນັດພົບ:</small><p class="fw-bold mb-0"><?php echo $row['meeting_point']; ?></p></div>
+                                                            <div class="col-12"><small class="text-muted">ສະຖານທີ່ນັດພົບ:</small><p class="fw-bold mb-0 text-dark"><?php echo $row['meeting_point']; ?></p></div>
+                                                            
                                                             <div class="col-12"><hr class="my-2"></div>
-                                                            <div class="col-6"><h6 class="text-success fw-bold small">ສິ່ງທີ່ລວມ:</h6><p class="small text-muted"><?php echo nl2br($row['whats_included']); ?></p></div>
-                                                            <div class="col-6"><h6 class="text-danger fw-bold small">ບໍ່ລວມ:</h6><p class="small text-muted"><?php echo nl2br($row['whats_excluded']); ?></p></div>
+                                                            
+                                                            <div class="col-6">
+                                                                <h6 class="text-success fw-bold small text-uppercase">ສິ່ງທີ່ລວມ:</h6>
+                                                                <div class="small text-muted" style="white-space: pre-line; font-size: 0.75rem;"><?php echo $row['whats_included']; ?></div>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <h6 class="text-danger fw-bold small text-uppercase">ບໍ່ລວມ:</h6>
+                                                                <div class="small text-muted" style="white-space: pre-line; font-size: 0.75rem;"><?php echo $row['whats_excluded']; ?></div>
+                                                            </div>
+                                                            
+                                                            <div class="col-12 border-top pt-2">
+                                                                <h6 class="text-warning fw-bold small text-uppercase">ນະໂຍບາຍການຍົກເລີກ:</h6>
+                                                                <p class="small text-muted italic mb-0" style="font-size: 0.7rem;"><?php echo $row['cancellation_policy']; ?></p>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

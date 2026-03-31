@@ -157,10 +157,19 @@ $tables = [
     // 11. ຕາຕະລາງຜູ້ໃຊ້ລະບົບ (Admin/Staff)
     "users" => "CREATE TABLE IF NOT EXISTS users (
         user_id INT PRIMARY KEY AUTO_INCREMENT,
+        employee_code VARCHAR(50) UNIQUE,
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         fullname VARCHAR(100),
-        role ENUM('Admin', 'Staff') DEFAULT 'Staff'
+        phone VARCHAR(20),
+        email VARCHAR(100),
+        address TEXT,
+        dob DATE,
+        profile_pic VARCHAR(255),
+        id_card_no VARCHAR(50),
+        role ENUM('Admin', 'Staff') DEFAULT 'Staff',
+        status ENUM('Active', 'Resigned') DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
 
     // 12. ຕາຕະລາງຄຳຍ້ອງຍໍ ແລະ ຄະແນນ (Reviews)

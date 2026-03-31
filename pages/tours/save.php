@@ -2,7 +2,7 @@
 include '../../config/db.php';
 
 if (isset($_POST['save_tour'])) {
-    // ຮັບຂໍ້ມູນທົວ
+    // ຮັບຂໍ້ມູນຈາກຟອມ
     $tour_code = mysqli_real_escape_string($conn, $_POST['tour_code']);
     $tour_name = mysqli_real_escape_string($conn, $_POST['tour_name']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
@@ -24,27 +24,46 @@ if (isset($_POST['save_tour'])) {
     $cancel_policy = mysqli_real_escape_string($conn, $_POST['cancellation_policy']);
     $activities = mysqli_real_escape_string($conn, $_POST['activities']);
 
-    // ຈັດການຮູບໜ້າປົກ
+    // --- 1. Logic ກວດສອບວ່າ ໄກ້ຄົນນີ້ ຕິດວຽກທົວອື່ນໃນວັນທີນີ້ແລ້ວບໍ່? ---
+    $check_guide = "SELECT COUNT(*) as busy FROM tours 
+                    WHERE guide_id = '$guide_id' 
+                    AND status = 'Active' 
+                    AND (start_date <= '$end_date' AND end_date >= '$start_date')";
+    
+    $check_res = mysqli_query($conn, $check_guide);
+    $is_busy = mysqli_fetch_assoc($check_res)['busy'];
+
+    if ($is_busy > 0) {
+        // ຖ້າໄກ້ບໍ່ວ່າງ ໃຫ້ສົ່ງກັບໄປໜ້າ add ພ້ອມແຈ້ງເຕືອນ
+        header("Location: add.php?msg=guide_busy&s=$start_date&e=$end_date");
+        exit();
+    }
+
+    // --- 2. ຖ້າໄກ້ວ່າງ: ດຳເນີນການອັບໂຫລດຮູບ ແລະ ບັນທຶກ ---
     $image_name = time() . "_" . $_FILES['image']['name'];
-    move_uploaded_file($_FILES['image']['tmp_name'], "../../assets/uploads/tours/" . $image_name);
+    if (move_uploaded_file($_FILES['image']['tmp_name'], "../../assets/uploads/tours/" . $image_name)) {
+        
+        $sql = "INSERT INTO tours (tour_code, vehicle_id, guide_id, tour_name, category, price, cost_per_person, start_date, end_date, duration, meeting_point, itinerary, highlights, meals, activities, whats_included, whats_excluded, cancellation_policy, max_seats, min_pax, image, status) 
+                VALUES ('$tour_code', '$vehicle_id', '$guide_id', '$tour_name', '$category', '$price', '$cost', '$start_date', '$end_date', '$duration', '$meeting_point', '$itinerary', '$highlights', '$meals', '$activities', '$whats_included', '$whats_excluded', '$cancel_policy', '$max_seats', '$min_pax', '$image_name', 'Active')";
 
-    $sql = "INSERT INTO tours (tour_code, vehicle_id, guide_id, tour_name, category, price, cost_per_person, start_date, end_date, duration, meeting_point, itinerary, highlights, meals, activities, whats_included, whats_excluded, cancellation_policy, max_seats, min_pax, image, status) 
-            VALUES ('$tour_code', '$vehicle_id', '$guide_id', '$tour_name', '$category', '$price', '$cost', '$start_date', '$end_date', '$duration', '$meeting_point', '$itinerary', '$highlights', '$meals', '$activities', '$whats_included', '$whats_excluded', '$cancel_policy', '$max_seats', '$min_pax', '$image_name', 'Active')";
-
-    if (mysqli_query($conn, $sql)) {
-        $tour_id = mysqli_insert_id($conn);
-        // ຈັດການຮູບ Gallery
-        if (!empty($_FILES['gallery']['name'][0])) {
-            foreach ($_FILES['gallery']['tmp_name'] as $k => $tmp) {
-                $g_name = time() . "_gal_$k_" . $_FILES['gallery']['name'][$k];
-                if (move_uploaded_file($tmp, "../../assets/uploads/tours/" . $g_name)) {
-                    mysqli_query($conn, "INSERT INTO tour_images (tour_id, image_name) VALUES ('$tour_id', '$g_name')");
+        if (mysqli_query($conn, $sql)) {
+            $tour_id = mysqli_insert_id($conn);
+            // ຈັດການ Gallery (ຖ້າມີ)
+            if (!empty($_FILES['gallery']['name'][0])) {
+                foreach ($_FILES['gallery']['tmp_name'] as $k => $tmp) {
+                    $g_name = time() . "_gal_$k_" . $_FILES['gallery']['name'][$k];
+                    if (move_uploaded_file($tmp, "../../assets/uploads/tours/" . $g_name)) {
+                        mysqli_query($conn, "INSERT INTO tour_images (tour_id, image_name) VALUES ('$tour_id', '$g_name')");
+                    }
                 }
             }
+            header("Location: index.php?msg=success");
+            exit();
+        } else {
+            echo "Error: " . mysqli_error($conn);
         }
-        header("Location: index.php?msg=success");
     } else {
-        echo "Error: " . mysqli_error($conn);
+        echo "Image upload failed";
     }
 }
 ?>

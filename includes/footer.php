@@ -127,6 +127,15 @@ function confirmCancel(id, url) {
         }
     })
 }
+// --- ຕື່ມໃສ່ສ່ວນກວດເຊັກ Parameter "msg" ໃນ footer.php ---
+if (msg === 'guide_busy') {
+    Swal.fire({
+        icon: 'error',
+        title: 'ໄກ້ຜູ້ນຳທ່ຽວບໍ່ວ່າງ!',
+        text: 'ໄກ້ທີ່ທ່ານເລືອກ ມີຕາຕະລາງນຳທ່ຽວອື່ນແລ້ວໃນຊ່ວງວັນທີນີ້',
+        confirmButtonColor: '#d33'
+    });
+}
 </script>
 </body>
 </html>
