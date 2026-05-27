@@ -1,6 +1,6 @@
 <?php
 include '../../config/db.php';
-
+/** @var mysqli $conn */
 // ກວດສອບສິດ (ຕ້ອງ Login ກ່ອນ)
 if (!isset($_SESSION['user_id'])) { 
     exit("Permission Denied"); 

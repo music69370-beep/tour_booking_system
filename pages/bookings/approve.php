@@ -1,5 +1,6 @@
 <?php
 include '../../config/db.php';
+/** @var mysqli $conn */
 
 // --- ນຳເຂົ້າ PHPMailer ---
 use PHPMailer\PHPMailer\PHPMailer;

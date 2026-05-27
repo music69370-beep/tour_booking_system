@@ -1,6 +1,6 @@
 <?php
 include '../../config/db.php';
-
+/** @var mysqli $conn */
 if (isset($_POST['save_booking'])) {
     $customer_id = $_POST['customer_id'];
     $tour_id = $_POST['tour_id'];

@@ -1,5 +1,6 @@
 <?php
 include '../../config/db.php';
+/** @var mysqli $conn */
 
 if (isset($_POST['save_guide'])) {
     $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);

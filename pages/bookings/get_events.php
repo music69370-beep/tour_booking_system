@@ -1,6 +1,6 @@
 <?php
 include '../../config/db.php';
-
+/** @var mysqli $conn */
 $sql = "SELECT b.booking_id, b.travel_date, b.status, c.fullname, t.tour_name 
         FROM bookings b
         JOIN customers c ON b.customer_id = c.customer_id

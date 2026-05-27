@@ -1,5 +1,6 @@
 <?php 
-include '../../config/db.php'; 
+include '../../config/db.php';
+/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 ?>
