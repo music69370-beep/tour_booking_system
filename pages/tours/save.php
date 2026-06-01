@@ -1,5 +1,6 @@
 <?php
 include '../../config/db.php';
+/** @var mysqli $conn */
 
 if (isset($_POST['save_tour'])) {
     // ຮັບຂໍ້ມູນຈາກຟອມ
@@ -9,7 +10,7 @@ if (isset($_POST['save_tour'])) {
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
     $price = $_POST['price'];
-    $cost = $_POST['cost_per_person'] ?: 0;
+    // ເອົາຕົວແປ $cost ອອກແລ້ວ
     $vehicle_id = $_POST['vehicle_id'];
     $guide_id = $_POST['guide_id'];
     $max_seats = $_POST['max_seats'];
@@ -43,15 +44,19 @@ if (isset($_POST['save_tour'])) {
     $image_name = time() . "_" . $_FILES['image']['name'];
     if (move_uploaded_file($_FILES['image']['tmp_name'], "../../assets/uploads/tours/" . $image_name)) {
         
-        $sql = "INSERT INTO tours (tour_code, vehicle_id, guide_id, tour_name, category, price, cost_per_person, start_date, end_date, duration, meeting_point, itinerary, highlights, meals, activities, whats_included, whats_excluded, cancellation_policy, max_seats, min_pax, image, status) 
-                VALUES ('$tour_code', '$vehicle_id', '$guide_id', '$tour_name', '$category', '$price', '$cost', '$start_date', '$end_date', '$duration', '$meeting_point', '$itinerary', '$highlights', '$meals', '$activities', '$whats_included', '$whats_excluded', '$cancel_policy', '$max_seats', '$min_pax', '$image_name', 'Active')";
+        // ປັບ SQL ໂດຍການເອົາ cost_per_person ອອກຈາກການ INSERT
+        $sql = "INSERT INTO tours (tour_code, vehicle_id, guide_id, tour_name, category, price, start_date, end_date, duration, meeting_point, itinerary, highlights, meals, activities, whats_included, whats_excluded, cancellation_policy, max_seats, min_pax, image, status) 
+                VALUES ('$tour_code', '$vehicle_id', '$guide_id', '$tour_name', '$category', '$price', '$start_date', '$end_date', '$duration', '$meeting_point', '$itinerary', '$highlights', '$meals', '$activities', '$whats_included', '$whats_excluded', '$cancel_policy', '$max_seats', '$min_pax', '$image_name', 'Active')";
 
         if (mysqli_query($conn, $sql)) {
             $tour_id = mysqli_insert_id($conn);
             // ຈັດການ Gallery (ຖ້າມີ)
+            // ຈັດການ Gallery (ຖ້າມີ)
             if (!empty($_FILES['gallery']['name'][0])) {
                 foreach ($_FILES['gallery']['tmp_name'] as $k => $tmp) {
-                    $g_name = time() . "_gal_$k_" . $_FILES['gallery']['name'][$k];
+                    // ແກ້ໄຂບ່ອນນີ້: ໃສ່ປີກກາ ຫຼື ໃຊ້ຈຸດຕໍ່ຂໍ້ຄວາມ
+                    $g_name = time() . "_gal_" . $k . "_" . $_FILES['gallery']['name'][$k];
+                    
                     if (move_uploaded_file($tmp, "../../assets/uploads/tours/" . $g_name)) {
                         mysqli_query($conn, "INSERT INTO tour_images (tour_id, image_name) VALUES ('$tour_id', '$g_name')");
                     }

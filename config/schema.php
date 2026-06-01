@@ -68,7 +68,6 @@ $tables = [
         tour_name VARCHAR(255) NOT NULL,
         category VARCHAR(100),
         price DECIMAL(15,2) NOT NULL,
-        cost_per_person DECIMAL(15,2) DEFAULT 0,
         start_date DATE,          -- ວັນທີເລີ່ມທົວ
         end_date DATE,            -- ວັນທີສິ້ນສຸດທົວ
         duration VARCHAR(100),

@@ -1,5 +1,6 @@
 <?php 
 include '../../config/db.php'; 
+/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 ?>
@@ -50,10 +51,7 @@ include '../../includes/sidebar.php';
                                 <label class="form-label fw-bold small text-primary">ລາຄາຂາຍ/ທ່ານ</label>
                                 <input type="number" name="price" class="form-control border-primary" required>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-bold small">ຕົ້ນທຶນ/ທ່ານ (Cost)</label>
-                                <input type="number" name="cost_per_person" class="form-control bg-light border-0" value="0">
-                            </div>
+                            <!-- ເອົາສ່ວນຕົ້ນທຶນ (Cost) ອອກແລ້ວ -->
                         </div>
                     </div>
                 </div>
