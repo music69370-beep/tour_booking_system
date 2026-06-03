@@ -1,15 +1,16 @@
 <?php 
 include '../../config/db.php'; 
+/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 
 if (!isset($_GET['id'])) { echo "ID missing"; exit; }
 $id = mysqli_real_escape_string($conn, $_GET['id']);
 
-// 1. ດຶງຂໍ້ມູນການຈອງແບບລະອຽດ (Join ທຸກ Table)
+// 1. ດຶງຂໍ້ມູນການຈອງ (ເອົາ t.cost_per_person ອອກແລ້ວ)
 $sql = "SELECT b.*, c.fullname, c.phone, c.email, c.address, 
                t.tour_name, t.tour_code, t.duration, t.meeting_point, t.category, t.meals,
-               t.price as price_per_pax, t.cost_per_person, t.highlights, t.whats_included, t.whats_excluded, t.cancellation_policy,
+               t.price as price_per_pax, t.highlights, t.whats_included, t.whats_excluded, t.cancellation_policy,
                v.model as car_model, v.plate_number, v.driver_name, v.driver_phone,
                g.fullname as guide_name, g.phone as guide_phone,
                p.amount as paid_amount, p.payment_method, p.payment_slip, p.payment_date
@@ -26,17 +27,16 @@ $row = mysqli_fetch_assoc($result);
 
 if (!$row) { echo "<div class='p-5 text-center'><h3>ບໍ່ພົບຂໍ້ມູນ</h3><a href='index.php'>ກັບຄືນ</a></div>"; exit; }
 
-// 2. ດຶງຂໍ້ມູນ Checklist ແລະ ຄຳນວນເປີເຊັນ
+// 2. ດຶງຂໍ້ມູນ Checklist ຄວາມພ້ອມ
 $tasks_query = mysqli_query($conn, "SELECT * FROM booking_tasks WHERE booking_id = '$id'");
 $total_tasks = mysqli_num_rows($tasks_query);
 $done_res = mysqli_query($conn, "SELECT COUNT(*) as c FROM booking_tasks WHERE booking_id = '$id' AND is_completed = 1");
 $done_tasks = mysqli_fetch_assoc($done_res)['c'];
 $percent = ($total_tasks > 0) ? round(($done_tasks / $total_tasks) * 100) : 0;
 
-// 3. ຄຳນວນການເງິນ (Admin Only)
+// 3. ຄິດໄລ່ການເງິນ (ສະແດງສະເພາະຍອດຂາຍ ແລະ ສ່ວນຫຼຸດ)
 $total_sale = $row['total_price'];
-$total_cost = $row['cost_per_person'] * $row['num_people'];
-$profit = $total_sale - $total_cost;
+$discount = $row['discount_amount'];
 ?>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
@@ -58,19 +58,18 @@ $profit = $total_sale - $total_cost;
         </div>
 
         <div class="row g-4">
-            <!-- ເບື້ອງຊ້າຍ (ຂໍ້ມູນຫຼັກ) -->
             <div class="col-lg-8">
                 <!-- ຂໍ້ມູນທົວ ແລະ ຜູ້ຈອງ -->
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4 text-start">
+                    <div class="card-body p-4">
                         <div class="d-flex justify-content-between border-bottom pb-3 mb-4">
                             <div>
                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 mb-2"><?php echo $row['category']; ?></span>
                                 <h3 class="fw-bold text-dark mb-1"><?php echo $row['tour_name']; ?></h3>
                                 <p class="text-muted small mb-0">ວັນທີເດີນທາງ: <strong class="text-danger"><?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></strong></p>
                             </div>
-                            <div class="badge rounded-pill px-3 py-5 shadow-sm <?php echo ($row['status']=='Confirmed')?'bg-success-subtle text-success border-success':'bg-warning-subtle text-warning border-warning'; ?> border">
-                                <i class="fas fa-circle me-1 small"></i> <?php echo ($row['status']=='Confirmed')?'ຢືນຢັນແລ້ວ':'ລໍຖ້າອະນຸມັດ'; ?>
+                            <div class="badge rounded-pill px-3 py-2 h-50 <?php echo ($row['status']=='Confirmed')?'bg-success':'bg-warning text-dark'; ?> border shadow-sm">
+                                <?php echo ($row['status']=='Confirmed')?'ຢືນຢັນແລ້ວ':'ລໍຖ້າອະນຸມັດ'; ?>
                             </div>
                         </div>
                         <div class="row">
@@ -89,10 +88,10 @@ $profit = $total_sale - $total_cost;
                     </div>
                 </div>
 
-                <!-- ລາຍຊື່ຜູ້ຮ່ວມທາງທັງໝົດ -->
+                <!-- ລາຍຊື່ຜູ້ຮ່ວມທາງ -->
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-users text-info me-2"></i>ລາຍຊື່ຜູ້ຮ່ວມເດີນທາງ (<?php echo $row['num_people']; ?> ຄົນ)</h6>
+                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-users text-info me-2"></i>ລາຍຊື່ຜູ້ຮ່ວມເດີນທາງ</h6>
                     </div>
                     <div class="card-body p-4 pt-2">
                         <table class="table table-sm align-middle">
@@ -100,15 +99,10 @@ $profit = $total_sale - $total_cost;
                                 <tr><th class="ps-3" width="60">#</th><th>ຊື່ ແລະ ນາມສະກຸນ</th><th>ເບີໂທ</th></tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="ps-3 text-muted">1</td>
-                                    <td><strong><?php echo $row['fullname']; ?></strong> <small class="text-muted ms-2">(ຫົວໜ້າກຸ່ມ)</small></td>
-                                    <td><?php echo $row['phone']; ?></td>
-                                </tr>
+                                <tr><td class="ps-3 text-muted">1</td><td><strong><?php echo $row['fullname']; ?></strong> (ຫົວໜ້າ)</td><td><?php echo $row['phone']; ?></td></tr>
                                 <?php 
                                 $participants = mysqli_query($conn, "SELECT * FROM booking_participants WHERE booking_id = '$id'");
-                                $i = 2;
-                                while($p = mysqli_fetch_assoc($participants)): ?>
+                                $i = 2; while($p = mysqli_fetch_assoc($participants)): ?>
                                     <tr><td class="ps-3 text-muted"><?php echo $i++; ?></td><td><?php echo $p['participant_name']; ?></td><td><?php echo $p['participant_phone']; ?></td></tr>
                                 <?php endwhile; ?>
                             </tbody>
@@ -116,44 +110,45 @@ $profit = $total_sale - $total_cost;
                     </div>
                 </div>
 
-                <!-- Highlights & Checklist -->
-                <div class="row g-4 mb-4">
-                    <div class="col-md-12">
-                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-tasks text-danger me-2"></i>Checklist ຄວາມພ້ອມ</h6>
-                            <div class="row" id="taskList">
-                                <?php 
-                                if($total_tasks > 0):
-                                    mysqli_data_seek($tasks_query, 0); 
-                                    while($t = mysqli_fetch_assoc($tasks_query)): 
-                                        $new_s = $t['is_completed'] ? 0 : 1;
-                                ?>
-                                    <div class="col-md-6 mb-2">
-                                        <div class="form-check">
-                                            <input class="form-check-input task-checkbox shadow-none" type="checkbox" data-id="<?php echo $t['task_id']; ?>" data-bid="<?php echo $id; ?>" <?php echo $t['is_completed'] ? 'checked' : ''; ?>>
-                                            <label class="form-check-label ms-2 small <?php echo $t['is_completed'] ? 'text-muted text-decoration-line-through' : 'fw-bold'; ?>"><?php echo $t['task_label']; ?></label>
-                                        </div>
-                                    </div>
-                                <?php endwhile; else: ?>
-                                    <div class="col-12 text-center py-2"><a href="init_tasks.php?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-primary rounded-pill">ສ້າງລາຍການວຽກ</a></div>
-                                <?php endif; ?>
+                <!-- Checklist -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-tasks text-danger me-2"></i>Checklist ຄວາມພ້ອມ</h6>
+                    <div class="row" id="taskList">
+                        <?php if($total_tasks > 0): 
+                            mysqli_data_seek($tasks_query, 0); while($t = mysqli_fetch_assoc($tasks_query)): ?>
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input task-checkbox shadow-none" type="checkbox" data-id="<?php echo $t['task_id']; ?>" data-bid="<?php echo $id; ?>" <?php echo $t['is_completed'] ? 'checked' : ''; ?>>
+                                    <label class="form-check-label ms-2 small <?php echo $t['is_completed'] ? 'text-muted text-decoration-line-through' : 'fw-bold'; ?>"><?php echo $t['task_label']; ?></label>
+                                </div>
                             </div>
-                            <div class="progress mt-3" style="height: 10px; border-radius: 10px;"><div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="progressBar" style="width: <?php echo $percent; ?>%"></div></div>
-                            <div class="text-end small mt-1 fw-bold text-primary">ພ້ອມ: <span id="progressText"><?php echo $percent; ?>%</span></div>
-                        </div>
+                        <?php endwhile; else: ?>
+                            <div class="col-12 text-center py-2"><a href="init_tasks.php?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-primary rounded-pill">ສ້າງລາຍການວຽກ</a></div>
+                        <?php endif; ?>
                     </div>
+                    <div class="progress mt-3" style="height: 10px; border-radius: 10px;"><div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="progressBar" style="width: <?php echo $percent; ?>%"></div></div>
+                    <div class="text-end small mt-1 fw-bold text-primary">ພ້ອມ: <span id="progressText"><?php echo $percent; ?>%</span></div>
                 </div>
             </div>
 
             <!-- ເບື້ອງຂວາ (Summary) -->
             <div class="col-lg-4">
-                <!-- ການເງິນ -->
+                <!-- ສະຫຼຸບຍອດເງິນ -->
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-dark text-white">
-                    <h6 class="fw-bold border-bottom border-secondary pb-2 mb-3 text-uppercase small">ສະຫຼຸບການເງິນ (Admin)</h6>
-                    <div class="d-flex justify-content-between mb-2"><small class="opacity-75">ຍອດຂາຍ:</small><span class="fw-bold"><?php echo number_format($total_sale); ?></span></div>
-                    <div class="d-flex justify-content-between mb-2"><small class="opacity-75">ຕົ້ນທຶນ:</small><span class="fw-bold text-info">- <?php echo number_format($total_cost); ?></span></div>
+                    <h6 class="fw-bold border-bottom border-secondary pb-2 mb-3 text-uppercase small">ສະຫຼຸບການເງິນ</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="opacity-75">ລາຄາປົກກະຕິ:</small>
+                        <span class="fw-bold"><?php echo number_format($total_sale + $discount); ?></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <small class="opacity-75">ສ່ວນຫຼຸດ:</small>
+                        <span class="fw-bold text-warning">- <?php echo number_format($discount); ?></span>
+                    </div>
                     <hr class="border-secondary">
-                    <div class="d-flex justify-content-between"><h6>ກຳໄລສຸດທິ:</h6><h4 class="mb-0 text-success fw-bold">+ <?php echo number_format($profit); ?></h4></div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">ຍອດລວມສຸດທິ:</h6>
+                        <h3 class="mb-0 text-success fw-bold">₭ <?php echo number_format($total_sale); ?></h3>
+                    </div>
                 </div>
 
                 <!-- ພາຫະນະ-ໄກ້ -->
@@ -164,7 +159,7 @@ $profit = $total_sale - $total_cost;
                 </div>
 
                 <!-- ຫຼັກຖານການໂອນ -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white no-print">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white no-print">
                     <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-file-invoice-dollar text-success me-2"></i>ຫຼັກຖານການຊຳລະ</h6>
                     <?php if($row['payment_slip']): ?>
                         <div class="text-center">
@@ -210,8 +205,6 @@ function updateProgressUI() {
 <style>
     .main-content { background-color: #f4f6f9; }
     .card { border: 1px solid rgba(0,0,0,0.05) !important; }
-    .bg-success-subtle { background-color: #e1f5ea; }
-    .bg-warning-subtle { background-color: #fff9db; }
     @media print { .sidebar, .no-print, nav { display: none !important; } .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; } }
 </style>
 

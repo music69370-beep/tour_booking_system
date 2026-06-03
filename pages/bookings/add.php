@@ -14,7 +14,7 @@ include '../../includes/sidebar.php';
             <h2 class="fw-bold text-dark"><i class="fas fa-plus-circle text-primary me-2"></i>ສ້າງການຈອງທົວ (Fixed Date)</h2>
         </div>
 
-        <form action="save.php" method="POST">
+        <form action="save.php" method="POST" id="bookingForm">
             <div class="row g-4">
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
@@ -36,20 +36,18 @@ include '../../includes/sidebar.php';
                                 </select>
                             </div>
 
-                            <!-- ວັນທີ (ດຶງອັດຕະໂນມັດ) -->
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-danger">ວັນທີເດີນທາງ</label>
                                 <input type="date" name="travel_date" id="travel_date" class="form-control bg-light border-0 fw-bold text-danger" readonly required>
-                                <small class="text-muted small">* ວັນທີຖືກລັອກຕາມແພັກເກັດທີ່ເລືອກ</small>
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">ເລືອກລູກຄ້າ</label>
-                                <select name="customer_id" class="form-select select2" required>
-                                    <option value="">-- ຄົ້ນຫາລູກຄ້າ --</option>
+                                <select name="customer_id" id="customer_id" class="form-select select2" onchange="resetCoupon()" required>
+                                    <option value="" data-phone="">-- ຄົ້ນຫາລູກຄ້າ --</option>
                                     <?php 
                                     $c_res = mysqli_query($conn, "SELECT customer_id, fullname, phone FROM customers");
-                                    while($c = mysqli_fetch_assoc($c_res)) echo "<option value='".$c['customer_id']."'>".$c['fullname']." (".$c['phone'].")</option>";
+                                    while($c = mysqli_fetch_assoc($c_res)) echo "<option value='".$c['customer_id']."' data-phone='".$c['phone']."'>".$c['fullname']." (".$c['phone'].")</option>";
                                     ?>
                                 </select>
                             </div>
@@ -76,11 +74,31 @@ include '../../includes/sidebar.php';
                 <div class="col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 90px;">
                         <h5 class="fw-bold mb-4 border-bottom pb-2">ສະຫຼຸບຍອດເງິນ</h5>
+                        
+                        <!-- ສ່ວນຂອງ Coupon -->
+                        <div class="mb-4 p-3 bg-light rounded-3 border">
+                            <label class="form-label fw-bold small text-primary">ລະຫັດສ່ວນຫຼຸດ (Promo Code)</label>
+                            <div class="input-group">
+                                <input type="text" id="coupon_code" class="form-control border-0 shadow-none" placeholder="ປ້ອນລະຫັດ...">
+                                <button type="button" onclick="applyCoupon()" class="btn btn-dark">ໃຊ້</button>
+                            </div>
+                            <div id="coupon_msg" class="small mt-1"></div>
+                        </div>
+
                         <div class="p-4 rounded-4 text-center mb-4" style="background-color: #fff5f6; border: 2px dashed #ff4757;">
                             <h1 class="text-danger fw-bold mb-0" id="display_total">0</h1>
                             <small class="fw-bold text-danger">LAK</small>
+                            
+                            <div id="discount_info" class="text-success small mt-2 fw-bold" style="display:none;">
+                                ສ່ວນຫຼຸດ: -<span id="display_discount">0</span>
+                            </div>
+
+                            <!-- Hidden Fields -->
                             <input type="hidden" name="total_price" id="total_price_val">
+                            <input type="hidden" name="coupon_id" id="coupon_id_input" value="">
+                            <input type="hidden" name="discount_amount" id="discount_amount_input" value="0">
                         </div>
+
                         <button type="submit" name="save_booking" class="btn btn-primary btn-lg w-100 rounded-pill shadow fw-bold py-3">ຢືນຢັນການຈອງ</button>
                     </div>
                 </div>
@@ -94,12 +112,63 @@ include '../../includes/sidebar.php';
 <script>
 $(document).ready(function() { $('.select2').select2({ width: '100%' }); });
 
+let currentDiscount = 0;
+
 function updateTourInfo() {
     const select = document.getElementById('tour_id');
     const selected = select.options[select.selectedIndex];
     document.getElementById('travel_date').value = selected.getAttribute('data-start');
+    resetCoupon();
     updateTotal();
     generateParticipants();
+}
+
+function resetCoupon() {
+    currentDiscount = 0;
+    document.getElementById('coupon_id_input').value = '';
+    document.getElementById('discount_amount_input').value = 0;
+    document.getElementById('coupon_code').value = '';
+    document.getElementById('coupon_msg').innerHTML = '';
+    document.getElementById('discount_info').style.display = 'none';
+}
+
+function applyCoupon() {
+    const code = document.getElementById('coupon_code').value;
+    const tourId = document.getElementById('tour_id').value;
+    const num = parseInt(document.getElementById('num_people').value) || 1;
+    const custSelect = document.getElementById('customer_id');
+    const phone = custSelect.options[custSelect.selectedIndex].getAttribute('data-phone');
+    
+    if(!tourId || !phone) { alert("ກະລຸນາເລືອກແພັກເກັດ ແລະ ລູກຄ້າກ່ອນ"); return; }
+    if(!code) return;
+
+    const price = parseFloat(document.getElementById('tour_id').options[document.getElementById('tour_id').selectedIndex].getAttribute('data-price')) || 0;
+    const subtotal = price * num;
+
+    fetch('../../check_coupon.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `code=${encodeURIComponent(code)}&tour_id=${tourId}&subtotal=${subtotal}&phone=${phone}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msg = document.getElementById('coupon_msg');
+        if(data.status === 'success') {
+            currentDiscount = data.discount;
+            document.getElementById('coupon_id_input').value = data.id;
+            document.getElementById('discount_amount_input').value = currentDiscount;
+            document.getElementById('display_discount').innerText = new Intl.NumberFormat().format(currentDiscount);
+            document.getElementById('discount_info').style.display = 'block';
+            msg.innerHTML = `<span class="text-success">ໃຊ້ລະຫັດສຳເລັດ!</span>`;
+        } else {
+            currentDiscount = 0;
+            document.getElementById('coupon_id_input').value = '';
+            document.getElementById('discount_amount_input').value = 0;
+            document.getElementById('discount_info').style.display = 'none';
+            msg.innerHTML = `<span class="text-danger">${data.message}</span>`;
+        }
+        updateTotal();
+    });
 }
 
 function generateParticipants() {
@@ -123,9 +192,11 @@ function updateTotal() {
     const selected = select.options[select.selectedIndex];
     const price = parseFloat(selected.getAttribute('data-price')) || 0;
     const num = parseInt(document.getElementById('num_people').value) || 1;
-    const total = price * num;
-    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(total);
-    document.getElementById('total_price_val').value = total;
+    const subtotal = price * num;
+    const total = subtotal - currentDiscount;
+    
+    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(total > 0 ? total : 0);
+    document.getElementById('total_price_val').value = total > 0 ? total : 0;
 }
 </script>
 <?php include '../../includes/footer.php'; ?>

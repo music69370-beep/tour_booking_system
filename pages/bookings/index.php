@@ -54,7 +54,8 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, t.cost_per_person, v.plate_number, g.fullname as guide_name,
+                        // --- ຈຸດທີ່ແກ້ໄຂ: ເອົາ t.cost_per_person ອອກ ແລະ ເພີ່ມ b.discount_amount ---
+                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, v.plate_number, g.fullname as guide_name,
                                 (SELECT payment_slip FROM payments WHERE booking_id = b.booking_id LIMIT 1) as slip
                                 FROM bookings b
                                 JOIN customers c ON b.customer_id = c.customer_id
@@ -70,12 +71,12 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                         $sql .= " ORDER BY b.travel_date ASC";
                         $result = mysqli_query($conn, $sql);
 
-                        if(mysqli_num_rows($result) > 0):
+                        // ກວດສອບກ່ອນວ່າມີຂໍ້ມູນບໍ່
+                        if($result && mysqli_num_rows($result) > 0):
                             while($row = mysqli_fetch_assoc($result)):
                                 $status = $row['status'];
                                 $bid = $row['booking_id'];
                                 $has_slip = !empty($row['slip']);
-                                $profit = ($status != 'Cancelled') ? ($row['total_price'] - ($row['cost_per_person'] * $row['num_people'])) : 0;
                                 
                                 // Checklist Progress
                                 $t_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as tot, SUM(is_completed) as done FROM booking_tasks WHERE booking_id = $bid"));
@@ -104,7 +105,9 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 </td>
                                 <td class="text-end">
                                     <div class="fw-bold text-danger"><?php echo number_format($row['total_price']); ?></div>
-                                    <small class="text-success" style="font-size: 0.7rem;"><?php echo ($status != 'Cancelled') ? 'ກຳໄລ: +'.number_format($profit) : '<span class="text-danger">ຍົກເລີກແລ້ວ</span>'; ?></small>
+                                    <?php if($row['discount_amount'] > 0): ?>
+                                        <small class="text-success" style="font-size: 0.7rem;">ສ່ວນຫຼຸດ: -<?php echo number_format($row['discount_amount']); ?></small>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="text-center">
                                     <?php 
