@@ -38,7 +38,7 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/vehicles/add.php">
-                        <i class="fas fa-bus-alt me-2 <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ເພີ່ມລົດ/ຄົນຂັບ
+                        <i class="fas fa-bus-alt me-2 <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ເພີ່ມຂໍ້ມູນລົດທົວ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -61,6 +61,16 @@ $current_page = $_SERVER['PHP_SELF'];
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/payments/add.php">
                         <i class="fas fa-cash-register me-2 <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກຮັບເງິນ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/drivers/add.php">
+                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ເພີ່ມຄົນຂັບໃໝ່
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'outings/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/outings/add.php">
+                        <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/add.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ບັນທຶກລົດອອກທົວ
                     </a>
                 </li>
             </ul>
@@ -103,10 +113,19 @@ $current_page = $_SERVER['PHP_SELF'];
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'outings/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/outings/index.php">
+                        <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການອອກທົວ
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'guides/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/guides/index.php">
                         <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'guides/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການໄກ້ທັງໝົດ
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'drivers/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/drivers/index.php">
+                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍຊື່ຄົນຂັບ
+                    </a>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/customers/index.php">
                         <i class="fas fa-users me-2 <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ລາຍຊື່ລູກຄ້າ

@@ -4,13 +4,12 @@ include '../../config/db.php';
 
 if (isset($_POST['update_tour'])) {
     $id = $_POST['tour_id'];
-    $vehicle_id = $_POST['vehicle_id'];
-    $guide_id = $_POST['guide_id'];
+    $tour_code = mysqli_real_escape_string($conn, $_POST['tour_code']);
     $tour_name = mysqli_real_escape_string($conn, $_POST['tour_name']);
     $price = $_POST['price'];
-    $duration = mysqli_real_escape_string($conn, $_POST['duration']);
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
     $max_seats = $_POST['max_seats'];
-    $status = $_POST['status'];
     $itinerary = mysqli_real_escape_string($conn, $_POST['itinerary']);
     $old_image = $_POST['old_image'];
 
@@ -20,17 +19,15 @@ if (isset($_POST['update_tour'])) {
         if (file_exists("../../assets/uploads/tours/" . $old_image)) unlink("../../assets/uploads/tours/" . $old_image);
     } else { $new_name = $old_image; }
 
-    // ປັບ SQL ໂດຍການເອົາ cost_per_person ອອກ
     $sql = "UPDATE tours SET 
-            vehicle_id = '$vehicle_id', 
-            guide_id = '$guide_id',
+            tour_code = '$tour_code',
             tour_name = '$tour_name', 
             price = '$price', 
-            duration = '$duration', 
+            start_date = '$start_date',
+            end_date = '$end_date',
             max_seats = '$max_seats', 
             itinerary = '$itinerary',
-            image = '$new_name', 
-            status = '$status' 
+            image = '$new_name'
             WHERE tour_id = $id";
 
     if (mysqli_query($conn, $sql)) {

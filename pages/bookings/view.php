@@ -7,22 +7,29 @@ include '../../includes/sidebar.php';
 if (!isset($_GET['id'])) { echo "ID missing"; exit; }
 $id = mysqli_real_escape_string($conn, $_GET['id']);
 
-// 1. ດຶງຂໍ້ມູນການຈອງ (ເອົາ t.cost_per_person ອອກແລ້ວ)
+// 1. ດຶງຂໍ້ມູນການຈອງ (ແກ້ໄຂ SQL ໃຫ້ຕົງກັບ Schema ໃໝ່)
 $sql = "SELECT b.*, c.fullname, c.phone, c.email, c.address, 
-               t.tour_name, t.tour_code, t.duration, t.meeting_point, t.category, t.meals,
-               t.price as price_per_pax, t.highlights, t.whats_included, t.whats_excluded, t.cancellation_policy,
-               v.model as car_model, v.plate_number, v.driver_name, v.driver_phone,
-               g.fullname as guide_name, g.phone as guide_phone,
-               p.amount as paid_amount, p.payment_method, p.payment_slip, p.payment_date
+               t.tour_name, t.tour_code, t.duration, t.meeting_point, t.category, t.meals, t.image as tour_img,
+               t.price as price_per_pax, t.highlights, t.whats_included, t.whats_excluded,
+               p.amount as paid_amount, p.payment_method, p.payment_slip, p.payment_date,
+               v.model as car_model, v.plate_number, d.fullname as driver_name
         FROM bookings b 
         JOIN customers c ON b.customer_id = c.customer_id 
         JOIN tours t ON b.tour_id = t.tour_id 
-        LEFT JOIN vehicles v ON t.vehicle_id = v.vehicle_id
-        LEFT JOIN guides g ON t.guide_id = g.guide_id
         LEFT JOIN payments p ON b.booking_id = p.booking_id
+        -- ເຊື່ອມຫາລົດ ແລະ ຄົນຂັບ ຜ່ານ Trip Log (vehicle_outings)
+        LEFT JOIN vehicle_outings vo ON b.tour_id = vo.tour_id AND b.travel_date = vo.start_date
+        LEFT JOIN vehicles v ON vo.vehicle_id = v.vehicle_id
+        LEFT JOIN drivers d ON vo.driver_id = d.driver_id
         WHERE b.booking_id = '$id'";
 
 $result = mysqli_query($conn, $sql);
+
+if (!$result) {
+    echo "SQL Error: " . mysqli_error($conn);
+    exit;
+}
+
 $row = mysqli_fetch_assoc($result);
 
 if (!$row) { echo "<div class='p-5 text-center'><h3>ບໍ່ພົບຂໍ້ມູນ</h3><a href='index.php'>ກັບຄືນ</a></div>"; exit; }
@@ -33,10 +40,6 @@ $total_tasks = mysqli_num_rows($tasks_query);
 $done_res = mysqli_query($conn, "SELECT COUNT(*) as c FROM booking_tasks WHERE booking_id = '$id' AND is_completed = 1");
 $done_tasks = mysqli_fetch_assoc($done_res)['c'];
 $percent = ($total_tasks > 0) ? round(($done_tasks / $total_tasks) * 100) : 0;
-
-// 3. ຄິດໄລ່ການເງິນ (ສະແດງສະເພາະຍອດຂາຍ ແລະ ສ່ວນຫຼຸດ)
-$total_sale = $row['total_price'];
-$discount = $row['discount_amount'];
 ?>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
@@ -44,15 +47,12 @@ $discount = $row['discount_amount'];
 
     <div class="px-4 pb-5">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-3">
             <div class="d-flex align-items-center">
                 <a href="index.php" class="btn btn-light border rounded-pill px-3 me-3 shadow-sm"><i class="fas fa-arrow-left"></i> ຍ້ອນກັບ</a>
                 <h2 class="fw-bold mb-0">ລາຍລະອຽດ #BK-<?php echo str_pad($id, 4, '0', STR_PAD_LEFT); ?></h2>
             </div>
             <div class="d-flex gap-2">
-                <?php if($row['status'] == 'Pending'): ?>
-                    <button onclick="confirmApprove(<?php echo $id; ?>, 'approve.php')" class="btn btn-success rounded-pill px-4 shadow-sm">ອະນຸມັດການຈອງ</button>
-                <?php endif; ?>
                 <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm"><i class="fas fa-print"></i> ພິມ</button>
             </div>
         </div>
@@ -137,25 +137,30 @@ $discount = $row['discount_amount'];
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-dark text-white">
                     <h6 class="fw-bold border-bottom border-secondary pb-2 mb-3 text-uppercase small">ສະຫຼຸບການເງິນ</h6>
                     <div class="d-flex justify-content-between mb-2">
-                        <small class="opacity-75">ລາຄາປົກກະຕິ:</small>
-                        <span class="fw-bold"><?php echo number_format($total_sale + $discount); ?></span>
+                        <small class="opacity-75">ລາຄາລວມ:</small>
+                        <span class="fw-bold"><?php echo number_format($row['total_price'] + $row['discount_amount']); ?></span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <small class="opacity-75">ສ່ວນຫຼຸດ:</small>
-                        <span class="fw-bold text-warning">- <?php echo number_format($discount); ?></span>
+                        <span class="fw-bold text-warning">- <?php echo number_format($row['discount_amount']); ?></span>
                     </div>
                     <hr class="border-secondary">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">ຍອດລວມສຸດທິ:</h6>
-                        <h3 class="mb-0 text-success fw-bold">₭ <?php echo number_format($total_sale); ?></h3>
+                        <h6 class="mb-0">ຍອດສຸດທິ:</h6>
+                        <h3 class="mb-0 text-success fw-bold">₭ <?php echo number_format($row['total_price']); ?></h3>
                     </div>
                 </div>
 
-                <!-- ພາຫະນະ-ໄກ້ -->
+                <!-- ພາຫະນະ-ຄົນຂັບ (ດຶງມາຈາກ Trip Log) -->
                 <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-bus-alt text-warning me-2"></i>ພາຫະນະ ແລະ ໄກ້</h6>
-                    <div class="mb-3 small">ລົດ: <strong><?php echo $row['car_model'] ?: 'ຍັງບໍ່ໄດ້ກຳນົດ'; ?></strong> (<?php echo $row['plate_number']; ?>)</div>
-                    <div class="small">ໄກ້: <strong><?php echo $row['guide_name'] ?: 'ຍັງບໍ່ໄດ້ກຳນົດ'; ?></strong></div>
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-bus-alt text-warning me-2"></i>ພາຫະນະ ແລະ ຄົນຂັບ</h6>
+                    <?php if($row['car_model']): ?>
+                        <div class="mb-3 small">ລົດ: <strong><?php echo $row['car_model']; ?></strong> (<?php echo $row['plate_number']; ?>)</div>
+                        <div class="small">ຄົນຂັບ: <strong><?php echo $row['driver_name']; ?></strong></div>
+                    <?php else: ?>
+                        <div class="text-muted small italic">ຍັງບໍ່ໄດ້ມອບໝາຍລົດ (Dispatch)</div>
+                        <a href="../outings/add.php" class="btn btn-sm btn-outline-primary mt-2 rounded-pill">ໄປມອບໝາຍລົດ</a>
+                    <?php endif; ?>
                 </div>
 
                 <!-- ຫຼັກຖານການໂອນ -->

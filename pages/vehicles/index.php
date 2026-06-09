@@ -1,74 +1,69 @@
 <?php 
 include '../../config/db.php'; 
+/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 ?>
 
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0">
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 pb-5">
         <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h2 class="fw-bold"><i class="fas fa-bus text-info me-2"></i>ລາຍການພາຫະນະ ແລະ ຄົນຂັບ</h2>
+            <h2 class="fw-bold text-dark"><i class="fas fa-bus text-info me-2"></i>ລາຍການພາຫະນະທັງໝົດ</h2>
             <a href="add.php" class="btn btn-info text-white rounded-pill px-4 shadow-sm">
                 <i class="fas fa-plus-circle me-1"></i> ເພີ່ມລົດໃໝ່
             </a>
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="bg-light text-muted small text-uppercase">
-                            <tr>
-                                <th class="ps-4 py-3">ຂໍ້ມູນລົດ</th>
-                                <th>ບ່ອນນັ່ງ</th>
-                                <th>ຄົນຂັບ / ເບີໂທ</th>
-                                <th>ສະຖານະ</th>
-                                <th class="text-center">ຈັດການ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $res = mysqli_query($conn, "SELECT * FROM vehicles ORDER BY vehicle_id DESC");
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3">ຂໍ້ມູນລົດ</th>
+                            <th>ປະເພດ</th>
+                            <th class="text-center">ບ່ອນນັ່ງ</th>
+                            <th>ວັນໝົດປະກັນໄພ</th>
+                            <th class="text-center">ສະຖານະ</th>
+                            <th class="text-center">ຈັດການ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $res = mysqli_query($conn, "SELECT * FROM vehicles ORDER BY vehicle_id DESC");
+                        if(mysqli_num_rows($res) > 0):
                             while($row = mysqli_fetch_assoc($res)):
-                            ?>
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="fw-bold text-dark"><?php echo $row['model']; ?></div>
-                                        <span class="badge bg-light text-dark border small"><?php echo $row['plate_number']; ?></span>
-                                    </td>
-                                    <td class="fw-bold text-primary"><?php echo $row['capacity']; ?> ບ່ອນ</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <?php if(!empty($row['driver_image'])): ?>
-                                                <img src="<?php echo BASE_URL; ?>assets/uploads/vehicles/<?php echo $row['driver_image']; ?>" class="rounded-circle me-2 border shadow-sm" width="35" height="35" style="object-fit: cover;">
-                                            <?php else: ?>
-                                                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle me-2 d-flex align-items-center justify-content-center border" style="width: 35px; height: 35px;"><i class="fas fa-user small"></i></div>
-                                            <?php endif; ?>
-                                            <div>
-                                                <div class="fw-bold small"><?php echo $row['driver_name']; ?></div>
-                                                <small class="text-muted small"><?php echo $row['driver_phone']; ?></small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge rounded-pill <?php echo ($row['status'] == 'Available') ? 'bg-success' : 'bg-warning text-dark'; ?>">
-                                            <?php echo $row['status']; ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
-                                            <button class="btn btn-sm btn-white text-info border-end" data-bs-toggle="modal" data-bs-target="#viewModal<?php echo $row['vehicle_id']; ?>"><i class="fas fa-eye"></i></button>
-                                            <a href="edit.php?id=<?php echo $row['vehicle_id']; ?>" class="btn btn-sm btn-white text-warning border-end"><i class="fas fa-edit"></i></a>
-                                            <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['vehicle_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger"><i class="fas fa-trash"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
+                                $st = $row['status'];
+                                $badge = ($st == 'Available') ? 'bg-success' : (($st == 'Busy') ? 'bg-warning text-dark' : 'bg-danger');
+                        ?>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark"><?php echo $row['model']; ?></div>
+                                    <span class="badge bg-light text-dark border small"><?php echo $row['plate_number']; ?></span>
+                                </td>
+                                <td><?php echo $row['vehicle_type']; ?></td>
+                                <td class="text-center fw-bold text-primary"><?php echo $row['capacity']; ?> ບ່ອນ</td>
+                                <td>
+                                    <small class="text-muted"><i class="far fa-calendar-alt me-1"></i> <?php echo date('d/m/Y', strtotime($row['insurance_expiry'])); ?></small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill <?php echo $badge; ?> px-3 py-2">
+                                        <?php echo ($st == 'Available') ? 'ວ່າງ' : (($st == 'Busy') ? 'ຕິດວຽກ' : 'ສ້ອມແປງ'); ?>
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
+                                        <a href="edit.php?id=<?php echo $row['vehicle_id']; ?>" class="btn btn-sm btn-white text-warning border-end" title="ແກ້ໄຂ"><i class="fas fa-edit"></i></a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['vehicle_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ"><i class="fas fa-trash"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; else: ?>
+                            <tr><td colspan="6" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນລົດໃນລະບົບ</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
