@@ -1,5 +1,6 @@
 <?php
 include '../../config/db.php';
+/** @var mysqli $conn */
 
 if (isset($_GET['id'])) {
     $id = $_GET['id'];

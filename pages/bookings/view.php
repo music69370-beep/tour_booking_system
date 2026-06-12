@@ -4,213 +4,189 @@ include '../../config/db.php';
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 
-if (!isset($_GET['id'])) { echo "ID missing"; exit; }
-$id = mysqli_real_escape_string($conn, $_GET['id']);
-
-// 1. ດຶງຂໍ້ມູນການຈອງ (ແກ້ໄຂ SQL ໃຫ້ຕົງກັບ Schema ໃໝ່)
-$sql = "SELECT b.*, c.fullname, c.phone, c.email, c.address, 
-               t.tour_name, t.tour_code, t.duration, t.meeting_point, t.category, t.meals, t.image as tour_img,
-               t.price as price_per_pax, t.highlights, t.whats_included, t.whats_excluded,
-               p.amount as paid_amount, p.payment_method, p.payment_slip, p.payment_date,
-               v.model as car_model, v.plate_number, d.fullname as driver_name
-        FROM bookings b 
-        JOIN customers c ON b.customer_id = c.customer_id 
-        JOIN tours t ON b.tour_id = t.tour_id 
-        LEFT JOIN payments p ON b.booking_id = p.booking_id
-        -- ເຊື່ອມຫາລົດ ແລະ ຄົນຂັບ ຜ່ານ Trip Log (vehicle_outings)
-        LEFT JOIN vehicle_outings vo ON b.tour_id = vo.tour_id AND b.travel_date = vo.start_date
-        LEFT JOIN vehicles v ON vo.vehicle_id = v.vehicle_id
-        LEFT JOIN drivers d ON vo.driver_id = d.driver_id
-        WHERE b.booking_id = '$id'";
-
-$result = mysqli_query($conn, $sql);
-
-if (!$result) {
-    echo "SQL Error: " . mysqli_error($conn);
+if (!isset($_GET['id'])) {
+    echo "<script>window.location='index.php';</script>";
     exit;
 }
 
-$row = mysqli_fetch_assoc($result);
+$id = mysqli_real_escape_string($conn, $_GET['id']);
 
-if (!$row) { echo "<div class='p-5 text-center'><h3>ບໍ່ພົບຂໍ້ມູນ</h3><a href='index.php'>ກັບຄືນ</a></div>"; exit; }
+// 1. ດຶງຂໍ້ມູນການຈອງ ແລະ ລູກຄ້າຫຼັກ
+$sql = "SELECT b.*, c.fullname, c.phone, t.tour_name 
+        FROM bookings b 
+        JOIN customers c ON b.customer_id = c.customer_id 
+        JOIN tours t ON b.tour_id = t.tour_id 
+        WHERE b.booking_id = '$id'";
+$res = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($res);
 
-// 2. ດຶງຂໍ້ມູນ Checklist ຄວາມພ້ອມ
-$tasks_query = mysqli_query($conn, "SELECT * FROM booking_tasks WHERE booking_id = '$id'");
-$total_tasks = mysqli_num_rows($tasks_query);
-$done_res = mysqli_query($conn, "SELECT COUNT(*) as c FROM booking_tasks WHERE booking_id = '$id' AND is_completed = 1");
-$done_tasks = mysqli_fetch_assoc($done_res)['c'];
-$percent = ($total_tasks > 0) ? round(($done_tasks / $total_tasks) * 100) : 0;
+if (!$row) {
+    echo "<div class='p-5 text-center'><h3>ບໍ່ພົບຂໍ້ມູນການຈອງ</h3><a href='index.php'>ກັບຄືນ</a></div>";
+    exit;
+}
+
+// ແຍກ Array ບ່ອນນັ່ງທັງໝົດອອກມາເພື່ອໃຊ້ເປັນບ່ອນອີງ
+$all_seats = !empty($row['selected_seats']) ? explode(',', $row['selected_seats']) : [];
 ?>
+
+<style>
+    .seat-badge-fixed {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+    }
+    .table-custom thead { background-color: #f8f9fa; }
+    .table-custom th { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; border: none; }
+    .table-custom td { vertical-align: middle; border-bottom: 1px solid #f1f3f7; padding: 15px 10px; }
+</style>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
-
-    <div class="px-4 pb-5">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 no-print mt-3">
-            <div class="d-flex align-items-center">
-                <a href="index.php" class="btn btn-light border rounded-pill px-3 me-3 shadow-sm"><i class="fas fa-arrow-left"></i> ຍ້ອນກັບ</a>
-                <h2 class="fw-bold mb-0">ລາຍລະອຽດ #BK-<?php echo str_pad($id, 4, '0', STR_PAD_LEFT); ?></h2>
-            </div>
-            <div class="d-flex gap-2">
-                <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm"><i class="fas fa-print"></i> ພິມ</button>
-            </div>
+    
+    <div class="px-4 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">ລາຍລະອຽດການຈອງ #BK-<?php echo $id; ?></h2>
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4 no-print">
+                <i class="fas fa-print me-2"></i> ພິມລາຍຊື່
+            </button>
         </div>
 
         <div class="row g-4">
+            <!-- ເບື້ອງຊ້າຍ: ຂໍ້ມູນທົ່ວໄປ -->
             <div class="col-lg-8">
-                <!-- ຂໍ້ມູນທົວ ແລະ ຜູ້ຈອງ -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between border-bottom pb-3 mb-4">
-                            <div>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 mb-2"><?php echo $row['category']; ?></span>
-                                <h3 class="fw-bold text-dark mb-1"><?php echo $row['tour_name']; ?></h3>
-                                <p class="text-muted small mb-0">ວັນທີເດີນທາງ: <strong class="text-danger"><?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></strong></p>
-                            </div>
-                            <div class="badge rounded-pill px-3 py-2 h-50 <?php echo ($row['status']=='Confirmed')?'bg-success':'bg-warning text-dark'; ?> border shadow-sm">
-                                <?php echo ($row['status']=='Confirmed')?'ຢືນຢັນແລ້ວ':'ລໍຖ້າອະນຸມັດ'; ?>
-                            </div>
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>ຂໍ້ມູນທົ່ວໄປ</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">ລູກຄ້າຜູ້ຈອງ:</small>
+                            <span class="fw-bold fs-5"><?php echo $row['fullname']; ?></span>
+                            <small class="d-block text-primary"><?php echo $row['phone']; ?></small>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 border-end">
-                                <h6 class="fw-bold text-primary mb-2 small text-uppercase">ຂໍ້ມູນຜູ້ຈອງ</h6>
-                                <p class="mb-1">ຊື່: <strong><?php echo $row['fullname']; ?></strong></p>
-                                <p class="mb-1">ເບີໂທ: <strong><?php echo $row['phone']; ?></strong></p>
-                                <p class="small text-muted">ອີເມວ: <?php echo $row['email']; ?></p>
-                            </div>
-                            <div class="col-md-6 ps-md-4">
-                                <h6 class="fw-bold text-primary mb-2 small text-uppercase">ລາຍລະອຽດເດີນທາງ</h6>
-                                <p class="small mb-1">ຈຸດນັດພົບ: <strong><?php echo $row['meeting_point']; ?></strong></p>
-                                <p class="small">ຈຳນວນ: <span class="badge bg-dark text-white px-2"><?php echo $row['num_people']; ?> ຄົນ</span></p>
-                            </div>
+                        <div class="col-md-6 mb-3 text-md-end">
+                            <small class="text-muted d-block">ແພັກເກັດທົວ:</small>
+                            <span class="fw-bold text-dark"><?php echo $row['tour_name']; ?></span>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">ວັນທີເດີນທາງ:</small>
+                            <span class="fw-bold"><i class="far fa-calendar-alt me-1"></i> <?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></span>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted d-block">ຈຳນວນຜູ້ເດີນທາງ:</small>
+                            <span class="badge bg-light text-dark border px-3"><?php echo $row['num_people']; ?> ທ່ານ</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- ລາຍຊື່ຜູ້ຮ່ວມທາງ -->
-                <div class="card border-0 shadow-sm rounded-4 mb-4">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-users text-info me-2"></i>ລາຍຊື່ຜູ້ຮ່ວມເດີນທາງ</h6>
+                <!-- ຕາຕະລາງລະບຸບ່ອນນັ່ງລາຍຄົນ (Passenger List with Assigned Seats) -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-users text-primary me-2"></i>ລາຍຊື່ຜູ້ໂດຍສານ ແລະ ບ່ອນນັ່ງ</h5>
                     </div>
-                    <div class="card-body p-4 pt-2">
-                        <table class="table table-sm align-middle">
-                            <thead class="bg-light">
-                                <tr><th class="ps-3" width="60">#</th><th>ຊື່ ແລະ ນາມສະກຸນ</th><th>ເບີໂທ</th></tr>
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">ລຳດັບ</th>
+                                    <th>ຊື່ ແລະ ນາມສະກຸນ</th>
+                                    <th class="text-center">ເບີບ່ອນນັ່ງ</th>
+                                    <th class="text-center">ສະຖານະ</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="ps-3 text-muted">1</td><td><strong><?php echo $row['fullname']; ?></strong> (ຫົວໜ້າ)</td><td><?php echo $row['phone']; ?></td></tr>
+                                <!-- 1. ລູກຄ້າຫຼັກ -->
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted">01</td>
+                                    <td>
+                                        <div class="fw-bold text-dark"><?php echo $row['fullname']; ?></div>
+                                        <small class="badge bg-success-subtle text-success small">ລູກຄ້າຫຼັກ (Lead)</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="badge bg-primary seat-badge-fixed mx-auto">
+                                            <?php echo isset($all_seats[0]) ? $all_seats[0] : '-'; ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-success small"><i class="fas fa-check-circle me-1"></i> ຢືນຢັນແລ້ວ</span>
+                                    </td>
+                                </tr>
+
+                                <!-- 2. ຜູ້ຮ່ວມທາງ (Participants) -->
                                 <?php 
-                                $participants = mysqli_query($conn, "SELECT * FROM booking_participants WHERE booking_id = '$id'");
-                                $i = 2; while($p = mysqli_fetch_assoc($participants)): ?>
-                                    <tr><td class="ps-3 text-muted"><?php echo $i++; ?></td><td><?php echo $p['participant_name']; ?></td><td><?php echo $p['participant_phone']; ?></td></tr>
-                                <?php endwhile; ?>
+                                $p_sql = "SELECT * FROM booking_participants WHERE booking_id = '$id' ORDER BY part_id ASC";
+                                $p_res = mysqli_query($conn, $p_sql);
+                                $i = 2;
+                                while($p = mysqli_fetch_assoc($p_res)): 
+                                ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted"><?php echo str_pad($i, 2, '0', STR_PAD_LEFT); ?></td>
+                                    <td>
+                                        <div class="text-dark"><?php echo $p['participant_name']; ?></div>
+                                        <small class="text-muted"><?php echo $p['participant_phone'] ?: 'ບໍ່ມີເບີໂທ'; ?></small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="badge bg-primary seat-badge-fixed mx-auto">
+                                            <?php 
+                                                // ຖ້າມີການເກັບ seat ໃນຕາຕະລາງ participant ໃຫ້ເອົາມາໂຊ, ຖ້າບໍ່ມີໃຫ້ໄລ່ຕາມ index ຂອງ all_seats
+                                                echo !empty($p['participant_seat']) ? $p['participant_seat'] : (isset($all_seats[$i-1]) ? $all_seats[$i-1] : '-'); 
+                                            ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-success small"><i class="fas fa-check-circle me-1"></i> ຢືນຢັນແລ້ວ</span>
+                                    </td>
+                                </tr>
+                                <?php $i++; endwhile; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Checklist -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-tasks text-danger me-2"></i>Checklist ຄວາມພ້ອມ</h6>
-                    <div class="row" id="taskList">
-                        <?php if($total_tasks > 0): 
-                            mysqli_data_seek($tasks_query, 0); while($t = mysqli_fetch_assoc($tasks_query)): ?>
-                            <div class="col-md-6 mb-2">
-                                <div class="form-check">
-                                    <input class="form-check-input task-checkbox shadow-none" type="checkbox" data-id="<?php echo $t['task_id']; ?>" data-bid="<?php echo $id; ?>" <?php echo $t['is_completed'] ? 'checked' : ''; ?>>
-                                    <label class="form-check-label ms-2 small <?php echo $t['is_completed'] ? 'text-muted text-decoration-line-through' : 'fw-bold'; ?>"><?php echo $t['task_label']; ?></label>
-                                </div>
-                            </div>
-                        <?php endwhile; else: ?>
-                            <div class="col-12 text-center py-2"><a href="init_tasks.php?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-primary rounded-pill">ສ້າງລາຍການວຽກ</a></div>
-                        <?php endif; ?>
-                    </div>
-                    <div class="progress mt-3" style="height: 10px; border-radius: 10px;"><div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="progressBar" style="width: <?php echo $percent; ?>%"></div></div>
-                    <div class="text-end small mt-1 fw-bold text-primary">ພ້ອມ: <span id="progressText"><?php echo $percent; ?>%</span></div>
-                </div>
             </div>
 
-            <!-- ເບື້ອງຂວາ (Summary) -->
+            <!-- ເບື້ອງຂວາ: ສະຫຼຸບການເງິນ -->
             <div class="col-lg-4">
-                <!-- ສະຫຼຸບຍອດເງິນ -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-dark text-white">
-                    <h6 class="fw-bold border-bottom border-secondary pb-2 mb-3 text-uppercase small">ສະຫຼຸບການເງິນ</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <small class="opacity-75">ລາຄາລວມ:</small>
-                        <span class="fw-bold"><?php echo number_format($row['total_price'] + $row['discount_amount']); ?></span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <small class="opacity-75">ສ່ວນຫຼຸດ:</small>
-                        <span class="fw-bold text-warning">- <?php echo number_format($row['discount_amount']); ?></span>
-                    </div>
-                    <hr class="border-secondary">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">ຍອດສຸດທິ:</h6>
-                        <h3 class="mb-0 text-success fw-bold">₭ <?php echo number_format($row['total_price']); ?></h3>
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-dark text-white text-center mb-4">
+                    <h6 class="opacity-75 small text-uppercase fw-bold mb-3">ຍອດເງິນທີ່ຊຳລະແລ້ວ</h6>
+                    <h2 class="fw-bold text-success display-6 mb-3">₭ <?php echo number_format($row['total_price']); ?></h2>
+                    
+                    <?php 
+                        $status = $row['status'];
+                        $st_class = ($status == 'Confirmed') ? 'bg-success' : (($status == 'Cancelled') ? 'bg-danger' : 'bg-warning text-dark');
+                    ?>
+                    <div class="badge <?php echo $st_class; ?> px-4 py-2 rounded-pill fs-6 shadow-sm">
+                        <i class="fas fa-circle me-1 small"></i> <?php echo $status; ?>
                     </div>
                 </div>
 
-                <!-- ພາຫະນະ-ຄົນຂັບ (ດຶງມາຈາກ Trip Log) -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-bus-alt text-warning me-2"></i>ພາຫະນະ ແລະ ຄົນຂັບ</h6>
-                    <?php if($row['car_model']): ?>
-                        <div class="mb-3 small">ລົດ: <strong><?php echo $row['car_model']; ?></strong> (<?php echo $row['plate_number']; ?>)</div>
-                        <div class="small">ຄົນຂັບ: <strong><?php echo $row['driver_name']; ?></strong></div>
-                    <?php else: ?>
-                        <div class="text-muted small italic">ຍັງບໍ່ໄດ້ມອບໝາຍລົດ (Dispatch)</div>
-                        <a href="../outings/add.php" class="btn btn-sm btn-outline-primary mt-2 rounded-pill">ໄປມອບໝາຍລົດ</a>
-                    <?php endif; ?>
+                <!-- ໝາຍເຫດ -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">ໝາຍເຫດການຈອງ</h6>
+                    <p class="small text-muted mb-0">
+                        <?php echo !empty($row['note']) ? nl2br($row['note']) : 'ບໍ່ມີໝາຍເຫດເພີ່ມເຕີມ'; ?>
+                    </p>
                 </div>
-
-                <!-- ຫຼັກຖານການໂອນ -->
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white no-print">
-                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-file-invoice-dollar text-success me-2"></i>ຫຼັກຖານການຊຳລະ</h6>
-                    <?php if($row['payment_slip']): ?>
-                        <div class="text-center">
-                            <a href="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['payment_slip']; ?>" target="_blank">
-                                <img src="<?php echo BASE_URL; ?>assets/uploads/payments/<?php echo $row['payment_slip']; ?>" class="img-fluid rounded-3 shadow-sm border mb-2" style="max-height: 200px; width: 100%; object-fit: contain;">
-                            </a>
-                            <div class="text-start mt-3 small text-muted">ວິທີຈ່າຍ: <strong><?php echo $row['payment_method']; ?></strong></div>
-                        </div>
-                    <?php else: ?>
-                        <div class="text-center py-4 text-muted small italic">ຍັງບໍ່ມີຫຼັກຖານ</div>
-                    <?php endif; ?>
+                
+                <div class="mt-4 no-print">
+                    <a href="index.php" class="btn btn-light w-100 rounded-pill border fw-bold text-muted shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> ກັບຄືນລາຍການຈອງ
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </main>
 
-<script>
-// AJAX Toggle Task
-document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-        const tid = this.dataset.id; const bid = this.dataset.bid; const status = this.checked ? 1 : 0;
-        fetch(`toggle_task.php?task_id=${tid}&status=${status}&booking_id=${bid}`).then(res => res.json()).then(data => {
-            if(data.success) {
-                const label = this.nextElementSibling;
-                if(status === 1) { label.classList.add('text-muted', 'text-decoration-line-through'); label.classList.remove('fw-bold'); }
-                else { label.classList.remove('text-muted', 'text-decoration-line-through'); label.classList.add('fw-bold'); }
-                updateProgressUI();
-            }
-        });
-    });
-});
-
-function updateProgressUI() {
-    const total = document.querySelectorAll('.task-checkbox').length;
-    const checked = document.querySelectorAll('.task-checkbox:checked').length;
-    const perc = Math.round((checked / total) * 100);
-    document.getElementById('progressBar').style.width = perc + '%';
-    document.getElementById('progressText').innerText = perc + '%';
-}
-</script>
-
 <style>
-    .main-content { background-color: #f4f6f9; }
-    .card { border: 1px solid rgba(0,0,0,0.05) !important; }
-    @media print { .sidebar, .no-print, nav { display: none !important; } .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; } }
+    @media print {
+        .no-print, .sidebar, nav { display: none !important; }
+        .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+        .card { box-shadow: none !important; border: 1px solid #eee !important; }
+    }
 </style>
 
 <?php include '../../includes/footer.php'; ?>
