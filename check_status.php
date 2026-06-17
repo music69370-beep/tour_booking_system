@@ -1,6 +1,6 @@
 <?php 
 include 'config/db.php'; 
-
+/** @var array $lang */ //
 // ຮັບຄ່າເບີໂທລະສັບຈາກ URL (ຄົ້ນຫາ)
 $phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']) : '';
 ?>
@@ -127,23 +127,35 @@ $phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']
                 </div>
 
                 <!-- Modal Review (ຄືເກົ່າ) -->
+                <!-- Modal ສຳລັບຂຽນຣີວິວ (ແກ້ໄຂໃໝ່) -->
                 <div class="modal fade" id="reviewModal<?php echo $row['booking_id']; ?>" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content rounded-4 border-0">
                             <form action="save_review.php" method="POST">
-                                <div class="modal-header border-0 bg-warning text-dark"><h5 class="modal-title fw-bold">Review Trip</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                <div class="modal-header border-0 bg-warning text-dark">
+                                    <h5 class="modal-title fw-bold">Review Your Trip</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
                                 <div class="modal-body p-4 text-center">
+                                    <!-- ສົ່ງຂໍ້ມູນທີ່ຈຳເປັນໄປເບື້ອງຫຼັງ -->
                                     <input type="hidden" name="tour_id" value="<?php echo $row['tour_id']; ?>">
                                     <input type="hidden" name="customer_id" value="<?php echo $row['customer_id']; ?>">
+                                    <input type="hidden" name="user_phone" value="<?php echo $phone; ?>">
+                                    
+                                    <p class="mb-2 fw-bold">ໃຫ້ຄະແນນຄວາມປະທັບໃຈ</p>
                                     <div class="mb-4">
                                         <?php for($i=1; $i<=5; $i++): ?>
-                                            <input type="radio" name="rating" value="<?php echo $i; ?>" id="r<?php echo $row['booking_id'].$i; ?>" class="d-none" required>
-                                            <label for="r<?php echo $row['booking_id'].$i; ?>" class="star-rating s-<?php echo $row['booking_id']; ?>" onclick="updateStars(<?php echo $row['booking_id']; ?>, <?php echo $i; ?>)"><i class="fas fa-star"></i></label>
+                                            <input type="radio" name="rating" value="<?php echo $i; ?>" id="r-<?php echo $row['booking_id'].'-'.$i; ?>" class="d-none" required>
+                                            <label for="r-<?php echo $row['booking_id'].'-'.$i; ?>" class="star-rating s-<?php echo $row['booking_id']; ?>" onclick="updateStars(<?php echo $row['booking_id']; ?>, <?php echo $i; ?>)" style="cursor:pointer;">
+                                                <i class="fas fa-star"></i>
+                                            </label>
                                         <?php endfor; ?>
                                     </div>
-                                    <textarea name="comment" class="form-control bg-light border-0" rows="3" placeholder="<?php echo ($current_lang=='lao')?'ຂຽນຄຳຄິດເຫັນຂອງທ່ານ...':'Your feedback...'; ?>" required></textarea>
+                                    <textarea name="comment" class="form-control bg-light border-0" rows="3" placeholder="ຂຽນຄຳຄິດເຫັນ..." required></textarea>
                                 </div>
-                                <div class="modal-footer border-0"><button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold shadow">Submit Review</button></div>
+                                <div class="modal-footer border-0">
+                                    <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold shadow">Submit Review</button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -165,10 +177,14 @@ $phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']
 
 <script>
 function updateStars(bkId, rating) {
+    // ຊອກຫາ Label ດາວທັງໝົດຂອງ Modal ນັ້ນ
     const labels = document.querySelectorAll('.s-' + bkId);
     labels.forEach((label, index) => {
-        if (index < rating) label.classList.add('active');
-        else label.classList.remove('active');
+        if (index < rating) {
+            label.style.color = '#ffc107'; // ສີເຫຼືອງ
+        } else {
+            label.style.color = '#dee2e6'; // ສີເທົາ
+        }
     });
 }
 </script>
