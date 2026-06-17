@@ -54,6 +54,8 @@ assets/uploads/customers/1781250836.png
 assets/uploads/customers/1781250989.png
 assets/uploads/customers/1781251129.png
 assets/uploads/customers/1781251238.png
+assets/uploads/customers/1781254106_479.png
+assets/uploads/customers/1781254371_259.png
 assets/uploads/drivers/1780475437_driver_IMG_0154.jpeg
 assets/uploads/drivers/1780475437_license_IMG_0154.jpeg
 assets/uploads/drivers/1780475511_driver_IMG_0154.jpeg
@@ -299,87 +301,6 @@ ticket.php
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="get_occupied_seats.php">
-<?php
-include 'config/db.php';
-$tour_id = isset($_GET['tour_id']) ? mysqli_real_escape_string($conn, $_GET['tour_id']) : 0;
-
-// ດຶງເລກບ່ອນນັ່ງຈາກການຈອງທີ່ Confirm ຫຼື Pending (ບໍ່ເອົາລາຍການທີ່ Cancelled)
-$sql = "SELECT selected_seats FROM bookings WHERE tour_id = '$tour_id' AND status != 'Cancelled'";
-$res = mysqli_query($conn, $sql);
-
-$occupied = [];
-while($row = mysqli_fetch_assoc($res)) {
-    if(!empty($row['selected_seats'])) {
-        // ແຍກຂໍ້ຄວາມ "1,2,3" ອອກເປັນ Array
-        $seats = explode(',', $row['selected_seats']);
-        $occupied = array_merge($occupied, $seats);
-    }
-}
-// ສົ່ງຄ່າອອກເປັນ JSON Format
-echo json_encode(array_values(array_unique($occupied)));
-?>
-</file>
-
-<file path="pages/bookings/save_customer_ajax.php">
-<?php
-include '../../config/db.php';
-/** @var mysqli $conn */
-
-// ປິດ Error ເພື່ອໃຫ້ JSON ສະອາດ
-error_reporting(0);
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $fullname = mysqli_real_escape_string($conn, trim($_POST['fullname']));
-    $gender   = mysqli_real_escape_string($conn, $_POST['gender']);
-    $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
-    $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
-    $id_card_no  = mysqli_real_escape_string($conn, trim($_POST['id_card_no']));
-    $phone    = mysqli_real_escape_string($conn, str_replace(' ', '', $_POST['phone']));
-    $email    = mysqli_real_escape_string($conn, trim($_POST['email'] ?? '')); // ຖ້າບໍ່ມີໃຫ້ເປັນຄ່າວ່າງ
-    $address  = mysqli_real_escape_string($conn, trim($_POST['address']));
-    $emergency_name  = mysqli_real_escape_string($conn, trim($_POST['emergency_name']));
-    $emergency_phone = mysqli_real_escape_string($conn, trim($_POST['emergency_phone']));
-
-    // 1. ຈັດການຮູບ
-    $img_name = "";
-    if (!empty($_FILES['id_card_image']['name'])) {
-        $upload_dir = "../../assets/uploads/customers/";
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-        $ext = pathinfo($_FILES['id_card_image']['name'], PATHINFO_EXTENSION);
-        $img_name = time() . "." . $ext;
-        move_uploaded_file($_FILES['id_card_image']['tmp_name'], $upload_dir . $img_name);
-    }
-
-    // 2. ກວດສອບເບີໂທຊ້ຳ (ຖ້າຊ້ຳໃຫ້ Update)
-    $check_res = mysqli_query($conn, "SELECT customer_id, id_card_image FROM customers WHERE phone = '$phone'");
-    
-    if (mysqli_num_rows($check_res) > 0) {
-        $exist = mysqli_fetch_assoc($check_res);
-        $cid = $exist['customer_id'];
-        if ($img_name == "") $img_name = $exist['id_card_image'];
-
-        $sql = "UPDATE customers SET 
-                fullname='$fullname', gender='$gender', birthday='$birthday', 
-                nationality='$nationality', id_card_no='$id_card_no', id_card_image='$img_name', 
-                email='$email', address='$address', emergency_name='$emergency_name', 
-                emergency_phone='$emergency_phone' 
-                WHERE customer_id = '$cid'";
-    } else {
-        $sql = "INSERT INTO customers (fullname, gender, birthday, nationality, id_card_no, id_card_image, phone, email, address, emergency_name, emergency_phone) 
-                VALUES ('$fullname', '$gender', '$birthday', '$nationality', '$id_card_no', '$img_name', '$phone', '$email', '$address', '$emergency_name', '$emergency_phone')";
-    }
-
-    if (mysqli_query($conn, $sql)) {
-        $res_id = (isset($cid)) ? $cid : mysqli_insert_id($conn);
-        echo json_encode(['status' => 'success', 'customer_id' => $res_id]);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => mysqli_error($conn)]);
-    }
-}
-?>
-</file>
 
 <file path="all_code.txt">
 <?php
@@ -14530,6 +14451,33 @@ mysqli_close($conn);
 ?>
 </file>
 
+<file path="get_occupied_seats.php">
+<?php
+include 'config/db.php';
+
+// ຮັບ ID ຂອງທົວ
+$tour_id = isset($_GET['tour_id']) ? mysqli_real_escape_string($conn, $_GET['tour_id']) : 0;
+
+// ດຶງເລກບ່ອນນັ່ງຈາກການຈອງທີ່ Confirm ຫຼື Pending (ບໍ່ເອົາລາຍການທີ່ Cancelled)
+$sql = "SELECT selected_seats FROM bookings WHERE tour_id = '$tour_id' AND status != 'Cancelled'";
+$res = mysqli_query($conn, $sql);
+
+$occupied = [];
+if($res) {
+    while($row = mysqli_fetch_assoc($res)) {
+        if(!empty($row['selected_seats'])) {
+            // ແຍກຂໍ້ຄວາມ "1,2,5" ອອກເປັນ Array [1, 2, 5]
+            $seats = explode(',', $row['selected_seats']);
+            $occupied = array_merge($occupied, $seats);
+        }
+    }
+}
+
+// ສົ່ງຄ່າອອກເປັນ JSON Format ແລະ ຈັດການຄ່າທີ່ຊ້ຳກັນ (ຖ້າມີ)
+echo json_encode(array_values(array_unique($occupied)));
+?>
+</file>
+
 <file path="includes/functions.php">
 
 </file>
@@ -22672,46 +22620,58 @@ if (isset($_POST['confirm_cancel'])) {
 ?>
 </file>
 
-<file path="pages/bookings/toggle_task.php">
+<file path="pages/bookings/save_customer_ajax.php">
 <?php
 include '../../config/db.php';
 /** @var mysqli $conn */
 
+// ປິດ Error ເພື່ອໃຫ້ JSON ສະອາດ
+error_reporting(0);
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
-    $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $fullname = mysqli_real_escape_string($conn, trim($_POST['fullname']));
+    $gender   = mysqli_real_escape_string($conn, $_POST['gender']);
     $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
     $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
-    $id_card_no = mysqli_real_escape_string($conn, $_POST['id_card_no']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $email = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
-    $address = mysqli_real_escape_string($conn, $_POST['address'] ?? '');
-    $emergency_name = mysqli_real_escape_string($conn, $_POST['emergency_name'] ?? '');
-    $emergency_phone = mysqli_real_escape_string($conn, $_POST['emergency_phone'] ?? '');
+    $id_card_no  = mysqli_real_escape_string($conn, trim($_POST['id_card_no']));
+    $phone    = mysqli_real_escape_string($conn, str_replace(' ', '', $_POST['phone']));
+    $email    = mysqli_real_escape_string($conn, trim($_POST['email'] ?? ''));
+    $address  = mysqli_real_escape_string($conn, trim($_POST['address']));
+    $emergency_name  = mysqli_real_escape_string($conn, trim($_POST['emergency_name']));
+    $emergency_phone = mysqli_real_escape_string($conn, trim($_POST['emergency_phone']));
 
-    // 1. ກວດສອບເບີໂທຊ້ຳ
-    $check = mysqli_query($conn, "SELECT customer_id FROM customers WHERE phone = '$phone'");
-    if (mysqli_num_rows($check) > 0) {
-        $exist = mysqli_fetch_assoc($check);
-        echo json_encode(['status' => 'success', 'customer_id' => $exist['customer_id']]);
-        exit();
-    }
-
-    // 2. ຈັດການຮູບ
+    // 1. ຈັດການຮູບພາບ
     $img_name = "";
     if (!empty($_FILES['id_card_image']['name'])) {
         $upload_dir = "../../assets/uploads/customers/";
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-        $img_name = time() . "_" . basename($_FILES['id_card_image']['name']);
+        $ext = pathinfo($_FILES['id_card_image']['name'], PATHINFO_EXTENSION);
+        $img_name = time() . "_" . rand(100,999) . "." . $ext;
         move_uploaded_file($_FILES['id_card_image']['tmp_name'], $upload_dir . $img_name);
     }
 
-    // 3. ບັນທຶກ (ກວດສອບຊື່ Column ໃຫ້ຕົງກັບທີ່ ALTER TABLE ໄປ)
-    $sql = "INSERT INTO customers (fullname, gender, birthday, nationality, id_card_no, id_card_image, phone, email, address, emergency_name, emergency_phone) 
-            VALUES ('$fullname', '$gender', '$birthday', '$nationality', '$id_card_no', '$img_name', '$phone', '$email', '$address', '$emergency_name', '$emergency_phone')";
+    // 2. ກວດສອບເບີໂທຊ້ຳ (ຖ້າມີແລ້ວໃຫ້ Update ຂໍ້ມູນໃໝ່ທັບ)
+    $check_res = mysqli_query($conn, "SELECT customer_id, id_card_image FROM customers WHERE phone = '$phone'");
+    
+    if (mysqli_num_rows($check_res) > 0) {
+        $exist = mysqli_fetch_assoc($check_res);
+        $cid = $exist['customer_id'];
+        if ($img_name == "") $img_name = $exist['id_card_image'];
+
+        $sql = "UPDATE customers SET 
+                fullname='$fullname', gender='$gender', birthday='$birthday', 
+                nationality='$nationality', id_card_no='$id_card_no', id_card_image='$img_name', 
+                email='$email', address='$address', emergency_name='$emergency_name', 
+                emergency_phone='$emergency_phone' 
+                WHERE customer_id = '$cid'";
+    } else {
+        $sql = "INSERT INTO customers (fullname, gender, birthday, nationality, id_card_no, id_card_image, phone, email, address, emergency_name, emergency_phone) 
+                VALUES ('$fullname', '$gender', '$birthday', '$nationality', '$id_card_no', '$img_name', '$phone', '$email', '$address', '$emergency_name', '$emergency_phone')";
+    }
 
     if (mysqli_query($conn, $sql)) {
-        echo json_encode(['status' => 'success', 'customer_id' => mysqli_insert_id($conn)]);
+        $res_id = (isset($cid)) ? $cid : mysqli_insert_id($conn);
+        echo json_encode(['status' => 'success', 'customer_id' => $res_id]);
     } else {
         echo json_encode(['status' => 'error', 'message' => mysqli_error($conn)]);
     }
@@ -22787,59 +22747,6 @@ if (!$row) { echo "ບໍ່ພົບຂໍ້ມູນລູກຄ້າ"; exit
 </main>
 
 <?php include '../../includes/footer.php'; ?>
-</file>
-
-<file path="pages/customers/save.php">
-<?php
-include '../../config/db.php';
-/** @var mysqli $conn */
-
-if (isset($_POST['save_customer'])) {
-    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
-    $gender = $_POST['gender'];
-    $birthday = $_POST['birthday'];
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $id_card_no = mysqli_real_escape_string($conn, $_POST['id_card_no']);
-    $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $address = mysqli_real_escape_string($conn, $_POST['address']);
-    $emergency_name = mysqli_real_escape_string($conn, $_POST['emergency_name']);
-    $emergency_phone = mysqli_real_escape_string($conn, $_POST['emergency_phone']);
-
-    // --- Logic ຈັດການອັບໂຫລດຮູບ ---
-    $id_card_image_name = "";
-    if (!empty($_FILES['id_card_image']['name'])) {
-        $upload_dir = "../../assets/uploads/customers/";
-        
-        // ສ້າງ Folder ຖ້າຍັງບໍ່ມີ
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-
-        // ຕັ້ງຊື່ຮູບໃໝ່ປ້ອງກັນຊື່ຊ້ຳ (timestamp + original name)
-        $id_card_image_name = time() . "_" . basename($_FILES['id_card_image']['name']);
-        $target_file = $upload_dir . $id_card_image_name;
-
-        // ຍ້າຍໄຟລ໌ຈາກ Temp ໄປບ່ອນເກັບແທ້
-        move_uploaded_file($_FILES['id_card_image']['tmp_name'], $target_file);
-    }
-
-    $sql = "INSERT INTO customers (
-                fullname, gender, birthday, phone, id_card_no, id_card_image,
-                nationality, email, address, emergency_name, emergency_phone
-            ) VALUES (
-                '$fullname', '$gender', '$birthday', '$phone', '$id_card_no', '$id_card_image_name',
-                '$nationality', '$email', '$address', '$emergency_name', '$emergency_phone'
-            )";
-
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php?msg=success");
-        exit();
-    } else {
-        echo "Error: " . mysqli_error($conn);
-    }
-}
-?>
 </file>
 
 <file path="pages/customers/update.php">
@@ -23830,32 +23737,6 @@ include '../../config/db.php'; include '../../includes/header.php'; include '../
 <?php include '../../includes/footer.php'; ?>
 </file>
 
-<file path="pages/tours/delete.php">
-<?php
-include '../../config/db.php';
-/** @var mysqli $conn */
-
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
-
-    // 1. ດຶງຊື່ຮູບພາບມາກ່ອນເພື່ອຈະລຶບໄຟລ໌
-    $res = mysqli_query($conn, "SELECT image FROM tours WHERE tour_id = $id");
-    $data = mysqli_fetch_assoc($res);
-    $image_name = $data['image'];
-
-    // 2. ລຶບຂໍ້ມູນໃນ Database
-    $sql = "DELETE FROM tours WHERE tour_id = $id";
-    if (mysqli_query($conn, $sql)) {
-        // 3. ລຶບໄຟລ໌ຮູບພາບອອກຈາກ Folder
-        if (file_exists("../../assets/uploads/tours/" . $image_name)) {
-            unlink("../../assets/uploads/tours/" . $image_name);
-        }
-        header("Location: index.php?msg=deleted");
-    }
-}
-?>
-</file>
-
 <file path="pages/users/delete.php">
 <?php
 include '../../config/db.php';
@@ -24485,67 +24366,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 </file>
 
-<file path="ticket.php">
-<?php 
-include 'config/db.php'; 
-if (!isset($_GET['id'])) { header("Location: index.php"); exit; }
-$id = mysqli_real_escape_string($conn, $_GET['id']);
-
-$sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, t.image, t.meeting_point 
-        FROM bookings b 
-        JOIN customers c ON b.customer_id = c.customer_id 
-        JOIN tours t ON b.tour_id = t.tour_id 
-        WHERE b.booking_id = '$id' AND b.status = 'Confirmed'";
-
-$result = mysqli_query($conn, $sql);
-$row = mysqli_fetch_assoc($result);
-if (!$row) { exit("Ticket Not Found or Not Confirmed"); }
-?>
-<!DOCTYPE html>
-<html lang="lo">
-<head>
-    <meta charset="UTF-8">
-    <title>Ticket #BK-<?php echo $id; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Lao', sans-serif; background: #f8f9fa; }
-        .ticket-card { max-width: 600px; margin: 50px auto; border-radius: 20px; border: none; overflow: hidden; }
-        .seat-badge { background: #0d6efd; color: white; padding: 5px 15px; border-radius: 50px; font-weight: bold; margin-right: 5px; }
-    </style>
-</head>
-<body>
-    <div class="container text-center no-print mt-4"><button onclick="window.print()" class="btn btn-primary">ພິມໃບຢັ້ງຢືນ</button></div>
-    <div class="card ticket-card shadow-lg">
-        <div class="bg-primary text-white p-4 text-center">
-            <h2 class="fw-bold mb-0">Tour Booking Ticket</h2>
-            <p class="mb-0 opacity-75">ID: #BK-<?php echo str_pad($id, 4, '0', STR_PAD_LEFT); ?></p>
-        </div>
-        <div class="card-body p-4">
-            <h5 class="fw-bold text-dark"><?php echo $row['tour_name']; ?></h5>
-            <hr>
-            <p><strong>ຜູ້ເດີນທາງ:</strong> <?php echo $row['fullname']; ?></p>
-            <p><strong>ວັນທີເດີນທາງ:</strong> <span class="text-danger fw-bold"><?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></span></p>
-            <p><strong>ຈຸດນັດພົບ:</strong> <?php echo $row['meeting_point']; ?></p>
-            
-            <div class="mt-4 p-3 bg-light rounded-3">
-                <h6 class="fw-bold text-primary mb-3"><i class="fas fa-couch me-2"></i>ໝາຍເລກບ່ອນນັ່ງຂອງທ່ານ:</h6>
-                <?php 
-                $seats = explode(',', $row['selected_seats']);
-                foreach($seats as $s) echo "<span class='seat-badge'>$s</span>";
-                ?>
-            </div>
-            
-            <div class="mt-4 text-center">
-                <p class="small text-muted">ກະລຸນານັ່ງຕາມໝາຍເລກທີ່ລະບຸໄວ້ເທິງລົດ</p>
-                <h4 class="fw-bold text-success">ຈ່າຍແລ້ວ: <?php echo number_format($row['total_price']); ?> LAK</h4>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-</file>
-
 <file path="checkout.php">
 <?php 
 include 'config/db.php'; 
@@ -25044,6 +24864,53 @@ if (isset($_GET['id'])) {
 ?>
 </file>
 
+<file path="pages/bookings/toggle_task.php">
+<?php
+include '../../config/db.php';
+/** @var mysqli $conn */
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
+    $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
+    $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
+    $id_card_no = mysqli_real_escape_string($conn, $_POST['id_card_no']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $email = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
+    $address = mysqli_real_escape_string($conn, $_POST['address'] ?? '');
+    $emergency_name = mysqli_real_escape_string($conn, $_POST['emergency_name'] ?? '');
+    $emergency_phone = mysqli_real_escape_string($conn, $_POST['emergency_phone'] ?? '');
+
+    // 1. ກວດສອບເບີໂທຊ້ຳ
+    $check = mysqli_query($conn, "SELECT customer_id FROM customers WHERE phone = '$phone'");
+    if (mysqli_num_rows($check) > 0) {
+        $exist = mysqli_fetch_assoc($check);
+        echo json_encode(['status' => 'success', 'customer_id' => $exist['customer_id']]);
+        exit();
+    }
+
+    // 2. ຈັດການຮູບ
+    $img_name = "";
+    if (!empty($_FILES['id_card_image']['name'])) {
+        $upload_dir = "../../assets/uploads/customers/";
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        $img_name = time() . "_" . basename($_FILES['id_card_image']['name']);
+        move_uploaded_file($_FILES['id_card_image']['tmp_name'], $upload_dir . $img_name);
+    }
+
+    // 3. ບັນທຶກ (ກວດສອບຊື່ Column ໃຫ້ຕົງກັບທີ່ ALTER TABLE ໄປ)
+    $sql = "INSERT INTO customers (fullname, gender, birthday, nationality, id_card_no, id_card_image, phone, email, address, emergency_name, emergency_phone) 
+            VALUES ('$fullname', '$gender', '$birthday', '$nationality', '$id_card_no', '$img_name', '$phone', '$email', '$address', '$emergency_name', '$emergency_phone')";
+
+    if (mysqli_query($conn, $sql)) {
+        echo json_encode(['status' => 'success', 'customer_id' => mysqli_insert_id($conn)]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => mysqli_error($conn)]);
+    }
+}
+?>
+</file>
+
 <file path="pages/customers/delete.php">
 <?php
 include '../../config/db.php';
@@ -25080,6 +24947,59 @@ if (isset($_GET['id'])) {
     }
 }
 header("Location: index.php");
+?>
+</file>
+
+<file path="pages/customers/save.php">
+<?php
+include '../../config/db.php';
+/** @var mysqli $conn */
+
+if (isset($_POST['save_customer'])) {
+    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
+    $gender = $_POST['gender'];
+    $birthday = $_POST['birthday'];
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $id_card_no = mysqli_real_escape_string($conn, $_POST['id_card_no']);
+    $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $address = mysqli_real_escape_string($conn, $_POST['address']);
+    $emergency_name = mysqli_real_escape_string($conn, $_POST['emergency_name']);
+    $emergency_phone = mysqli_real_escape_string($conn, $_POST['emergency_phone']);
+
+    // --- Logic ຈັດການອັບໂຫລດຮູບ ---
+    $id_card_image_name = "";
+    if (!empty($_FILES['id_card_image']['name'])) {
+        $upload_dir = "../../assets/uploads/customers/";
+        
+        // ສ້າງ Folder ຖ້າຍັງບໍ່ມີ
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
+
+        // ຕັ້ງຊື່ຮູບໃໝ່ປ້ອງກັນຊື່ຊ້ຳ (timestamp + original name)
+        $id_card_image_name = time() . "_" . basename($_FILES['id_card_image']['name']);
+        $target_file = $upload_dir . $id_card_image_name;
+
+        // ຍ້າຍໄຟລ໌ຈາກ Temp ໄປບ່ອນເກັບແທ້
+        move_uploaded_file($_FILES['id_card_image']['tmp_name'], $target_file);
+    }
+
+    $sql = "INSERT INTO customers (
+                fullname, gender, birthday, phone, id_card_no, id_card_image,
+                nationality, email, address, emergency_name, emergency_phone
+            ) VALUES (
+                '$fullname', '$gender', '$birthday', '$phone', '$id_card_no', '$id_card_image_name',
+                '$nationality', '$email', '$address', '$emergency_name', '$emergency_phone'
+            )";
+
+    if (mysqli_query($conn, $sql)) {
+        header("Location: index.php?msg=success");
+        exit();
+    } else {
+        echo "Error: " . mysqli_error($conn);
+    }
+}
 ?>
 </file>
 
@@ -25435,6 +25355,32 @@ include '../../includes/sidebar.php';
 <?php include '../../includes/footer.php'; ?>
 </file>
 
+<file path="pages/tours/delete.php">
+<?php
+include '../../config/db.php';
+/** @var mysqli $conn */
+
+if (isset($_GET['id'])) {
+    $id = $_GET['id'];
+
+    // 1. ດຶງຊື່ຮູບພາບມາກ່ອນເພື່ອຈະລຶບໄຟລ໌
+    $res = mysqli_query($conn, "SELECT image FROM tours WHERE tour_id = $id");
+    $data = mysqli_fetch_assoc($res);
+    $image_name = $data['image'];
+
+    // 2. ລຶບຂໍ້ມູນໃນ Database
+    $sql = "DELETE FROM tours WHERE tour_id = $id";
+    if (mysqli_query($conn, $sql)) {
+        // 3. ລຶບໄຟລ໌ຮູບພາບອອກຈາກ Folder
+        if (file_exists("../../assets/uploads/tours/" . $image_name)) {
+            unlink("../../assets/uploads/tours/" . $image_name);
+        }
+        header("Location: index.php?msg=deleted");
+    }
+}
+?>
+</file>
+
 <file path="pages/users/save.php">
 <?php
 include '../../config/db.php';
@@ -25497,6 +25443,67 @@ if (isset($_POST['save_user'])) {
     }
 }
 ?>
+</file>
+
+<file path="ticket.php">
+<?php 
+include 'config/db.php'; 
+if (!isset($_GET['id'])) { header("Location: index.php"); exit; }
+$id = mysqli_real_escape_string($conn, $_GET['id']);
+
+$sql = "SELECT b.*, c.fullname, c.phone, t.tour_name, t.image, t.meeting_point 
+        FROM bookings b 
+        JOIN customers c ON b.customer_id = c.customer_id 
+        JOIN tours t ON b.tour_id = t.tour_id 
+        WHERE b.booking_id = '$id' AND b.status = 'Confirmed'";
+
+$result = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($result);
+if (!$row) { exit("Ticket Not Found or Not Confirmed"); }
+?>
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket #BK-<?php echo $id; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans Lao', sans-serif; background: #f8f9fa; }
+        .ticket-card { max-width: 600px; margin: 50px auto; border-radius: 20px; border: none; overflow: hidden; }
+        .seat-badge { background: #0d6efd; color: white; padding: 5px 15px; border-radius: 50px; font-weight: bold; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container text-center no-print mt-4"><button onclick="window.print()" class="btn btn-primary">ພິມໃບຢັ້ງຢືນ</button></div>
+    <div class="card ticket-card shadow-lg">
+        <div class="bg-primary text-white p-4 text-center">
+            <h2 class="fw-bold mb-0">Tour Booking Ticket</h2>
+            <p class="mb-0 opacity-75">ID: #BK-<?php echo str_pad($id, 4, '0', STR_PAD_LEFT); ?></p>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-dark"><?php echo $row['tour_name']; ?></h5>
+            <hr>
+            <p><strong>ຜູ້ເດີນທາງ:</strong> <?php echo $row['fullname']; ?></p>
+            <p><strong>ວັນທີເດີນທາງ:</strong> <span class="text-danger fw-bold"><?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></span></p>
+            <p><strong>ຈຸດນັດພົບ:</strong> <?php echo $row['meeting_point']; ?></p>
+            
+            <div class="mt-4 p-3 bg-light rounded-3">
+                <h6 class="fw-bold text-primary mb-3"><i class="fas fa-couch me-2"></i>ໝາຍເລກບ່ອນນັ່ງຂອງທ່ານ:</h6>
+                <?php 
+                $seats = explode(',', $row['selected_seats']);
+                foreach($seats as $s) echo "<span class='seat-badge'>$s</span>";
+                ?>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="small text-muted">ກະລຸນານັ່ງຕາມໝາຍເລກທີ່ລະບຸໄວ້ເທິງລົດ</p>
+                <h4 class="fw-bold text-success">ຈ່າຍແລ້ວ: <?php echo number_format($row['total_price']); ?> LAK</h4>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
 </file>
 
 <file path="check_status.php">
@@ -25736,105 +25743,6 @@ function updateStars(bkId, rating) {
 <body>
 <div class="container-fluid p-0">
     <div class="row g-0">
-</file>
-
-<file path="pages/customers/add.php">
-<?php 
-include '../../config/db.php'; 
-include '../../includes/header.php'; 
-include '../../includes/sidebar.php'; 
-?>
-
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
-    <?php include '../../includes/navbar.php'; ?>
-
-    <div class="px-4 pb-5">
-        <div class="pt-3 pb-2 mb-3 border-bottom">
-            <h2 class="fw-bold text-dark"><i class="fas fa-user-plus text-success me-2"></i>ເພີ່ມຂໍ້ມູນລູກຄ້າ (ພ້ອມຮູບເອກະສານ)</h2>
-        </div>
-
-        <!-- ເພີ່ມ enctype ເພື່ອໃຫ້ສົ່ງໄຟລ໌ຮູບໄດ້ -->
-        <form action="save.php" method="POST" enctype="multipart/form-data">
-            <div class="row g-4">
-                
-                <!-- 1. ຂໍ້ມູນສ່ວນຕົວ -->
-                <div class="col-md-7">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-id-card me-2"></i>1. ຂໍ້ມູນສ່ວນຕົວ & ຕົວຕົນ</h5>
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label class="form-label small fw-bold">ຊື່ ແລະ ນາມສະກຸນ</label>
-                                <input type="text" name="fullname" class="form-control bg-light border-0 py-2" placeholder="ຊື່ແທ້..." required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold">ເພດ</label>
-                                <select name="gender" class="form-select bg-light border-0 py-2">
-                                    <option value="Male">ຊາຍ (Male)</option>
-                                    <option value="Female">ຍິງ (Female)</option>
-                                    <option value="Other">ອື່ນໆ</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ວັນເດືອນປີເກີດ</label>
-                                <input type="date" name="birthday" class="form-control bg-light border-0 py-2">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ສັນຊາດ</label>
-                                <input type="text" name="nationality" class="form-control bg-light border-0 py-2" value="Lao">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ເລກບັດປະຈຳຕົວ / ພາສປອດ</label>
-                                <input type="text" name="id_card_no" class="form-control bg-light border-0 py-2" placeholder="ID Number...">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold text-primary">ຮູບພາບບັດ ຫຼື ພາສປອດ (Scan/ຮູບຖ່າຍ)</label>
-                                <input type="file" name="id_card_image" class="form-control bg-light border-0 py-2 small" accept="image/*">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ເບີໂທລະສັບ</label>
-                                <input type="text" name="phone" class="form-control bg-light border-0 py-2" placeholder="020..." required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ອີເມວ</label>
-                                <input type="email" name="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. ຂໍ້ມູນການຕິດຕໍ່ສຸກເສີນ & ທີ່ຢູ່ -->
-                <div class="col-md-5">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-                        <h5 class="fw-bold mb-4 text-danger"><i class="fas fa-map-marker-alt me-2"></i>2. ທີ່ຢູ່ & ຕິດຕໍ່ສຸກເສີນ</h5>
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">ທີ່ຢູ່ປະຈຸບັນ</label>
-                                <textarea name="address" class="form-control bg-light border-0 py-2" rows="3" placeholder="ບ້ານ, ເມືອງ, ແຂວງ..."></textarea>
-                            </div>
-                            <div class="col-md-12 mt-4"><hr><h6 class="fw-bold text-danger mb-3">ບຸກຄົນທີ່ຕິດຕໍ່ໄດ້ສຸກເສີນ</h6></div>
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">ຊື່ຜູ້ຕິດຕໍ່ສຸກເສີນ</label>
-                                <input type="text" name="emergency_name" class="form-control bg-light border-0 py-2" placeholder="ຊື່ຍາດພີ່ນ້ອງ...">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">ເບີໂທສຸກເສີນ</label>
-                                <input type="text" name="emergency_phone" class="form-control bg-light border-0 py-2" placeholder="ເບີໂທ...">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 text-center mt-5 mb-5">
-                    <button type="submit" name="save_customer" class="btn btn-success btn-lg px-5 rounded-pill shadow">
-                        <i class="fas fa-save me-2"></i> ບັນທຶກຂໍ້ມູນລູກຄ້າ
-                    </button>
-                    <a href="index.php" class="btn btn-light border btn-lg px-5 rounded-pill ms-2">ຍົກເລີກ</a>
-                </div>
-            </div>
-        </form>
-    </div>
-</main>
-<?php include '../../includes/footer.php'; ?>
 </file>
 
 <file path="pages/payments/add.php">
@@ -27172,125 +27080,102 @@ if (isset($_POST['save_coupon'])) {
 ?>
 </file>
 
-<file path="pages/customers/index.php">
+<file path="pages/customers/add.php">
 <?php 
 include '../../config/db.php'; 
-/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
-
-// ຮັບຄ່າການຄົ້ນຫາ (ຖ້າມີ)
-$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 ?>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 pb-5">
-        <!-- ສ່ວນຫົວ ແລະ ປຸ່ມເພີ່ມ -->
-        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
-            <h2 class="fw-bold text-dark"><i class="fas fa-users text-success me-2"></i>ຈັດການຂໍ້ມູນລູກຄ້າ</h2>
-            <div class="d-flex gap-2">
-                <form action="" method="GET" class="input-group shadow-sm rounded-pill overflow-hidden border">
-                    <input type="text" name="search" class="form-control border-0 px-3 shadow-none" placeholder="ຄົ້ນຫາຊື່ ຫຼື ເບີໂທ..." value="<?php echo $search; ?>">
-                    <button class="btn btn-white bg-white border-0" type="submit"><i class="fas fa-search text-muted"></i></button>
-                </form>
-                <a href="add.php" class="btn btn-success rounded-pill px-4 shadow-sm">
-                    <i class="fas fa-user-plus me-1"></i> ເພີ່ມລູກຄ້າໃໝ່
-                </a>
-            </div>
+        <div class="pt-3 pb-2 mb-3 border-bottom">
+            <h2 class="fw-bold text-dark"><i class="fas fa-user-plus text-success me-2"></i>ເພີ່ມຂໍ້ມູນລູກຄ້າ (ພ້ອມຮູບເອກະສານ)</h2>
         </div>
 
-        <!-- ຕາຕະລາງຂໍ້ມູນ -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light text-muted small text-uppercase">
-                        <tr>
-                            <th class="ps-4 py-3" width="80">ID</th>
-                            <th>ຂໍ້ມູນລູກຄ້າ</th>
-                            <th>ການຕິດຕໍ່</th>
-                            <th>ເອກະສານຢັ້ງຢືນ</th>
-                            <th>ຕິດຕໍ່ສຸກເສີນ</th>
-                            <th class="text-center">ຈັດການ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $sql = "SELECT * FROM customers";
-                        if ($search != '') {
-                            $sql .= " WHERE fullname LIKE '%$search%' OR phone LIKE '%$search%' OR id_card_no LIKE '%$search%'";
-                        }
-                        $sql .= " ORDER BY customer_id DESC";
-                        
-                        $result = mysqli_query($conn, $sql);
-                        if(mysqli_num_rows($result) > 0):
-                            while($row = mysqli_fetch_assoc($result)):
-                                $gender_label = ($row['gender'] == 'Male') ? 'ຊາຍ' : 'ຍິງ';
-                                $gender_color = ($row['gender'] == 'Male') ? 'text-primary' : 'text-danger';
-                        ?>
-                            <tr>
-                                <td class="ps-4">
-                                    <span class="badge bg-light text-dark border font-monospace">#<?php echo str_pad($row['customer_id'], 3, '0', STR_PAD_LEFT); ?></span>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-dark fs-6"><?php echo $row['fullname']; ?></div>
-                                    <div class="small">
-                                        <span class="<?php echo $gender_color; ?> fw-bold"><?php echo $gender_label; ?></span> 
-                                        <span class="text-muted mx-1">|</span>
-                                        <span class="text-muted">ສັນຊາດ: <?php echo $row['nationality']; ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="small mb-1"><i class="fas fa-phone-alt me-2 text-success"></i><?php echo $row['phone']; ?></div>
-                                    <div class="small text-muted"><i class="fas fa-envelope me-2 text-info"></i><?php echo $row['email'] ?: '---'; ?></div>
-                                </td>
-                                <td>
-                                    <div class="small fw-bold text-dark"><i class="fas fa-id-card me-2 text-muted"></i><?php echo $row['id_card_no'] ?: 'ບໍ່ມີຂໍ້ມູນ'; ?></div>
-                                    <?php if(!empty($row['id_card_image'])): ?>
-                                        <a href="../../assets/uploads/customers/<?php echo $row['id_card_image']; ?>" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none mt-1">
-                                            <i class="fas fa-eye me-1"></i> ເບິ່ງຮູບເອກະສານ
-                                        </a>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if(!empty($row['emergency_name'])): ?>
-                                        <div class="small fw-bold text-danger"><?php echo $row['emergency_name']; ?></div>
-                                        <div class="small text-muted"><?php echo $row['emergency_phone']; ?></div>
-                                    <?php else: ?>
-                                        <span class="text-muted small italic">ບໍ່ມີຂໍ້ມູນ</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden bg-white">
-                                        <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-white text-warning border-end px-3" title="ແກ້ໄຂ">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['customer_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger px-3" title="ລຶບ">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endwhile; else: ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted">ບໍ່ພົບຂໍ້ມູນລູກຄ້າ</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+        <!-- ເພີ່ມ enctype ເພື່ອໃຫ້ສົ່ງໄຟລ໌ຮູບໄດ້ -->
+        <form action="save.php" method="POST" enctype="multipart/form-data">
+            <div class="row g-4">
+                
+                <!-- 1. ຂໍ້ມູນສ່ວນຕົວ -->
+                <div class="col-md-7">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                        <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-id-card me-2"></i>1. ຂໍ້ມູນສ່ວນຕົວ & ຕົວຕົນ</h5>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label small fw-bold">ຊື່ ແລະ ນາມສະກຸນ</label>
+                                <input type="text" name="fullname" class="form-control bg-light border-0 py-2" placeholder="ຊື່ແທ້..." required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">ເພດ</label>
+                                <select name="gender" class="form-select bg-light border-0 py-2">
+                                    <option value="Male">ຊາຍ (Male)</option>
+                                    <option value="Female">ຍິງ (Female)</option>
+                                    <option value="Other">ອື່ນໆ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ວັນເດືອນປີເກີດ</label>
+                                <input type="date" name="birthday" class="form-control bg-light border-0 py-2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ສັນຊາດ</label>
+                                <input type="text" name="nationality" class="form-control bg-light border-0 py-2" value="Lao">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ເລກບັດປະຈຳຕົວ / ພາສປອດ</label>
+                                <input type="text" name="id_card_no" class="form-control bg-light border-0 py-2" placeholder="ID Number...">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-primary">ຮູບພາບບັດ ຫຼື ພາສປອດ (Scan/ຮູບຖ່າຍ)</label>
+                                <input type="file" name="id_card_image" class="form-control bg-light border-0 py-2 small" accept="image/*">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ເບີໂທລະສັບ</label>
+                                <input type="text" name="phone" class="form-control bg-light border-0 py-2" placeholder="020..." required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ອີເມວ</label>
+                                <input type="email" name="email" class="form-control bg-light border-0 py-2" placeholder="example@gmail.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ຂໍ້ມູນການຕິດຕໍ່ສຸກເສີນ & ທີ່ຢູ່ -->
+                <div class="col-md-5">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                        <h5 class="fw-bold mb-4 text-danger"><i class="fas fa-map-marker-alt me-2"></i>2. ທີ່ຢູ່ & ຕິດຕໍ່ສຸກເສີນ</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">ທີ່ຢູ່ປະຈຸບັນ</label>
+                                <textarea name="address" class="form-control bg-light border-0 py-2" rows="3" placeholder="ບ້ານ, ເມືອງ, ແຂວງ..."></textarea>
+                            </div>
+                            <div class="col-md-12 mt-4"><hr><h6 class="fw-bold text-danger mb-3">ບຸກຄົນທີ່ຕິດຕໍ່ໄດ້ສຸກເສີນ</h6></div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">ຊື່ຜູ້ຕິດຕໍ່ສຸກເສີນ</label>
+                                <input type="text" name="emergency_name" class="form-control bg-light border-0 py-2" placeholder="ຊື່ຍາດພີ່ນ້ອງ...">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">ເບີໂທສຸກເສີນ</label>
+                                <input type="text" name="emergency_phone" class="form-control bg-light border-0 py-2" placeholder="ເບີໂທ...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 text-center mt-5 mb-5">
+                    <button type="submit" name="save_customer" class="btn btn-success btn-lg px-5 rounded-pill shadow">
+                        <i class="fas fa-save me-2"></i> ບັນທຶກຂໍ້ມູນລູກຄ້າ
+                    </button>
+                    <a href="index.php" class="btn btn-light border btn-lg px-5 rounded-pill ms-2">ຍົກເລີກ</a>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </main>
-
-<style>
-    .btn-white { background: #fff; border: none; }
-    .btn-white:hover { background: #f8f9fa; }
-    .bg-primary-subtle { background-color: #e7f1ff; }
-    .bg-light { background-color: #f8f9fa !important; }
-    .table-hover tbody tr:hover { background-color: #fcfcfc; }
-    .font-monospace { font-family: 'Courier New', Courier, monospace; }
-</style>
-
 <?php include '../../includes/footer.php'; ?>
 </file>
 
@@ -27434,6 +27319,128 @@ include '../../includes/sidebar.php';
     </div>
 </main>
 <style> .btn-white { background: #fff; border: none; } .btn-white:hover { background: #f8f9fa; } </style>
+<?php include '../../includes/footer.php'; ?>
+</file>
+
+<file path="pages/customers/index.php">
+<?php 
+include '../../config/db.php'; 
+/** @var mysqli $conn */
+include '../../includes/header.php'; 
+include '../../includes/sidebar.php'; 
+
+// ຮັບຄ່າການຄົ້ນຫາ (ຖ້າມີ)
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+?>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
+    <?php include '../../includes/navbar.php'; ?>
+
+    <div class="px-4 pb-5">
+        <!-- ສ່ວນຫົວ ແລະ ປຸ່ມເພີ່ມ -->
+        <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
+            <h2 class="fw-bold text-dark"><i class="fas fa-users text-success me-2"></i>ຈັດການຂໍ້ມູນລູກຄ້າ</h2>
+            <div class="d-flex gap-2">
+                <form action="" method="GET" class="input-group shadow-sm rounded-pill overflow-hidden border">
+                    <input type="text" name="search" class="form-control border-0 px-3 shadow-none" placeholder="ຄົ້ນຫາຊື່ ຫຼື ເບີໂທ..." value="<?php echo $search; ?>">
+                    <button class="btn btn-white bg-white border-0" type="submit"><i class="fas fa-search text-muted"></i></button>
+                </form>
+                <a href="add.php" class="btn btn-success rounded-pill px-4 shadow-sm">
+                    <i class="fas fa-user-plus me-1"></i> ເພີ່ມລູກຄ້າໃໝ່
+                </a>
+            </div>
+        </div>
+
+        <!-- ຕາຕະລາງຂໍ້ມູນ -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-muted small text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3" width="80">ID</th>
+                            <th>ຂໍ້ມູນລູກຄ້າ</th>
+                            <th>ການຕິດຕໍ່</th>
+                            <th>ເອກະສານຢັ້ງຢືນ</th>
+                            <th>ຕິດຕໍ່ສຸກເສີນ</th>
+                            <th class="text-center">ຈັດການ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $sql = "SELECT * FROM customers";
+                        if ($search != '') {
+                            $sql .= " WHERE fullname LIKE '%$search%' OR phone LIKE '%$search%' OR id_card_no LIKE '%$search%'";
+                        }
+                        $sql .= " ORDER BY customer_id DESC";
+                        
+                        $result = mysqli_query($conn, $sql);
+                        if(mysqli_num_rows($result) > 0):
+                            while($row = mysqli_fetch_assoc($result)):
+                                $gender_label = ($row['gender'] == 'Male') ? 'ຊາຍ' : 'ຍິງ';
+                                $gender_color = ($row['gender'] == 'Male') ? 'text-primary' : 'text-danger';
+                        ?>
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge bg-light text-dark border font-monospace">#<?php echo str_pad($row['customer_id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark fs-6"><?php echo $row['fullname']; ?></div>
+                                    <div class="small">
+                                        <span class="<?php echo $gender_color; ?> fw-bold"><?php echo $gender_label; ?></span> 
+                                        <span class="text-muted mx-1">|</span>
+                                        <span class="text-muted">ສັນຊາດ: <?php echo $row['nationality']; ?></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small mb-1"><i class="fas fa-phone-alt me-2 text-success"></i><?php echo $row['phone']; ?></div>
+                                    <div class="small text-muted"><i class="fas fa-envelope me-2 text-info"></i><?php echo $row['email'] ?: '---'; ?></div>
+                                </td>
+                                <td>
+                                    <div class="small fw-bold text-dark"><i class="fas fa-id-card me-2 text-muted"></i><?php echo $row['id_card_no'] ?: 'ບໍ່ມີຂໍ້ມູນ'; ?></div>
+                                    <?php if(!empty($row['id_card_image'])): ?>
+                                        <a href="../../assets/uploads/customers/<?php echo $row['id_card_image']; ?>" target="_blank" class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none mt-1">
+                                            <i class="fas fa-eye me-1"></i> ເບິ່ງຮູບເອກະສານ
+                                        </a>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if(!empty($row['emergency_name'])): ?>
+                                        <div class="small fw-bold text-danger"><?php echo $row['emergency_name']; ?></div>
+                                        <div class="small text-muted"><?php echo $row['emergency_phone']; ?></div>
+                                    <?php else: ?>
+                                        <span class="text-muted small italic">ບໍ່ມີຂໍ້ມູນ</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden bg-white">
+                                        <a href="edit.php?id=<?php echo $row['customer_id']; ?>" class="btn btn-sm btn-white text-warning border-end px-3" title="ແກ້ໄຂ">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['customer_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger px-3" title="ລຶບ">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; else: ?>
+                            <tr><td colspan="6" class="text-center py-5 text-muted">ບໍ່ພົບຂໍ້ມູນລູກຄ້າ</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .btn-white { background: #fff; border: none; }
+    .btn-white:hover { background: #f8f9fa; }
+    .bg-primary-subtle { background-color: #e7f1ff; }
+    .bg-light { background-color: #f8f9fa !important; }
+    .table-hover tbody tr:hover { background-color: #fcfcfc; }
+    .font-monospace { font-family: 'Courier New', Courier, monospace; }
+</style>
+
 <?php include '../../includes/footer.php'; ?>
 </file>
 
@@ -27601,347 +27608,6 @@ if (isset($_GET['id'])) {
 ?>
 </file>
 
-<file path="pages/bookings/add.php">
-<?php 
-include '../../config/db.php';
-/** @var mysqli $conn */
-include '../../includes/header.php'; 
-include '../../includes/sidebar.php'; 
-?>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<style>
-    :root { --primary-soft: #e7f1ff; --danger-soft: #fff5f6; --success-soft: #eefaf4; }
-    .main-content { background-color: #f4f7f6; }
-    
-    /* Card & Section Styling */
-    .booking-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-    .section-title { font-size: 0.9rem; font-weight: 700; color: #4e73df; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; }
-    .section-title i { margin-right: 10px; background: var(--primary-soft); padding: 8px; border-radius: 10px; }
-
-    /* Custom Input Styling */
-    .form-control, .form-select { border-radius: 12px; padding: 12px 15px; border: 1px solid #d1d3e2; background-color: #f8f9fc; transition: all 0.2s; }
-    .form-control:focus { background-color: #fff; border-color: #4e73df; box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25); margin-bottom: 20px; }
-
-    /* Input Group for Quick Add */
-    .input-group-custom { border-radius: 12px; overflow: hidden; background: #f8f9fc; border: 1px solid #d1d3e2; }
-    .input-group-custom .select2-container--default .select2-selection--single { border: none !important; background: transparent; height: 48px; padding-top: 10px; }
-    .btn-quick-add { border-radius: 0 12px 12px 0 !important; padding: 0 20px; }
-
-    /* Participant Cards */
-    .participant-item { background: #fff; border: 1px solid #e3e6f0; border-radius: 15px; padding: 15px; margin-bottom: 12px; transition: 0.3s; }
-    .participant-item:hover { border-color: #4e73df; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-
-    /* Seat Map Professional Style */
-    .seat-map-wrapper { background: #fff; padding: 30px; border-radius: 25px; border: 1px solid #e3e6f0; }
-    .bus-head { width: 100px; height: 40px; background: #edeff2; margin: 0 auto 30px; border-radius: 20px 20px 5px 5px; position: relative; }
-    .bus-head::after { content: 'FRONT'; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #adb5bd; font-weight: bold; }
-    
-    .van-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 220px; margin: 0 auto; }
-    .seat { 
-        width: 55px; height: 55px; background: #f1f3f7; border: 2px solid #e3e6f0; 
-        border-radius: 15px; display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; font-weight: 700; color: #4a5568; transition: all 0.2s;
-    }
-    .seat.selected { background: #4e73df; color: white; border-color: #4e73df; transform: scale(1.1); box-shadow: 0 5px 15px rgba(78,115,223,0.3); }
-    .seat.occupied { background: #ff4757; color: white; cursor: not-allowed; border-color: #ff4757; opacity: 0.5; }
-    .seat:hover:not(.occupied):not(.selected) { border-color: #4e73df; background: #fff; }
-
-    /* Summary Sidebar */
-    .summary-card { position: sticky; top: 90px; border: none; border-radius: 25px; background: linear-gradient(145deg, #ffffff, #f0f2f5); box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff; }
-    .price-display { background: var(--danger-soft); border-radius: 20px; padding: 30px 20px; margin: 20px 0; border: 2px dashed #ff4757; }
-</style>
-
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
-    <?php include '../../includes/navbar.php'; ?>
-
-    <div class="px-4 py-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-dark mb-0"><i class="fas fa-plus-circle text-primary me-2"></i>ສ້າງການຈອງທົວໃໝ່</h3>
-            <span class="text-muted small">ຂັ້ນຕອນການອອກບິນ ແລະ ລ໋ອກບ່ອນນັ່ງ</span>
-        </div>
-
-        <form action="save.php" method="POST" id="bookingForm" onsubmit="return validateForm()">
-            <div class="row g-4">
-                <!-- ເບື້ອງຊ້າຍ: ຟອມປ້ອນຂໍ້ມູນ -->
-                <div class="col-lg-8">
-                    <div class="card booking-card p-4 p-md-5 mb-4">
-                        
-                        <!-- 1. ເລືອກແພັກເກັດ -->
-                        <div class="section-title"><i class="fas fa-map-marked-alt"></i>1. ລາຍລະອຽດແພັກເກັດ</div>
-                        <div class="row g-3 mb-5">
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">ຊອກຫາແພັກເກັດທົວ</label>
-                                <select name="tour_id" id="tour_id" class="form-select select2" onchange="updateTourInfo()" required>
-                                    <option value="" data-price="0" data-max="0">-- ເລືອກທົວທີ່ຕ້ອງການ --</option>
-                                    <?php 
-                                    $res_t = mysqli_query($conn, "SELECT * FROM tours WHERE status='Active' ORDER BY start_date ASC");
-                                    while($t = mysqli_fetch_assoc($res_t)) {
-                                        echo "<option value='{$t['tour_id']}' data-price='{$t['price']}' data-start='{$t['start_date']}' data-max='{$t['max_seats']}'>{$t['tour_name']} (".date('d/m/Y', strtotime($t['start_date'])).")</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ວັນທີເດີນທາງ</label>
-                                <input type="date" name="travel_date" id="travel_date" class="form-control fw-bold text-primary" style="background:#fff" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">ຈຳນວນຄົນທັງໝົດ</label>
-                                <input type="number" name="num_people" id="num_people" class="form-control fw-bold" value="1" min="1" oninput="handlePeopleChange()" required>
-                            </div>
-                        </div>
-
-                        <!-- 2. ເລືອກລູກຄ້າ -->
-                        <div class="section-title"><i class="fas fa-user-check"></i>2. ຂໍ້ມູນລູກຄ້າຫຼັກ</div>
-                        <div class="row g-3 mb-5">
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">ລູກຄ້າຫຼັກ (Lead Customer)</label>
-                                <div class="input-group">
-                                    <select name="customer_id" id="customer_id" class="form-select select2" required>
-                                        <option value="">-- ຊອກຫາຊື່ລູກຄ້າ --</option>
-                                        <?php 
-                                        $c_res = mysqli_query($conn, "SELECT customer_id, fullname, phone FROM customers");
-                                        while($c = mysqli_fetch_assoc($c_res)) echo "<option value='{$c['customer_id']}' data-phone='{$c['phone']}'>{$c['fullname']} ({$c['phone']})</option>";
-                                        ?>
-                                    </select>
-                                    <button type="button" class="btn btn-primary btn-quick-add" data-bs-toggle="modal" data-bs-target="#quickAddCustomer" title="ເພີ່ມລູກຄ້າໃໝ່">
-                                        <i class="fas fa-user-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. ຜູ້ຮ່ວມທາງ -->
-                        <div id="participant_section" style="display:none;">
-                            <div class="section-title"><i class="fas fa-users"></i>3. ລາຍຊື່ຜູ້ຮ່ວມເດີນທາງ</div>
-                            <div id="participant_inputs" class="mb-5"></div>
-                        </div>
-
-                        <!-- 4. ບ່ອນນັ່ງ -->
-                        <div id="seatSection" style="display:none;">
-                            <div class="section-title"><i class="fas fa-couch"></i>4. ຜັງບ່ອນນັ່ງເທິງລົດ</div>
-                            <div class="seat-map-wrapper text-center shadow-sm">
-                                <div class="bus-head"></div>
-                                <div class="van-grid" id="seatMap"></div>
-                                <input type="hidden" name="selected_seats" id="selected_seats_input" required>
-                                
-                                <div class="mt-4 d-flex justify-content-center gap-4 small fw-bold text-muted">
-                                    <div class="d-flex align-items-center"><span class="seat me-2" style="width:20px;height:20px;cursor:default"></span> ຫວ່າງ</div>
-                                    <div class="d-flex align-items-center"><span class="seat selected me-2" style="width:20px;height:20px;cursor:default"></span> ທີ່ທ່ານເລືອກ</div>
-                                    <div class="d-flex align-items-center"><span class="seat occupied me-2" style="width:20px;height:20px;cursor:default"></span> ຈອງແລ້ວ</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-5">
-                            <label class="form-label small fw-bold text-muted">ໝາຍເຫດເພີ່ມເຕີມ</label>
-                            <textarea name="note" class="form-control" rows="3" placeholder="ຂໍ້ມູນພິເສດ..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ເບື້ອງຂວາ: ສະຫຼຸບ -->
-                <div class="col-lg-4">
-                    <div class="card summary-card p-4 text-center">
-                        <h5 class="fw-bold text-dark border-bottom pb-3">ສະຫຼຸບການຈອງ</h5>
-                        
-                        <div class="price-display">
-                            <small class="text-muted d-block mb-1 fw-bold">ຍອດລວມທີ່ຕ້ອງຊຳລະ</small>
-                            <h1 class="text-danger fw-bold mb-0" id="display_total">0</h1>
-                            <small class="fw-bold text-muted">LAK</small>
-                            <input type="hidden" name="total_price" id="total_price_val">
-                        </div>
-
-                        <div class="text-start mb-4 bg-light p-3 rounded-4">
-                            <div class="d-flex justify-content-between mb-2 small">
-                                <span class="text-muted">ບ່ອນນັ່ງ:</span>
-                                <span id="summary_seats" class="fw-bold text-primary">ຍັງບໍ່ໄດ້ເລືອກ</span>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span class="text-muted">ຈຳນວນ:</span>
-                                <span id="summary_people" class="fw-bold">1 ທ່ານ</span>
-                            </div>
-                        </div>
-
-                        <button type="submit" name="save_booking" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">
-                            <i class="fas fa-check-circle me-2"></i> ຢືນຢັນການຈອງ
-                        </button>
-                        <a href="index.php" class="btn btn-link text-muted mt-2 text-decoration-none small">ຍົກເລີກ</a>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Quick Add Customer Modal (UI ໃໝ່) -->
-    <div class="modal fade" id="quickAddCustomer" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content rounded-5 border-0 shadow-lg overflow-hidden">
-                <div class="modal-header border-0 bg-primary text-white p-4">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>ລົງທະບຽນລູກຄ້າໃໝ່</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <form id="quickCustomerForm">
-                    <div class="modal-body p-4 p-md-5">
-                        <div class="row g-4">
-                            <div class="col-md-7 border-end">
-                                <h6 class="fw-bold text-primary mb-4 border-bottom pb-2">1. ຂໍ້ມູນສ່ວນຕົວ</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-8"><label class="form-label small fw-bold">ຊື່ ແລະ ນາມສະກຸນ</label><input type="text" name="fullname" class="form-control" placeholder="ຊື່ແທ້..." required></div>
-                                    <div class="col-md-4"><label class="form-label small fw-bold">ເພດ</label><select name="gender" class="form-select"><option value="Male">ຊາຍ (Male)</option><option value="Female">ຍິງ (Female)</option></select></div>
-                                    <div class="col-md-6"><label class="form-label small fw-bold">ວັນເກີດ</label><input type="date" name="birthday" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label small fw-bold">ສັນຊາດ</label><input type="text" name="nationality" class="form-control" value="Lao"></div>
-                                    <div class="col-md-6"><label class="form-label small fw-bold">ເລກບັດ/ພາສປອດ</label><input type="text" name="id_card_no" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label small fw-bold">ເບີໂທລະສັບ</label><input type="text" name="phone" class="form-control" required></div>
-                                    <div class="col-md-12"><label class="form-label small fw-bold">ອີເມວ</label><input type="email" name="email" class="form-control" placeholder="example@mail.com"></div>
-                                    <div class="col-md-12"><label class="form-label small fw-bold text-primary">ຮູບເອກະສານ (Scan)</label><input type="file" name="id_card_image" class="form-control" accept="image/*"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-5">
-                                <h6 class="fw-bold text-danger mb-4 border-bottom pb-2">2. ທີ່ຢູ່ & ຕິດຕໍ່ສຸກເສີນ</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-12"><label class="form-label small fw-bold">ທີ່ຢູ່ປະຈຸບັນ</label><textarea name="address" class="form-control" rows="4"></textarea></div>
-                                    <div class="col-md-12 mt-4"><label class="form-label small fw-bold text-danger">ຊື່ຜູ້ຕິດຕໍ່ສຸກເສີນ</label><input type="text" name="emergency_name" class="form-control"></div>
-                                    <div class="col-md-12"><label class="form-label small fw-bold text-danger">ເບີໂທສຸກເສີນ</label><input type="text" name="emergency_phone" class="form-control"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-0 bg-light p-4">
-                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ປິດ</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow fw-bold">ບັນທຶກລູກຄ້າ</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</main>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
-$(document).ready(function() { 
-    $('.select2').select2({ width: '100%' }); 
-
-    $('#quickCustomerForm').on('submit', function(e) {
-        e.preventDefault();
-        Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-        let formData = new FormData(this);
-        $.ajax({
-            url: 'save_customer_ajax.php',
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                const res = JSON.parse(response);
-                if(res.status === 'success') {
-                    const name = $('#quickCustomerForm input[name="fullname"]').val();
-                    const phone = $('#quickCustomerForm input[name="phone"]').val();
-                    const newOption = new Option(name + ' (' + phone + ')', res.customer_id, true, true);
-                    $('#customer_id').append(newOption).trigger('change');
-                    $('#quickAddCustomer').modal('hide');
-                    $('#quickCustomerForm')[0].reset();
-                    Swal.fire({ icon: 'success', title: 'ບັນທຶກສຳເລັດ', timer: 1500, showConfirmButton: false });
-                } else {
-                    Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res.message });
-                }
-            }
-        });
-    });
-});
-
-let selectedSeats = [];
-
-function updateTourInfo() {
-    const select = document.getElementById('tour_id');
-    const selected = select.options[select.selectedIndex];
-    document.getElementById('travel_date').value = selected.getAttribute('data-start');
-    document.getElementById('seatSection').style.display = selected.value ? 'block' : 'none';
-    handlePeopleChange();
-}
-
-function handlePeopleChange() {
-    const num = document.getElementById('num_people').value;
-    document.getElementById('summary_people').innerText = num + ' ທ່ານ';
-    generateParticipants();
-    renderSeatMap();
-    updateTotal();
-}
-
-function generateParticipants() {
-    const num = parseInt(document.getElementById('num_people').value) || 1;
-    const container = document.getElementById('participant_inputs');
-    const section = document.getElementById('participant_section');
-    container.innerHTML = '';
-    if (num > 1) {
-        section.style.display = 'block';
-        for (let i = 2; i <= num; i++) {
-            container.innerHTML += `
-                <div class="participant-item shadow-sm border-start border-4">
-                    <div class="row g-2">
-                        <div class="col-md-7"><label class="small fw-bold text-muted">ຄົນທີ ${i}: ຊື່ ແລະ ນາມສະກຸນ</label><input type="text" name="participant_names[]" class="form-control" required></div>
-                        <div class="col-md-5"><label class="small fw-bold text-muted">ເບີໂທ</label><input type="text" name="participant_phones[]" class="form-control"></div>
-                    </div>
-                </div>`;
-        }
-    } else { section.style.display = 'none'; }
-}
-
-function renderSeatMap() {
-    const tourId = document.getElementById('tour_id').value;
-    const select = document.getElementById('tour_id');
-    const maxSeats = parseInt(select.options[select.selectedIndex].getAttribute('data-max')) || 0;
-    const mapContainer = document.getElementById('seatMap');
-    if(!tourId) return;
-    fetch(`../../get_occupied_seats.php?tour_id=${tourId}`).then(res => res.json()).then(occupied => {
-        mapContainer.innerHTML = ''; selectedSeats = []; document.getElementById('selected_seats_input').value = '';
-        document.getElementById('summary_seats').innerText = 'ຍັງບໍ່ໄດ້ເລືອກ';
-        for (let i = 1; i <= maxSeats; i++) {
-            const seatId = i.toString(); const isFull = occupied.includes(seatId);
-            const div = document.createElement('div'); div.className = `seat ${isFull ? 'occupied' : ''}`; div.innerText = i;
-            if (!isFull) {
-                div.onclick = function() {
-                    const limit = parseInt(document.getElementById('num_people').value);
-                    if (this.classList.contains('selected')) {
-                        this.classList.remove('selected'); selectedSeats = selectedSeats.filter(s => s !== seatId);
-                    } else {
-                        if (selectedSeats.length < limit) { this.classList.add('selected'); selectedSeats.push(seatId); } 
-                        else { Swal.fire({ icon: 'warning', text: `ທ່ານຈອງ ${limit} ຄົນ ເລືອກໄດ້ພຽງ ${limit} ບ່ອນ` }); }
-                    }
-                    document.getElementById('selected_seats_input').value = selectedSeats.join(',');
-                    document.getElementById('summary_seats').innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'ຍັງບໍ່ໄດ້ເລືອກ';
-                };
-            }
-            mapContainer.appendChild(div);
-        }
-    });
-}
-
-function validateForm() {
-    const num = parseInt(document.getElementById('num_people').value);
-    if (selectedSeats.length !== num) {
-        Swal.fire({ icon: 'error', title: 'ກະລຸນາເລືອກບ່ອນນັ່ງ', text: `ທ່ານຕ້ອງລ໋ອກບ່ອນນັ່ງໃຫ້ຄົບ ${num} ບ່ອນ` });
-        return false;
-    }
-    return true;
-}
-
-function updateTotal() {
-    const select = document.getElementById('tour_id');
-    const price = parseFloat(select.options[select.selectedIndex].getAttribute('data-price')) || 0;
-    const num = parseInt(document.getElementById('num_people').value) || 1;
-    const total = price * num;
-    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(total);
-    document.getElementById('total_price_val').value = total;
-}
-</script>
-<?php include '../../includes/footer.php'; ?>
-</file>
-
 <file path="pages/tours/edit.php">
 <?php 
 include '../../config/db.php'; 
@@ -27986,40 +27652,354 @@ if (!$row) { exit; }
 <?php include '../../includes/footer.php'; ?>
 </file>
 
-<file path="process_booking.php">
-<?php
-include 'config/db.php';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
-    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $tour_id = mysqli_real_escape_string($conn, $_POST['tour_id']);
-    $travel_date = mysqli_real_escape_string($conn, $_POST['travel_date']);
-    $num_people = intval($_POST['num_people']);
-    $selected_seats = mysqli_real_escape_string($conn, $_POST['selected_seats']);
-    $note = mysqli_real_escape_string($conn, $_POST['note']);
-    
-    $tour_res = mysqli_query($conn, "SELECT price FROM tours WHERE tour_id = '$tour_id'");
-    $tour_data = mysqli_fetch_assoc($tour_res);
-    $total_price = $tour_data['price'] * $num_people;
-
-    // 1. ບັນທຶກ ຫຼື ອັບເດດລູກຄ້າ
-    mysqli_query($conn, "INSERT INTO customers (fullname, phone, email) VALUES ('$fullname', '$phone', '$email') ON DUPLICATE KEY UPDATE fullname='$fullname'");
-    $customer_id = mysqli_insert_id($conn) ?: mysqli_fetch_assoc(mysqli_query($conn, "SELECT customer_id FROM customers WHERE phone='$phone'"))['customer_id'];
-
-    // 2. ບັນທຶກການຈອງ (ເພີ່ມ selected_seats)
-    $sql_book = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, selected_seats, total_price, note, status) 
-                 VALUES ($customer_id, $tour_id, '$travel_date', $num_people, '$selected_seats', $total_price, '$note', 'Pending')";
-
-    if (mysqli_query($conn, $sql_book)) {
-        header("Location: checkout.php?booking_id=" . mysqli_insert_id($conn));
-        exit();
-    } else {
-        echo "Error: " . mysqli_error($conn);
-    }
-}
+<file path="pages/bookings/add.php">
+<?php 
+include '../../config/db.php';
+/** @var mysqli $conn */
+include '../../includes/header.php'; 
+include '../../includes/sidebar.php'; 
 ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+    :root { --primary-soft: #e7f1ff; --danger-soft: #fff5f6; --success-soft: #eefaf4; }
+    .main-content { background-color: #f4f7f6; }
+    .booking-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+    .section-title { font-size: 0.9rem; font-weight: 700; color: #4e73df; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; }
+    .section-title i { margin-right: 10px; background: var(--primary-soft); padding: 8px; border-radius: 10px; }
+    
+    .form-control, .form-select { border-radius: 12px; padding: 12px 15px; border: 1px solid #d1d3e2; background-color: #f8f9fc; }
+    .form-control:focus { background-color: #fff; border-color: #4e73df; box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25); }
+
+    /* Seat Map Styling - ປັບປຸງໃຫ້ຮອງຮັບລົດໃຫຍ່ 35 ບ່ອນ */
+    .seat-map-wrapper { background: #fff; padding: 30px; border-radius: 25px; border: 1px solid #e3e6f0; min-height: 200px; }
+    .bus-head { width: 120px; height: 35px; background: #edeff2; margin: 0 auto 30px; border-radius: 15px 15px 5px 5px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #adb5bd; }
+    
+    .seat-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); /* ປັບຖັນອັດຕະໂນມັດ */
+        gap: 12px; 
+        max-width: 450px; /* ຂະຫຍາຍໃຫ້ກວ້າງຂຶ້ນສຳລັບລົດບັດ */
+        margin: 0 auto; 
+    }
+    .seat { 
+        width: 50px; height: 50px; background: #f1f3f7; border: 2px solid #e3e6f0; 
+        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; font-weight: 700; transition: 0.2s; 
+    }
+    .seat.selected { background: #4e73df !important; color: white !important; border-color: #2e59d9 !important; transform: scale(1.1); box-shadow: 0 5px 15px rgba(78,115,223,0.3); }
+    .seat.occupied { background: #ff4757 !important; color: white !important; cursor: not-allowed; opacity: 0.6; border-color: #e02d3d; }
+    .seat:hover:not(.occupied):not(.selected) { border-color: #4e73df; background: #fff; }
+
+    .summary-card { position: sticky; top: 90px; border: none; border-radius: 25px; background: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+    .price-display { background: var(--danger-soft); border-radius: 20px; padding: 25px; margin: 20px 0; border: 2px dashed #ff4757; }
+    /* ເພີ່ມໃສ່ໃນສ່ວນ <style> ທາງເທິງ */
+    .select2-container--default .select2-selection--single {
+        border-radius: 12px !important;
+        height: 48px !important;
+        padding-top: 10px !important;
+        border: 1px solid #d1d3e2 !important;
+        background-color: #f8f9fc !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px !important;
+    }
+</style>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
+    <?php include '../../includes/navbar.php'; ?>
+
+    <div class="px-4 py-4">
+        <h3 class="fw-bold text-dark mb-4"><i class="fas fa-plus-circle text-primary me-2"></i>ສ້າງການຈອງທົວໃໝ່</h3>
+
+        <form action="save.php" method="POST" id="bookingForm" onsubmit="return validateForm()">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card booking-card p-4 p-md-5 mb-4">
+                        
+                        <!-- 1. ລາຍລະອຽດແພັກເກັດ -->
+                        <div class="section-title"><i class="fas fa-map-marked-alt"></i>1. ລາຍລະອຽດແພັກເກັດ</div>
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">ເລືອກແພັກເກັດທົວ</label>
+                                <select name="tour_id" id="tour_id" class="form-select select2" onchange="updateTourInfo()" required>
+                                    <option value="" data-price="0" data-max="0" data-remain="0">-- ເລືອກທົວທີ່ຕ້ອງການ --</option>
+                                    <?php 
+                                    $sql_tours = "SELECT t.*, (t.max_seats - IFNULL((SELECT SUM(num_people) FROM bookings WHERE tour_id = t.tour_id AND status != 'Cancelled'), 0)) as remain FROM tours t WHERE t.status='Active' ORDER BY t.start_date ASC";
+                                    $res_t = mysqli_query($conn, $sql_tours);
+                                    while($t = mysqli_fetch_assoc($res_t)) {
+                                        echo "<option value='{$t['tour_id']}' data-price='{$t['price']}' data-start='{$t['start_date']}' data-max='{$t['max_seats']}' data-remain='{$t['remain']}'>{$t['tour_name']} (ວ່າງ: {$t['remain']})</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ວັນທີເດີນທາງ</label>
+                                <input type="date" id="travel_date" name="travel_date" class="form-control fw-bold text-primary bg-white" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">ຈຳນວນຄົນ</label>
+                                <input type="number" name="num_people" id="num_people" class="form-control fw-bold" value="1" min="1" oninput="handlePeopleChange()" required>
+                                <div id="remain_info" class="mt-1 small fw-bold text-muted" style="display:none;">ບ່ອນນັ່ງວ່າງ: <span id="count_remain" class="text-primary">0</span> / <span id="count_total">0</span></div>
+                            </div>
+                        </div>
+
+                        <!-- 2. ເລືອກລູກຄ້າຫຼັກ -->
+                        <div class="section-title"><i class="fas fa-user-check"></i>2. ຂໍ້ມູນລູກຄ້າຫຼັກ</div>
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-12">
+                                <!-- ຍັບປຸ່ມມາໄວ້ແຖວດຽວກັບ Label -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold mb-0">ຊື່ລູກຄ້າຫຼັກ (Lead Customer)</label>
+                                    <!-- ປຸ່ມເພີ່ມລູກຄ້າແບບໃໝ່: ກະທັດຮັດ ແລະ ໃກ້ຂຶ້ນ -->
+                                    <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#quickAddCustomer">
+                                        <i class="fas fa-user-plus me-1"></i> ເພີ່ມລູກຄ້າໃໝ່
+                                    </button>
+                                </div>
+                                
+                                <!-- ຫ້ອງເລືອກລູກຄ້າ -->
+                                <select name="customer_id" id="customer_id" class="form-select select2" required>
+                                    <option value="">-- ຊອກຫາ ຫຼື ເລືອກຊື່ລູກຄ້າ --</option>
+                                    <?php 
+                                    $c_res = mysqli_query($conn, "SELECT customer_id, fullname, phone FROM customers");
+                                    while($c = mysqli_fetch_assoc($c_res)) {
+                                        echo "<option value='{$c['customer_id']}'>{$c['fullname']} ({$c['phone']})</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 4. ຜັງບ່ອນນັ່ງ -->
+                        <div id="seatSection" style="display:none;">
+                            <div class="section-title"><i class="fas fa-couch"></i>4. ຜັງບ່ອນນັ່ງ (ລ໋ອກບ່ອນນັ່ງ)</div>
+                            <div class="seat-map-wrapper shadow-sm">
+                                <div class="bus-head">FRONT / ທາງໜ້າ</div>
+                                <div class="seat-grid" id="seatMap">
+                                    <!-- ປຸ່ມບ່ອນນັ່ງຈະຂຶ້ນຢູ່ນີ້ -->
+                                </div>
+                                <input type="hidden" name="selected_seats" id="selected_seats_input" required>
+                                
+                                <div class="mt-4 d-flex justify-content-center gap-4 small fw-bold text-muted border-top pt-3">
+                                    <div class="d-flex align-items-center"><span class="seat me-2" style="width:18px;height:18px;background:#f1f3f7"></span> ວ່າງ</div>
+                                    <div class="d-flex align-items-center"><span class="seat selected me-2" style="width:18px;height:18px"></span> ທີ່ເລືອກ</div>
+                                    <div class="d-flex align-items-center"><span class="seat occupied me-2" style="width:18px;height:18px"></span> ເຕັມ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card summary-card p-4 text-center">
+                        <h5 class="fw-bold border-bottom pb-3">ສະຫຼຸບຍອດຈອງ</h5>
+                        <div class="price-display">
+                            <small class="text-muted d-block mb-1">ຍອດລວມທັງໝົດ</small>
+                            <h1 class="text-danger fw-bold mb-0" id="display_total">0</h1>
+                            <small class="fw-bold">LAK</small>
+                            <input type="hidden" name="total_price" id="total_price_val">
+                        </div>
+                        <div class="text-start mb-4 bg-light p-3 rounded-4 small">
+                            <div class="d-flex justify-content-between mb-2"><span>ບ່ອນນັ່ງ:</span><span id="summary_seats" class="fw-bold text-primary">ຍັງບໍ່ເລືອກ</span></div>
+                            <div class="d-flex justify-content-between"><span>ຈຳນວນ:</span><span id="summary_people" class="fw-bold">1 ທ່ານ</span></div>
+                        </div>
+                        <button type="submit" name="save_booking" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">ຢືນຢັນການຈອງ</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal ເພີ່ມລູກຄ້າ (ຂໍ້ມູນຄົບຖ້ວນ) -->
+    <div class="modal fade" id="quickAddCustomer" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content rounded-5 border-0 shadow-lg">
+                <div class="modal-header border-0 bg-primary text-white p-4">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>ລົງທະບຽນລູກຄ້າໃໝ່</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="quickCustomerForm" enctype="multipart/form-data">
+                    <div class="modal-body p-4 p-md-5">
+                        <div class="row g-4">
+                            <div class="col-md-7 border-end">
+                                <h6 class="fw-bold text-primary mb-4 border-bottom pb-2">1. ຂໍ້ມູນສ່ວນຕົວ & ຕົວຕົນ</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-8"><label class="form-label small fw-bold">ຊື່ ແລະ ນາມສະກຸນ</label><input type="text" name="fullname" class="form-control" required></div>
+                                    <div class="col-md-4"><label class="form-label small fw-bold">ເພດ</label><select name="gender" class="form-select"><option value="Male">ຊາຍ</option><option value="Female">ຍິງ</option></select></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold">ວັນເກີດ</label><input type="date" name="birthday" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold">ສັນຊາດ</label><input type="text" name="nationality" class="form-control" value="Lao"></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold">ເລກບັດ/ພາສປອດ</label><input type="text" name="id_card_no" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold text-primary">ຮູບພາບບັດ (Scan)</label><input type="file" name="id_card_image" class="form-control" accept="image/*"></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold">ເບີໂທລະສັບ</label><input type="text" name="phone" class="form-control" required></div>
+                                    <div class="col-md-6"><label class="form-label small fw-bold">ອີເມວ</label><input type="email" name="email" class="form-control"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <h6 class="fw-bold text-danger mb-4 border-bottom pb-2">2. ທີ່ຢູ່ & ຕິດຕໍ່ສຸກເສີນ</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-12"><label class="form-label small fw-bold">ທີ່ຢູ່ປະຈຸບັນ</label><textarea name="address" class="form-control" rows="3"></textarea></div>
+                                    <div class="col-md-12 mt-4"><label class="form-label small fw-bold text-danger">ຊື່ຜູ້ຕິດຕໍ່ສຸກເສີນ</label><input type="text" name="emergency_name" class="form-control"></div>
+                                    <div class="col-md-12"><label class="form-label small fw-bold text-danger">ເບີໂທສຸກເສີນ</label><input type="text" name="emergency_phone" class="form-control"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light p-4">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow fw-bold">ບັນທຶກຂໍ້ມູນລູກຄ້າ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() { 
+    $('.select2').select2({ width: '100%' }); 
+
+    $('#quickCustomerForm').on('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        $.ajax({
+            url: 'save_customer_ajax.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                const res = JSON.parse(response);
+                if(res.status === 'success') {
+                    const name = $('#quickCustomerForm input[name="fullname"]').val();
+                    const phone = $('#quickCustomerForm input[name="phone"]').val();
+                    const newOption = new Option(name + ' (' + phone + ')', res.customer_id, true, true);
+                    $('#customer_id').append(newOption).trigger('change');
+                    $('#quickAddCustomer').modal('hide');
+                    $('#quickCustomerForm')[0].reset();
+                    Swal.fire({ icon: 'success', title: 'ບັນທຶກສຳເລັດ', timer: 1500, showConfirmButton: false });
+                }
+            }
+        });
+    });
+});
+
+let selectedSeats = [];
+
+function updateTourInfo() {
+    const select = $('#tour_id');
+    const selected = select.find(':selected');
+    if(!selected.val()) return;
+
+    const remain = parseInt(selected.data('remain')) || 0;
+    const max = parseInt(selected.data('max')) || 0;
+
+    $('#count_remain').text(remain);
+    $('#count_total').text(max);
+    $('#remain_info').show();
+    $('#num_people').attr('max', remain);
+
+    $('#travel_date').val(selected.data('start'));
+    $('#seatSection').show();
+    handlePeopleChange();
+}
+
+function handlePeopleChange() {
+    const n = $('#num_people');
+    const max = parseInt(n.attr('max'));
+    if(parseInt(n.val()) > max) {
+        Swal.fire({ icon: 'warning', text: `ບ່ອນນັ່ງຍັງເຫຼືອພຽງ ${max} ບ່ອນ` });
+        n.val(max);
+    }
+    $('#summary_people').text(n.val() + ' ທ່ານ');
+    generateParticipants();
+    renderSeatMap();
+    updateTotal();
+}
+
+function generateParticipants() {
+    const num = parseInt($('#num_people').val()) || 1;
+    const container = $('#participant_inputs');
+    container.empty();
+    if (num > 1) {
+        $('#participant_section').show();
+        for (let i = 2; i <= num; i++) {
+            container.append(`<div class="participant-item border-start border-4 border-primary">
+                <div class="row g-2">
+                    <div class="col-md-7"><label class="small fw-bold">ຄົນທີ ${i}: ຊື່ເຕັມ</label><input type="text" name="participant_names[]" class="form-control" required></div>
+                    <div class="col-md-5"><label class="small fw-bold">ເບີໂທ</label><input type="text" name="participant_phones[]" class="form-control"></div>
+                </div></div>`);
+        }
+    } else { $('#participant_section').hide(); }
+}
+
+function renderSeatMap() {
+    const tourId = $('#tour_id').val();
+    const maxSeats = parseInt($('#tour_id').find(':selected').data('max')) || 0;
+    const mapContainer = $('#seatMap');
+    if(!tourId) return;
+
+    // ສະແດງ Loading ຖ້າມີຂໍ້ມູນຫຼາຍ
+    mapContainer.html('<div class="col-12 text-muted small">ກຳລັງໂຫລດຜັງ...</div>');
+
+    fetch(`../../get_occupied_seats.php?tour_id=${tourId}`).then(res => res.json()).then(occupied => {
+        mapContainer.empty(); 
+        selectedSeats = []; 
+        $('#selected_seats_input').val('');
+        $('#summary_seats').text('ຍັງບໍ່ເລືອກ');
+
+        for (let i = 1; i <= maxSeats; i++) {
+            const sId = i.toString(); 
+            const isOcc = occupied.includes(sId);
+            const div = $('<div class="seat"></div>').text(i);
+            
+            if (isOcc) {
+                div.addClass('occupied');
+            } else {
+                div.on('click', function() {
+                    const limit = parseInt($('#num_people').val());
+                    if ($(this).hasClass('selected')) {
+                        $(this).removeClass('selected');
+                        selectedSeats = selectedSeats.filter(s => s !== sId);
+                    } else {
+                        if (selectedSeats.length < limit) {
+                            $(this).addClass('selected');
+                            selectedSeats.push(sId);
+                        } else {
+                            Swal.fire({ icon: 'warning', text: `ທ່ານເລືອກໄດ້ ${limit} ບ່ອນເທົ່ານັ້ນ` });
+                        }
+                    }
+                    $('#selected_seats_input').val(selectedSeats.join(','));
+                    $('#summary_seats').text(selectedSeats.length > 0 ? selectedSeats.join(', ') : 'ຍັງບໍ່ເລືອກ');
+                });
+            }
+            mapContainer.append(div);
+        }
+    }).catch(err => {
+        mapContainer.html('<div class="text-danger">ບໍ່ສາມາດໂຫລດຜັງບ່ອນນັ່ງໄດ້</div>');
+    });
+}
+
+function validateForm() {
+    const n = parseInt($('#num_people').val());
+    if (selectedSeats.length !== n) {
+        Swal.fire({ icon: 'error', title: 'ເລືອກບ່ອນນັ່ງ', text: `ກະລຸນາເລືອກບ່ອນນັ່ງໃຫ້ຄົບ ${n} ບ່ອນ` });
+        return false;
+    }
+    return true;
+}
+
+function updateTotal() {
+    const pr = parseFloat($('#tour_id').find(':selected').data('price')) || 0;
+    const n = parseInt($('#num_people').val()) || 1;
+    const total = pr * n;
+    $('#display_total').text(new Intl.NumberFormat().format(total));
+    $('#total_price_val').val(total);
+}
+</script>
+<?php include '../../includes/footer.php'; ?>
 </file>
 
 <file path="includes/footer.php">
@@ -28166,311 +28146,40 @@ if (msg === 'guide_busy') {
 </html>
 </file>
 
-<file path="pages/bookings/save.php">
+<file path="process_booking.php">
 <?php
-include '../../config/db.php';
-/** @var mysqli $conn */
+include 'config/db.php';
 
-if (isset($_POST['save_booking'])) {
-    $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $fullname = mysqli_real_escape_string($conn, $_POST['fullname']);
+    $phone = mysqli_real_escape_string($conn, $_POST['phone']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
     $tour_id = mysqli_real_escape_string($conn, $_POST['tour_id']);
     $travel_date = mysqli_real_escape_string($conn, $_POST['travel_date']);
     $num_people = intval($_POST['num_people']);
     $selected_seats = mysqli_real_escape_string($conn, $_POST['selected_seats']);
-    $total_price = mysqli_real_escape_string($conn, $_POST['total_price']);
     $note = mysqli_real_escape_string($conn, $_POST['note']);
+    
+    $tour_res = mysqli_query($conn, "SELECT price FROM tours WHERE tour_id = '$tour_id'");
+    $tour_data = mysqli_fetch_assoc($tour_res);
+    $total_price = $tour_data['price'] * $num_people;
 
-    // 1. ບັນທຶກລົງຕາຕະລາງ bookings
-    $sql = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, selected_seats, total_price, note, status) 
-            VALUES ('$customer_id', '$tour_id', '$travel_date', $num_people, '$selected_seats', '$total_price', '$note', 'Pending')";
+    // 1. ບັນທຶກ ຫຼື ອັບເດດລູກຄ້າ
+    mysqli_query($conn, "INSERT INTO customers (fullname, phone, email) VALUES ('$fullname', '$phone', '$email') ON DUPLICATE KEY UPDATE fullname='$fullname'");
+    $customer_id = mysqli_insert_id($conn) ?: mysqli_fetch_assoc(mysqli_query($conn, "SELECT customer_id FROM customers WHERE phone='$phone'"))['customer_id'];
 
-    if (mysqli_query($conn, $sql)) {
-        $booking_id = mysqli_insert_id($conn);
+    // 2. ບັນທຶກການຈອງ (ເພີ່ມ selected_seats)
+    $sql_book = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, selected_seats, total_price, note, status) 
+                 VALUES ($customer_id, $tour_id, '$travel_date', $num_people, '$selected_seats', $total_price, '$note', 'Pending')";
 
-        // 2. ບັນທຶກລາຍຊື່ຜູ້ຮ່ວມທາງ (ຄົນທີ 2 ເປັນຕົ້ນໄປ)
-        if (isset($_POST['participant_names'])) {
-            $names = $_POST['participant_names'];
-            $phones = $_POST['participant_phones'];
-            
-            for ($i = 0; $i < count($names); $i++) {
-                $p_name = mysqli_real_escape_string($conn, $names[$i]);
-                $p_phone = mysqli_real_escape_string($conn, $phones[$i]);
-                
-                if (!empty($p_name)) {
-                    mysqli_query($conn, "INSERT INTO booking_participants (booking_id, participant_name, participant_phone) 
-                                         VALUES ($booking_id, '$p_name', '$p_phone')");
-                }
-            }
-        }
-
-        // 3. ສ້າງ Checklist ວຽກ
-        $tasks = ['ກວດເຊັກຍອດເງິນ', 'ຈອງທີ່ພັກ', 'ຕິດຕໍ່ລົດ', 'ມອບໝາຍໄກ້', 'ກຽມນ້ຳດື່ມ'];
-        foreach ($tasks as $t) {
-            mysqli_query($conn, "INSERT INTO booking_tasks (booking_id, task_label) VALUES ($booking_id, '$t')");
-        }
-
-        header("Location: index.php?msg=success");
+    if (mysqli_query($conn, $sql_book)) {
+        header("Location: checkout.php?booking_id=" . mysqli_insert_id($conn));
         exit();
     } else {
-        // ຖ້າ Error ໃຫ້ໂຊຂໍ້ຄວາມ Error ອອກມາເບິ່ງແທ້ໆ
-        die("Error Database: " . mysqli_error($conn));
+        echo "Error: " . mysqli_error($conn);
     }
 }
 ?>
-</file>
-
-<file path="pages/bookings/view.php">
-<?php 
-include '../../config/db.php'; 
-/** @var mysqli $conn */
-include '../../includes/header.php'; 
-include '../../includes/sidebar.php'; 
-
-$id = mysqli_real_escape_string($conn, $_GET['id']);
-$sql = "SELECT b.*, c.fullname, c.phone, t.tour_name FROM bookings b 
-        JOIN customers c ON b.customer_id = c.customer_id 
-        JOIN tours t ON b.tour_id = t.tour_id 
-        WHERE b.booking_id = '$id'";
-$row = mysqli_fetch_assoc(mysqli_query($conn, $sql));
-?>
-
-<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
-    <?php include '../../includes/navbar.php'; ?>
-    <div class="px-4 py-4">
-        <h2 class="fw-bold mb-4">ລາຍລະອຽດການຈອງ #BK-<?php echo $id; ?></h2>
-        <div class="row g-4">
-            <div class="col-md-8">
-                <div class="card border-0 shadow-sm rounded-4 p-4">
-                    <h5 class="fw-bold border-bottom pb-2 mb-3">ຂໍ້ມູນທົ່ວໄປ</h5>
-                    <p><strong>ລູກຄ້າ:</strong> <?php echo $row['fullname']; ?> (<?php echo $row['phone']; ?>)</p>
-                    <p><strong>ແພັກເກັດ:</strong> <?php echo $row['tour_name']; ?></p>
-                    <p><strong>ວັນທີເດີນທາງ:</strong> <?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></p>
-                    
-                    <div class="mt-4 p-3 bg-primary bg-opacity-10 rounded-3 border border-primary">
-                        <h6 class="fw-bold text-primary mb-2">ບ່ອນນັ່ງທີ່ລ໋ອກໄວ້:</h6>
-                        <h3 class="fw-bold mb-0"><?php echo $row['selected_seats']; ?></h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-dark text-white text-center">
-                    <h6 class="opacity-75">ຍອດເງິນທັງໝົດ</h6>
-                    <h2 class="fw-bold text-success">₭ <?php echo number_format($row['total_price']); ?></h2>
-                    <span class="badge <?php echo $row['status']=='Confirmed'?'bg-success':'bg-warning'; ?>"><?php echo $row['status']; ?></span>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-<?php include '../../includes/footer.php'; ?>
-</file>
-
-<file path="booking_form.php">
-<?php include 'config/db.php'; 
-/** @var mysqli $conn */
-/** @var array $lang */
-if(!isset($_GET['tour_id'])) { header("Location: index.php"); exit(); }
-
-$tour_id = mysqli_real_escape_string($conn, $_GET['tour_id']);
-
-// ດຶງຂໍ້ມູນທົວ
-$res = mysqli_query($conn, "SELECT * FROM tours WHERE tour_id = '$tour_id' AND status = 'Active'");
-$tour = mysqli_fetch_assoc($res);
-
-if(!$tour) { header("Location: index.php"); exit(); }
-
-// ຄຳນວນບ່ອນນັ່ງຫວ່າງ
-$booked = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as total FROM bookings WHERE tour_id = $tour_id AND status != 'Cancelled'"));
-$remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
-
-// ລາຄາພື້ນຖານຈາກຖານຂໍ້ມູນ
-$base_price = (float)$tour['price']; 
-?>
-<!DOCTYPE html>
-<html lang="<?php echo ($current_lang == 'lao') ? 'lo' : 'en'; ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $lang['form_title']; ?> - <?php echo $tour['tour_name']; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f0f2f5; }
-        .form-card { border-radius: 25px; border: none; }
-        .price-total { font-size: 2.2rem; color: #ff4757; font-weight: 700; }
-        
-        /* Seat Map Styles */
-        .seat-map-wrapper { background: #fff; padding: 25px; border-radius: 20px; border: 2px dashed #cbd5e0; }
-        .van-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 12px; 
-            max-width: 220px; 
-            margin: 0 auto; 
-        }
-        .seat { 
-            width: 55px; height: 55px; background: white; border: 2px solid #cbd5e0; 
-            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
-        }
-        .seat.selected { background: #0d6efd; color: white; border-color: #0d6efd; transform: scale(1.05); }
-        .seat.occupied { background: #ff4757; color: white; cursor: not-allowed; border-color: #ff4757; opacity: 0.8; }
-        .seat:hover:not(.occupied) { border-color: #0d6efd; color: #0d6efd; }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-light bg-white shadow-sm sticky-top">
-    <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="index.php"><i class="fas fa-arrow-left me-2"></i> <?php echo ($current_lang=='lao')?'ກັບໄປໜ້າຫຼັກ':'Back to Home'; ?></a>
-    </div>
-</nav>
-
-<div class="container my-5">
-    <div class="row g-4">
-        <div class="col-lg-7">
-            <div class="card form-card shadow-sm p-4 p-md-5 bg-white">
-                <h3 class="fw-bold text-primary mb-1"><i class="fas fa-edit me-2"></i><?php echo $lang['form_title']; ?></h3>
-                <p class="text-muted mb-4 small">ກະລຸນາປ້ອນຂໍ້ມູນ ແລະ ເລືອກບ່ອນນັ່ງໃຫ້ຄົບຖ້ວນ</p>
-                
-                <form action="process_booking.php" method="POST" onsubmit="return validateForm()">
-                    <input type="hidden" name="tour_id" value="<?php echo $tour_id; ?>">
-                    <input type="hidden" name="price" id="tour_price" value="<?php echo $base_price; ?>">
-
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold small"><?php echo $lang['form_fullname']; ?></label>
-                            <input type="text" name="fullname" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small"><?php echo $lang['form_phone']; ?></label>
-                            <input type="text" name="phone" id="phone" class="form-control bg-light border-0 py-2" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold small"><?php echo $lang['form_email']; ?></label>
-                            <input type="email" name="email" class="form-control bg-light border-0 py-2" required>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-danger"><?php echo $lang['form_date']; ?></label>
-                            <input type="text" class="form-control bg-white border-danger fw-bold text-danger" value="<?php echo date('d/m/Y', strtotime($tour['start_date'])); ?>" readonly>
-                            <input type="hidden" name="travel_date" value="<?php echo $tour['start_date']; ?>">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">ຈຳນວນຄົນ</label>
-                            <input type="number" name="num_people" id="num_people" class="form-control py-2 fw-bold text-primary border-primary" value="1" min="1" max="<?php echo $remaining; ?>" onchange="renderSeatMap(); updateTotal();" required>
-                        </div>
-                    </div>
-
-                    <!-- ເລືອກບ່ອນນັ່ງ -->
-                    <div class="mt-5 seat-map-wrapper">
-                        <h6 class="fw-bold text-center mb-4 text-dark"><i class="fas fa-couch me-2"></i>ເລືອກບ່ອນນັ່ງຂອງທ່ານ (ລົດຕູ້)</h6>
-                        <div class="van-grid" id="seatMap"></div>
-                        <input type="hidden" name="selected_seats" id="selected_seats_input" required>
-
-                        <div class="d-flex justify-content-center gap-3 mt-4 small fw-bold">
-                            <span><span class="badge border text-dark bg-white"> </span> ຫວ່າງ</span>
-                            <span><span class="badge bg-primary"> </span> ເລືອກ</span>
-                            <span><span class="badge bg-danger"> </span> ເຕັມ</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="form-label fw-bold small text-muted"><?php echo $lang['form_note']; ?></label>
-                        <textarea name="note" class="form-control bg-light border-0" rows="2"></textarea>
-                    </div>
-
-                    <div class="mt-5 border-top pt-4">
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">
-                            <?php echo $lang['form_btn_submit']; ?>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="col-lg-5">
-            <div class="card shadow-lg bg-white overflow-hidden border-0 sticky-top" style="top: 100px;">
-                <img src="assets/uploads/tours/<?php echo $tour['image']; ?>" class="w-100" style="height: 200px; object-fit: cover;">
-                <div class="card-body p-4 text-center">
-                    <h4 class="fw-bold text-dark mb-4"><?php echo $tour['tour_name']; ?></h4>
-                    <div class="bg-light p-4 rounded-4 border">
-                        <span class="text-muted d-block small fw-bold text-uppercase mb-1"><?php echo $lang['form_total']; ?></span>
-                        <h1 class="price-total mb-0" id="display_total"><?php echo number_format($base_price); ?></h1>
-                        <span class="fw-bold text-muted small">LAK</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-let selectedSeats = [];
-
-function renderSeatMap() {
-    const mapContainer = document.getElementById('seatMap');
-    const tourId = <?php echo $tour_id; ?>;
-    const maxSeats = <?php echo $tour['max_seats']; ?>;
-    
-    fetch(`get_occupied_seats.php?tour_id=${tourId}`)
-    .then(res => res.json())
-    .then(occupied => {
-        mapContainer.innerHTML = '';
-        selectedSeats = [];
-        document.getElementById('selected_seats_input').value = '';
-
-        for (let i = 1; i <= maxSeats; i++) {
-            const seatId = i.toString();
-            const isFull = occupied.includes(seatId);
-            const div = document.createElement('div');
-            div.className = `seat ${isFull ? 'occupied' : ''}`;
-            div.innerText = i;
-
-            if (!isFull) {
-                div.onclick = function() {
-                    const limit = parseInt(document.getElementById('num_people').value);
-                    if (this.classList.contains('selected')) {
-                        this.classList.remove('selected');
-                        selectedSeats = selectedSeats.filter(s => s !== seatId);
-                    } else {
-                        if (selectedSeats.length < limit) {
-                            this.classList.add('selected');
-                            selectedSeats.push(seatId);
-                        } else {
-                            Swal.fire({ icon: 'warning', title: 'ເຕັມແລ້ວ', text: `ທ່ານເລືອກໄດ້ພຽງ ${limit} ບ່ອນນັ່ງ` });
-                        }
-                    }
-                    document.getElementById('selected_seats_input').value = selectedSeats.join(',');
-                };
-            }
-            mapContainer.appendChild(div);
-        }
-    });
-}
-
-function validateForm() {
-    const num = parseInt(document.getElementById('num_people').value);
-    if (selectedSeats.length !== num) {
-        Swal.fire({ icon: 'error', title: 'ກະລຸນາເລືອກບ່ອນນັ່ງ', text: `ທ່ານຕ້ອງເລືອກບ່ອນນັ່ງໃຫ້ຄົບ ${num} ບ່ອນ` });
-        return false;
-    }
-    return true;
-}
-
-function updateTotal() {
-    const price = parseFloat(document.getElementById('tour_price').value);
-    const num = parseInt(document.getElementById('num_people').value) || 1;
-    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(price * num);
-}
-
-window.onload = renderSeatMap;
-</script>
-</body>
-</html>
 </file>
 
 <file path="index.php">
@@ -28737,6 +28446,256 @@ $category_filter = isset($_GET['cat']) ? mysqli_real_escape_string($conn, $_GET[
 </html>
 </file>
 
+<file path="pages/bookings/save.php">
+<?php
+include '../../config/db.php';
+/** @var mysqli $conn */
+
+if (isset($_POST['save_booking'])) {
+    $customer_id = mysqli_real_escape_string($conn, $_POST['customer_id']);
+    $tour_id = mysqli_real_escape_string($conn, $_POST['tour_id']);
+    $travel_date = mysqli_real_escape_string($conn, $_POST['travel_date']);
+    $num_people = intval($_POST['num_people']);
+    $selected_seats = mysqli_real_escape_string($conn, $_POST['selected_seats']); // ຮັບຄ່າເລກບ່ອນນັ່ງ
+    $total_price = mysqli_real_escape_string($conn, $_POST['total_price']);
+    $note = mysqli_real_escape_string($conn, $_POST['note']);
+
+    // ເພີ່ມ selected_seats ເຂົ້າໄປໃນ INSERT
+    $sql = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, selected_seats, total_price, note, status) 
+            VALUES ('$customer_id', '$tour_id', '$travel_date', $num_people, '$selected_seats', '$total_price', '$note', 'Pending')";
+
+    if (mysqli_query($conn, $sql)) {
+        $booking_id = mysqli_insert_id($conn);
+
+        // ບັນທຶກລາຍຊື່ຜູ້ຮ່ວມທາງ (ຄົນທີ 2 ເປັນຕົ້ນໄປ)
+        // ໃນ save.php ບ່ອນ loop ບັນທຶກຜູ້ຮ່ວມທາງ
+            if (isset($_POST['participant_names'])) {
+                $names = $_POST['participant_names'];
+                $phones = $_POST['participant_phones'];
+                $p_seats = $_POST['participant_seats']; // ຮັບຄ່າເລກບ່ອນນັ່ງຂອງແຕ່ລະຄົນ
+                
+                for ($i = 0; $i < count($names); $i++) {
+                    $name = mysqli_real_escape_string($conn, $names[$i]);
+                    $phone = mysqli_real_escape_string($conn, $phones[$i]);
+                    $seat = mysqli_real_escape_string($conn, $p_seats[$i]);
+                    
+                    if (!empty($name)) {
+                        mysqli_query($conn, "INSERT INTO booking_participants (booking_id, participant_name, participant_phone, participant_seat) 
+                                            VALUES ($booking_id, '$name', '$phone', '$seat')");
+                    }
+                }
+            }
+
+        // ສ້າງ Checklist ວຽກ
+        $tasks = ['ກວດເຊັກຍອດເງິນ', 'ຈອງທີ່ພັກ', 'ຕິດຕໍ່ລົດ', 'ມອບໝາຍໄກ້', 'ກຽມນ້ຳດື່ມ'];
+        foreach ($tasks as $t) {
+            mysqli_query($conn, "INSERT INTO booking_tasks (booking_id, task_label) VALUES ($booking_id, '$t')");
+        }
+
+        header("Location: index.php?msg=success");
+        exit();
+    } else {
+        die("Error Database: " . mysqli_error($conn));
+    }
+}
+?>
+</file>
+
+<file path="pages/bookings/view.php">
+<?php 
+include '../../config/db.php'; 
+/** @var mysqli $conn */
+include '../../includes/header.php'; 
+include '../../includes/sidebar.php'; 
+
+if (!isset($_GET['id'])) {
+    echo "<script>window.location='index.php';</script>";
+    exit;
+}
+
+$id = mysqli_real_escape_string($conn, $_GET['id']);
+
+// 1. ດຶງຂໍ້ມູນການຈອງ ແລະ ລູກຄ້າຫຼັກ
+$sql = "SELECT b.*, c.fullname, c.phone, t.tour_name 
+        FROM bookings b 
+        JOIN customers c ON b.customer_id = c.customer_id 
+        JOIN tours t ON b.tour_id = t.tour_id 
+        WHERE b.booking_id = '$id'";
+$res = mysqli_query($conn, $sql);
+$row = mysqli_fetch_assoc($res);
+
+if (!$row) {
+    echo "<div class='p-5 text-center'><h3>ບໍ່ພົບຂໍ້ມູນການຈອງ</h3><a href='index.php'>ກັບຄືນ</a></div>";
+    exit;
+}
+
+// ແຍກ Array ບ່ອນນັ່ງທັງໝົດອອກມາເພື່ອໃຊ້ເປັນບ່ອນອີງ
+$all_seats = !empty($row['selected_seats']) ? explode(',', $row['selected_seats']) : [];
+?>
+
+<style>
+    .seat-badge-fixed {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
+    }
+    .table-custom thead { background-color: #f8f9fa; }
+    .table-custom th { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; border: none; }
+    .table-custom td { vertical-align: middle; border-bottom: 1px solid #f1f3f7; padding: 15px 10px; }
+</style>
+
+<main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
+    <?php include '../../includes/navbar.php'; ?>
+    
+    <div class="px-4 py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">ລາຍລະອຽດການຈອງ #BK-<?php echo $id; ?></h2>
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4 no-print">
+                <i class="fas fa-print me-2"></i> ພິມລາຍຊື່
+            </button>
+        </div>
+
+        <div class="row g-4">
+            <!-- ເບື້ອງຊ້າຍ: ຂໍ້ມູນທົ່ວໄປ -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                    <h5 class="fw-bold border-bottom pb-2 mb-3 text-primary"><i class="fas fa-info-circle me-2"></i>ຂໍ້ມູນທົ່ວໄປ</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">ລູກຄ້າຜູ້ຈອງ:</small>
+                            <span class="fw-bold fs-5"><?php echo $row['fullname']; ?></span>
+                            <small class="d-block text-primary"><?php echo $row['phone']; ?></small>
+                        </div>
+                        <div class="col-md-6 mb-3 text-md-end">
+                            <small class="text-muted d-block">ແພັກເກັດທົວ:</small>
+                            <span class="fw-bold text-dark"><?php echo $row['tour_name']; ?></span>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">ວັນທີເດີນທາງ:</small>
+                            <span class="fw-bold"><i class="far fa-calendar-alt me-1"></i> <?php echo date('d/m/Y', strtotime($row['travel_date'])); ?></span>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted d-block">ຈຳນວນຜູ້ເດີນທາງ:</small>
+                            <span class="badge bg-light text-dark border px-3"><?php echo $row['num_people']; ?> ທ່ານ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ຕາຕະລາງລະບຸບ່ອນນັ່ງລາຍຄົນ (Passenger List with Assigned Seats) -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-users text-primary me-2"></i>ລາຍຊື່ຜູ້ໂດຍສານ ແລະ ບ່ອນນັ່ງ</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">ລຳດັບ</th>
+                                    <th>ຊື່ ແລະ ນາມສະກຸນ</th>
+                                    <th class="text-center">ເບີບ່ອນນັ່ງ</th>
+                                    <th class="text-center">ສະຖານະ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 1. ລູກຄ້າຫຼັກ -->
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted">01</td>
+                                    <td>
+                                        <div class="fw-bold text-dark"><?php echo $row['fullname']; ?></div>
+                                        <small class="badge bg-success-subtle text-success small">ລູກຄ້າຫຼັກ (Lead)</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="badge bg-primary seat-badge-fixed mx-auto">
+                                            <?php echo isset($all_seats[0]) ? $all_seats[0] : '-'; ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-success small"><i class="fas fa-check-circle me-1"></i> ຢືນຢັນແລ້ວ</span>
+                                    </td>
+                                </tr>
+
+                                <!-- 2. ຜູ້ຮ່ວມທາງ (Participants) -->
+                                <?php 
+                                $p_sql = "SELECT * FROM booking_participants WHERE booking_id = '$id' ORDER BY part_id ASC";
+                                $p_res = mysqli_query($conn, $p_sql);
+                                $i = 2;
+                                while($p = mysqli_fetch_assoc($p_res)): 
+                                ?>
+                                <tr>
+                                    <td class="ps-4 fw-bold text-muted"><?php echo str_pad($i, 2, '0', STR_PAD_LEFT); ?></td>
+                                    <td>
+                                        <div class="text-dark"><?php echo $p['participant_name']; ?></div>
+                                        <small class="text-muted"><?php echo $p['participant_phone'] ?: 'ບໍ່ມີເບີໂທ'; ?></small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="badge bg-primary seat-badge-fixed mx-auto">
+                                            <?php 
+                                                // ຖ້າມີການເກັບ seat ໃນຕາຕະລາງ participant ໃຫ້ເອົາມາໂຊ, ຖ້າບໍ່ມີໃຫ້ໄລ່ຕາມ index ຂອງ all_seats
+                                                echo !empty($p['participant_seat']) ? $p['participant_seat'] : (isset($all_seats[$i-1]) ? $all_seats[$i-1] : '-'); 
+                                            ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-success small"><i class="fas fa-check-circle me-1"></i> ຢືນຢັນແລ້ວ</span>
+                                    </td>
+                                </tr>
+                                <?php $i++; endwhile; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ເບື້ອງຂວາ: ສະຫຼຸບການເງິນ -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-dark text-white text-center mb-4">
+                    <h6 class="opacity-75 small text-uppercase fw-bold mb-3">ຍອດເງິນທີ່ຊຳລະແລ້ວ</h6>
+                    <h2 class="fw-bold text-success display-6 mb-3">₭ <?php echo number_format($row['total_price']); ?></h2>
+                    
+                    <?php 
+                        $status = $row['status'];
+                        $st_class = ($status == 'Confirmed') ? 'bg-success' : (($status == 'Cancelled') ? 'bg-danger' : 'bg-warning text-dark');
+                    ?>
+                    <div class="badge <?php echo $st_class; ?> px-4 py-2 rounded-pill fs-6 shadow-sm">
+                        <i class="fas fa-circle me-1 small"></i> <?php echo $status; ?>
+                    </div>
+                </div>
+
+                <!-- ໝາຍເຫດ -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">ໝາຍເຫດການຈອງ</h6>
+                    <p class="small text-muted mb-0">
+                        <?php echo !empty($row['note']) ? nl2br($row['note']) : 'ບໍ່ມີໝາຍເຫດເພີ່ມເຕີມ'; ?>
+                    </p>
+                </div>
+                
+                <div class="mt-4 no-print">
+                    <a href="index.php" class="btn btn-light w-100 rounded-pill border fw-bold text-muted shadow-sm">
+                        <i class="fas fa-arrow-left me-2"></i> ກັບຄືນລາຍການຈອງ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    @media print {
+        .no-print, .sidebar, nav { display: none !important; }
+        .main-content { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
+        .card { box-shadow: none !important; border: 1px solid #eee !important; }
+    }
+</style>
+
+<?php include '../../includes/footer.php'; ?>
+</file>
+
 <file path="pages/tours/index.php">
 <?php 
 include '../../config/db.php'; 
@@ -28838,6 +28797,214 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
 </style>
 
 <?php include '../../includes/footer.php'; ?>
+</file>
+
+<file path="booking_form.php">
+<?php include 'config/db.php'; 
+/** @var mysqli $conn */
+/** @var array $lang */
+if(!isset($_GET['tour_id'])) { header("Location: index.php"); exit(); }
+
+$tour_id = mysqli_real_escape_string($conn, $_GET['tour_id']);
+
+// ດຶງຂໍ້ມູນທົວ
+$res = mysqli_query($conn, "SELECT * FROM tours WHERE tour_id = '$tour_id' AND status = 'Active'");
+$tour = mysqli_fetch_assoc($res);
+
+if(!$tour) { header("Location: index.php"); exit(); }
+
+// ຄຳນວນບ່ອນນັ່ງຫວ່າງ
+$booked = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as total FROM bookings WHERE tour_id = $tour_id AND status != 'Cancelled'"));
+$remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
+
+// ລາຄາພື້ນຖານຈາກຖານຂໍ້ມູນ
+$base_price = (float)$tour['price']; 
+?>
+<!DOCTYPE html>
+<html lang="<?php echo ($current_lang == 'lao') ? 'lo' : 'en'; ?>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $lang['form_title']; ?> - <?php echo $tour['tour_name']; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f0f2f5; }
+        .form-card { border-radius: 25px; border: none; }
+        .price-total { font-size: 2.2rem; color: #ff4757; font-weight: 700; }
+        
+        /* Seat Map Styles */
+        .seat-map-wrapper { background: #fff; padding: 25px; border-radius: 20px; border: 2px dashed #cbd5e0; }
+        .van-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+            max-width: 220px; 
+            margin: 0 auto; 
+        }
+        .seat { 
+            width: 55px; height: 55px; background: white; border: 2px solid #cbd5e0; 
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s;
+        }
+        .seat.selected { background: #0d6efd; color: white; border-color: #0d6efd; transform: scale(1.05); }
+        .seat.occupied { background: #ff4757; color: white; cursor: not-allowed; border-color: #ff4757; opacity: 0.8; }
+        .seat:hover:not(.occupied) { border-color: #0d6efd; color: #0d6efd; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-primary" href="index.php"><i class="fas fa-arrow-left me-2"></i> <?php echo ($current_lang=='lao')?'ກັບໄປໜ້າຫຼັກ':'Back to Home'; ?></a>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card form-card shadow-sm p-4 p-md-5 bg-white">
+                <h3 class="fw-bold text-primary mb-1"><i class="fas fa-edit me-2"></i><?php echo $lang['form_title']; ?></h3>
+                <p class="text-muted mb-4 small">ກະລຸນາປ້ອນຂໍ້ມູນ ແລະ ເລືອກບ່ອນນັ່ງໃຫ້ຄົບຖ້ວນ</p>
+                
+                <form action="process_booking.php" method="POST" onsubmit="return validateForm()">
+                    <input type="hidden" name="tour_id" value="<?php echo $tour_id; ?>">
+                    <input type="hidden" name="price" id="tour_price" value="<?php echo $base_price; ?>">
+
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small"><?php echo $lang['form_fullname']; ?></label>
+                            <input type="text" name="fullname" class="form-control bg-light border-0 py-2" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small"><?php echo $lang['form_phone']; ?></label>
+                            <input type="text" name="phone" id="phone" class="form-control bg-light border-0 py-2" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small"><?php echo $lang['form_email']; ?></label>
+                            <input type="email" name="email" class="form-control bg-light border-0 py-2" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-danger"><?php echo $lang['form_date']; ?></label>
+                            <input type="text" class="form-control bg-white border-danger fw-bold text-danger" value="<?php echo date('d/m/Y', strtotime($tour['start_date'])); ?>" readonly>
+                            <input type="hidden" name="travel_date" value="<?php echo $tour['start_date']; ?>">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ຈຳນວນຄົນ</label>
+                            <input type="number" name="num_people" id="num_people" class="form-control py-2 fw-bold text-primary border-primary" value="1" min="1" max="<?php echo $remaining; ?>" onchange="renderSeatMap(); updateTotal();" required>
+                        </div>
+                    </div>
+
+                    <!-- ເລືອກບ່ອນນັ່ງ -->
+                    <div class="mt-5 seat-map-wrapper">
+                        <h6 class="fw-bold text-center mb-4 text-dark"><i class="fas fa-couch me-2"></i>ເລືອກບ່ອນນັ່ງຂອງທ່ານ (ລົດຕູ້)</h6>
+                        <div class="van-grid" id="seatMap"></div>
+                        <input type="hidden" name="selected_seats" id="selected_seats_input" required>
+
+                        <div class="d-flex justify-content-center gap-3 mt-4 small fw-bold">
+                            <span><span class="badge border text-dark bg-white"> </span> ຫວ່າງ</span>
+                            <span><span class="badge bg-primary"> </span> ເລືອກ</span>
+                            <span><span class="badge bg-danger"> </span> ເຕັມ</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="form-label fw-bold small text-muted"><?php echo $lang['form_note']; ?></label>
+                        <textarea name="note" class="form-control bg-light border-0" rows="2"></textarea>
+                    </div>
+
+                    <div class="mt-5 border-top pt-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3">
+                            <?php echo $lang['form_btn_submit']; ?>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-lg bg-white overflow-hidden border-0 sticky-top" style="top: 100px;">
+                <img src="assets/uploads/tours/<?php echo $tour['image']; ?>" class="w-100" style="height: 200px; object-fit: cover;">
+                <div class="card-body p-4 text-center">
+                    <h4 class="fw-bold text-dark mb-4"><?php echo $tour['tour_name']; ?></h4>
+                    <div class="bg-light p-4 rounded-4 border">
+                        <span class="text-muted d-block small fw-bold text-uppercase mb-1"><?php echo $lang['form_total']; ?></span>
+                        <h1 class="price-total mb-0" id="display_total"><?php echo number_format($base_price); ?></h1>
+                        <span class="fw-bold text-muted small">LAK</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedSeats = [];
+
+function renderSeatMap() {
+    const mapContainer = document.getElementById('seatMap');
+    const tourId = <?php echo $tour_id; ?>;
+    const maxSeats = <?php echo $tour['max_seats']; ?>;
+    
+    fetch(`get_occupied_seats.php?tour_id=${tourId}`)
+    .then(res => res.json())
+    .then(occupied => {
+        mapContainer.innerHTML = '';
+        selectedSeats = [];
+        document.getElementById('selected_seats_input').value = '';
+
+        for (let i = 1; i <= maxSeats; i++) {
+            const seatId = i.toString();
+            const isFull = occupied.includes(seatId);
+            const div = document.createElement('div');
+            div.className = `seat ${isFull ? 'occupied' : ''}`;
+            div.innerText = i;
+
+            if (!isFull) {
+                div.onclick = function() {
+                    const limit = parseInt(document.getElementById('num_people').value);
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                        selectedSeats = selectedSeats.filter(s => s !== seatId);
+                    } else {
+                        if (selectedSeats.length < limit) {
+                            this.classList.add('selected');
+                            selectedSeats.push(seatId);
+                        } else {
+                            Swal.fire({ icon: 'warning', title: 'ເຕັມແລ້ວ', text: `ທ່ານເລືອກໄດ້ພຽງ ${limit} ບ່ອນນັ່ງ` });
+                        }
+                    }
+                    document.getElementById('selected_seats_input').value = selectedSeats.join(',');
+                };
+            }
+            mapContainer.appendChild(div);
+        }
+    });
+}
+
+function validateForm() {
+    const num = parseInt(document.getElementById('num_people').value);
+    if (selectedSeats.length !== num) {
+        Swal.fire({ icon: 'error', title: 'ກະລຸນາເລືອກບ່ອນນັ່ງ', text: `ທ່ານຕ້ອງເລືອກບ່ອນນັ່ງໃຫ້ຄົບ ${num} ບ່ອນ` });
+        return false;
+    }
+    return true;
+}
+
+function updateTotal() {
+    const price = parseFloat(document.getElementById('tour_price').value);
+    const num = parseInt(document.getElementById('num_people').value) || 1;
+    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(price * num);
+}
+
+window.onload = renderSeatMap;
+</script>
+</body>
+</html>
 </file>
 
 <file path="config/db.php">
