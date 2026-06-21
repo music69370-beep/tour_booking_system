@@ -1,7 +1,6 @@
 <?php
-// ໄຟລ໌ລວມໂຄງສ້າງຖານຂໍ້ມູນທັງໝົດ - ປັບປຸງລ່າສຸດ
+// ໄຟລ໌ລວມໂຄງສ້າງຖານຂໍ້ມູນທັງໝົດ - ປັບປຸງ (ຮັກສາຂອງເກົ່າໄວ້ທັງໝົດ ແລະ ເພີ່ມລະບົບຫ້ອງພັກ)
 $tables = [
-    // 1. ຕາຕະລາງພາຫະນະ (ເກັບສະເພາະຂໍ້ມູນລົດ)
     "vehicles" => "CREATE TABLE IF NOT EXISTS vehicles (
         vehicle_id INT PRIMARY KEY AUTO_INCREMENT,
         plate_number VARCHAR(20) NOT NULL,
@@ -11,9 +10,8 @@ $tables = [
         insurance_expiry DATE,
         amenities TEXT,
         status ENUM('Available', 'Busy', 'Maintenance') DEFAULT 'Available'
-    )",
+    )", 
 
-    // 2. ຕາຕະລາງຄົນຂັບ (ແຍກອອກມາຕ່າງຫາກ)
     "drivers" => "CREATE TABLE IF NOT EXISTS drivers (
         driver_id INT PRIMARY KEY AUTO_INCREMENT,
         fullname VARCHAR(100) NOT NULL,
@@ -32,7 +30,6 @@ $tables = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
 
-    // 3. ຕາຕະລາງໄກ້ຜູ້ນຳທ່ຽວ
     "guides" => "CREATE TABLE IF NOT EXISTS guides (
         guide_id INT PRIMARY KEY AUTO_INCREMENT,
         fullname VARCHAR(100) NOT NULL,
@@ -54,13 +51,28 @@ $tables = [
         status ENUM('Available', 'Busy') DEFAULT 'Available'
     )",
 
-    // 4. ຕາຕະລາງແພັກເກັດທົວ (ເອົາ vehicle_id ແລະ guide_id ອອກແລ້ວ)
+    "coupons" => "CREATE TABLE IF NOT EXISTS coupons (
+        coupon_id INT PRIMARY KEY AUTO_INCREMENT,
+        code VARCHAR(50) NOT NULL UNIQUE,
+        discount_type ENUM('Fixed', 'Percent') NOT NULL,
+        discount_value DECIMAL(15,2) NOT NULL,
+        min_spend DECIMAL(15,2) DEFAULT 0,
+        max_discount DECIMAL(15,2) DEFAULT 0,
+        total_limit INT DEFAULT 0,
+        limit_per_user INT DEFAULT 1,
+        specific_tour_id INT DEFAULT NULL,
+        expiry_date DATE NOT NULL,
+        status ENUM('Active', 'Inactive') DEFAULT 'Active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )",
+    
     "tours" => "CREATE TABLE IF NOT EXISTS tours (
         tour_id INT PRIMARY KEY AUTO_INCREMENT,
         tour_code VARCHAR(50),
         tour_name VARCHAR(255) NOT NULL,
         category VARCHAR(100),
         price DECIMAL(15,2) NOT NULL,
+        cost_per_person DECIMAL(15,2) DEFAULT 0,
         start_date DATE,
         end_date DATE,
         duration VARCHAR(100),
@@ -78,53 +90,19 @@ $tables = [
         status ENUM('Active', 'Inactive') DEFAULT 'Active'
     )",
 
-    // 5. ຕາຕະລາງບັນທຶກການອອກທົວ (Trip Dispatch)
-    "vehicle_outings" => "CREATE TABLE IF NOT EXISTS vehicle_outings (
-        outing_id INT PRIMARY KEY AUTO_INCREMENT,
-        vehicle_id INT,
-        tour_id INT,
-        driver_id INT,
-        start_date DATE,
-        return_date DATE,
-        start_mileage INT DEFAULT 0,
-        end_mileage INT DEFAULT 0,
-        status ENUM('On Trip', 'Completed', 'Cancelled') DEFAULT 'On Trip',
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE CASCADE,
-        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
-        FOREIGN KEY (driver_id) REFERENCES drivers(driver_id) ON DELETE SET NULL
-    )",
-
-    // 6. ຕາຕະລາງອື່ນໆ (ຮັກສາໄວ້ຄືເກົ່າ)
-    "tour_images" => "CREATE TABLE IF NOT EXISTS tour_images (
-        image_id INT PRIMARY KEY AUTO_INCREMENT,
-        tour_id INT,
-        image_name VARCHAR(255),
-        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
-    )",
-
     "customers" => "CREATE TABLE IF NOT EXISTS customers (
         customer_id INT PRIMARY KEY AUTO_INCREMENT,
         fullname VARCHAR(100),
-        phone VARCHAR(20),
+        gender ENUM('Male', 'Female', 'Other'),
+        birthday DATE,
+        nationality VARCHAR(50),
+        id_card_no VARCHAR(50),
+        id_card_image VARCHAR(255),
+        phone VARCHAR(20) UNIQUE,
         email VARCHAR(100),
-        address TEXT
-    )",
-
-    "coupons" => "CREATE TABLE IF NOT EXISTS coupons (
-        coupon_id INT PRIMARY KEY AUTO_INCREMENT,
-        code VARCHAR(50) NOT NULL UNIQUE,
-        discount_type ENUM('Fixed', 'Percent') NOT NULL,
-        discount_value DECIMAL(15,2) NOT NULL,
-        min_spend DECIMAL(15,2) DEFAULT 0,
-        max_discount DECIMAL(15,2) DEFAULT 0,
-        total_limit INT DEFAULT 0,
-        limit_per_user INT DEFAULT 1,
-        specific_tour_id INT DEFAULT NULL,
-        expiry_date DATE NOT NULL,
-        status ENUM('Active', 'Inactive') DEFAULT 'Active',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        address TEXT,
+        emergency_name VARCHAR(100),
+        emergency_phone VARCHAR(20)
     )",
 
     "bookings" => "CREATE TABLE IF NOT EXISTS bookings (
@@ -134,17 +112,30 @@ $tables = [
         coupon_id INT,
         travel_date DATE NOT NULL,
         num_people INT,
+        room_type ENUM('Twin', 'Single') DEFAULT 'Twin', -- ເພີ່ມໃໝ່
         total_price DECIMAL(15,2),
+        single_supplement_fee DECIMAL(15,2) DEFAULT 0, -- ເພີ່ມໃໝ່
         discount_amount DECIMAL(15,2) DEFAULT 0,
         refund_amount DECIMAL(15,2) DEFAULT 0,
         cancellation_cost DECIMAL(15,2) DEFAULT 0,
         status ENUM('Pending', 'Confirmed', 'Cancelled') DEFAULT 'Pending',
         cancel_reason TEXT,
         note TEXT,
+        selected_seats VARCHAR(255),
         booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
         FOREIGN KEY (coupon_id) REFERENCES coupons(coupon_id) ON DELETE SET NULL
+    )",
+    
+    // ຕາຕະລາງໃໝ່ສຳລັບຢັດເບີຫ້ອງແຍກຕາມໂຮງແຮມ (Pro Option 2)
+    "booking_room_assignments" => "CREATE TABLE IF NOT EXISTS booking_room_assignments (
+        assignment_id INT PRIMARY KEY AUTO_INCREMENT,
+        booking_id INT,
+        hotel_name VARCHAR(255),
+        participant_name VARCHAR(255),
+        room_number VARCHAR(50),
+        FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
     )",
 
     "booking_tasks" => "CREATE TABLE IF NOT EXISTS booking_tasks (
@@ -160,7 +151,8 @@ $tables = [
         part_id INT PRIMARY KEY AUTO_INCREMENT,
         booking_id INT,
         participant_name VARCHAR(255),
-        participant_phone VARCHAR(20),
+        participant_id_card VARCHAR(50),
+        participant_phone VARCHAR(50),
         FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE
     )",
 

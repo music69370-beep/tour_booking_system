@@ -5,6 +5,7 @@ include '../../includes/header.php';
 include '../../includes/sidebar.php'; 
 
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
+$tour_filter = isset($_GET['tour_id']) ? $_GET['tour_id'] : 'all';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 ?>
 
@@ -15,28 +16,44 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
         <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-4 border-bottom">
             <h2 class="fw-bold text-dark"><i class="fas fa-calendar-check text-primary me-2"></i>ລາຍການຈອງທົວ</h2>
             <div class="d-flex gap-2">
-                <a href="export.php" class="btn btn-success rounded-pill px-3 shadow-sm small"><i class="fas fa-file-excel me-1"></i> ສົ່ງອອກ Excel</a>
+                <a href="export.php" class="btn btn-success rounded-pill px-3 shadow-sm small"><i class="fas fa-file-excel me-1"></i> Excel</a>
                 <a href="add.php" class="btn btn-primary rounded-pill px-4 shadow-sm small">+ ສ້າງການຈອງໃໝ່</a>
             </div>
         </div>
 
-        <!-- Filter & Search -->
-        <div class="row mb-4 g-3">
-            <div class="col-md-8">
-                <div class="btn-group p-1 bg-white shadow-sm rounded-pill">
-                    <a href="index.php?status=all" class="btn rounded-pill px-3 <?php echo ($status_filter == 'all') ? 'btn-primary shadow' : 'btn-light'; ?> small">ທັງໝົດ</a>
-                    <a href="index.php?status=Pending" class="btn rounded-pill px-3 <?php echo ($status_filter == 'Pending') ? 'btn-warning text-dark shadow' : 'btn-light'; ?> small">ລໍຖ້າອະນຸມັດ</a>
-                    <a href="index.php?status=Confirmed" class="btn rounded-pill px-3 <?php echo ($status_filter == 'Confirmed') ? 'btn-success shadow' : 'btn-light'; ?> small">ອະນຸມັດແລ້ວ</a>
-                    <a href="index.php?status=Cancelled" class="btn rounded-pill px-3 <?php echo ($status_filter == 'Cancelled') ? 'btn-danger shadow' : 'btn-light'; ?> small">ຍົກເລີກແລ້ວ</a>
+        <!-- Filter Bar -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+            <form action="" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">ກັ່ນຕອງຕາມແພັກເກັດ:</label>
+                    <select name="tour_id" class="form-select form-select-sm border-0 bg-light" onchange="this.form.submit()">
+                        <option value="all">-- ທຸກແພັກເກັດ --</option>
+                        <?php 
+                        $t_list = mysqli_query($conn, "SELECT tour_id, tour_name FROM tours");
+                        while($t = mysqli_fetch_assoc($t_list)){
+                            $sel = ($tour_filter == $t['tour_id']) ? 'selected' : '';
+                            echo "<option value='{$t['tour_id']}' $sel>{$t['tour_name']}</option>";
+                        }
+                        ?>
+                    </select>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <form action="" method="GET" class="input-group shadow-sm rounded-pill overflow-hidden border">
-                    <input type="hidden" name="status" value="<?php echo $status_filter; ?>">
-                    <input type="text" name="search" class="form-control border-0 px-3 shadow-none" placeholder="ຄົ້ນຫາຊື່ລູກຄ້າ..." value="<?php echo $search; ?>">
-                    <button class="btn btn-white bg-white border-0" type="submit"><i class="fas fa-search text-muted"></i></button>
-                </form>
-            </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">ສະຖານະ:</label>
+                    <select name="status" class="form-select form-select-sm border-0 bg-light" onchange="this.form.submit()">
+                        <option value="all" <?php echo ($status_filter=='all')?'selected':''; ?>>ທັງໝົດ</option>
+                        <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':''; ?>>ລໍຖ້າອະນຸມັດ</option>
+                        <option value="Confirmed" <?php echo ($status_filter=='Confirmed')?'selected':''; ?>>ອະນຸມັດແລ້ວ</option>
+                        <option value="Cancelled" <?php echo ($status_filter=='Cancelled')?'selected':''; ?>>ຍົກເລີກແລ້ວ</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">ຄົ້ນຫາ:</label>
+                    <input type="text" name="search" class="form-control form-control-sm border-0 bg-light" placeholder="ຊື່ລູກຄ້າ..." value="<?php echo $search; ?>">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm w-100 rounded-pill" type="submit"><i class="fas fa-search me-1"></i> ຄົ້ນຫາ</button>
+                </div>
+            </form>
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -48,31 +65,31 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                             <th>ລູກຄ້າ</th>
                             <th>ແພັກເກັດທົວ</th>
                             <th class="text-end">ລາຄາລວມ</th>
+                            <th class="text-center">ຈັດການຫ້ອງ</th>
                             <th class="text-center">ສະຖານະ</th>
                             <th class="text-center">ຈັດການ</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name,
-                                (SELECT payment_slip FROM payments WHERE booking_id = b.booking_id LIMIT 1) as slip
+                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name
                                 FROM bookings b
                                 JOIN customers c ON b.customer_id = c.customer_id
                                 JOIN tours t ON b.tour_id = t.tour_id";
                         
                         $where = [];
                         if ($status_filter != 'all') $where[] = "b.status = '$status_filter'";
+                        if ($tour_filter != 'all') $where[] = "b.tour_id = '$tour_filter'";
                         if ($search != '') $where[] = "(c.fullname LIKE '%$search%' OR t.tour_name LIKE '%$search%')";
-                        if (count($where) > 0) $sql .= " WHERE " . implode(' AND ', $where);
                         
+                        if (count($where) > 0) $sql .= " WHERE " . implode(' AND ', $where);
                         $sql .= " ORDER BY b.travel_date ASC";
+                        
                         $result = mysqli_query($conn, $sql);
-
                         if($result && mysqli_num_rows($result) > 0):
                             while($row = mysqli_fetch_assoc($result)):
-                                $status = $row['status'];
                                 $bid = $row['booking_id'];
-                                $has_slip = !empty($row['slip']);
+                                $st = $row['status'];
                         ?>
                             <tr>
                                 <td class="ps-4">
@@ -80,39 +97,37 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                     <small class="text-muted" style="font-size: 0.7rem;">ID: #BK-<?php echo $bid; ?></small>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark">
-                                        <?php if($has_slip): ?>
-                                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#slipModal<?php echo $bid; ?>"><i class="fas fa-file-invoice-dollar text-success me-1" title="ເບິ່ງສະລິບ"></i></a>
-                                        <?php endif; ?>
-                                        <?php echo $row['fullname']; ?>
-                                    </div>
+                                    <div class="fw-bold text-dark"><?php echo $row['fullname']; ?></div>
                                     <small class="text-muted"><?php echo $row['phone']; ?></small>
                                 </td>
                                 <td>
                                     <div class="small fw-bold text-dark"><?php echo $row['tour_name']; ?></div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">ຈຳນວນ: <?php echo $row['num_people']; ?> ຄົນ</div>
+                                    <span class="badge bg-light text-dark border small" style="font-size: 0.65rem;">Room: <?php echo $row['room_type']; ?></span>
                                 </td>
-                                <td class="text-end">
-                                    <div class="fw-bold text-danger"><?php echo number_format($row['total_price']); ?></div>
+                                <td class="text-end fw-bold text-danger"><?php echo number_format($row['total_price']); ?></td>
+                                <td class="text-center">
+                                    <a href="view.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-outline-warning rounded-pill px-3">
+                                        <i class="fas fa-bed me-1"></i> ຈັດເບີຫ້ອງ
+                                    </a>
                                 </td>
                                 <td class="text-center">
                                     <?php 
-                                    if ($status == 'Confirmed') echo '<span class="badge rounded-pill bg-success px-3 py-2">ຢືນຢັນແລ້ວ</span>';
-                                    elseif ($status == 'Cancelled') echo '<span class="badge rounded-pill bg-danger px-3 py-2">ຍົກເລີກແລ້ວ</span>';
-                                    else echo '<span class="badge rounded-pill bg-warning text-dark px-3 py-2">ລໍຖ້າອະນຸມັດ</span>';
+                                    if ($st == 'Confirmed') echo '<span class="badge rounded-pill bg-success px-2 py-1 small">ອະນຸມັດແລ້ວ</span>';
+                                    elseif ($st == 'Cancelled') echo '<span class="badge rounded-pill bg-danger px-2 py-1 small">ຍົກເລີກແລ້ວ</span>';
+                                    else echo '<span class="badge rounded-pill bg-warning text-dark px-2 py-1 small">ລໍຖ້າອະນຸມັດ</span>';
                                     ?>
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group border rounded-pill overflow-hidden shadow-sm">
-                                        <!-- ປຸ່ມອະນຸມັດ (ສະແດງສະເພາະຕອນລໍຖ້າ) -->
-                                        <?php if($status == 'Pending'): ?>
-                                            <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php?status=<?php echo $status_filter; ?>')" class="btn btn-sm btn-white text-success border-end" title="ອະນຸມັດ">
+                                    <div class="btn-group border rounded-pill overflow-hidden shadow-sm bg-white">
+                                        <!-- ປຸ່ມອະນຸມັດ (ສະແດງສະເພາະ Pending) -->
+                                        <?php if($st == 'Pending'): ?>
+                                            <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php')" class="btn btn-sm btn-white text-success border-end" title="ອະນຸມັດ">
                                                 <i class="fas fa-check-circle"></i>
                                             </a>
                                         <?php endif; ?>
 
                                         <!-- ປຸ່ມຍົກເລີກ (ສະແດງຖ້າຍັງບໍ່ຖືກຍົກເລີກ) -->
-                                        <?php if($status != 'Cancelled'): ?>
+                                        <?php if($st != 'Cancelled'): ?>
                                             <a href="cancel_form.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-secondary border-end" title="ຍົກເລີກ">
                                                 <i class="fas fa-times-circle"></i>
                                             </a>
@@ -123,20 +138,8 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                     </div>
                                 </td>
                             </tr>
-
-                            <!-- Slip Modal -->
-                            <?php if($has_slip): ?>
-                            <div class="modal fade" id="slipModal<?php echo $bid; ?>" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 border-0 shadow-lg"><div class="modal-body text-center p-4">
-                                    <h5 class="fw-bold mb-3">ຫຼັກຖານການໂອນເງິນ</h5>
-                                    <img src="../../assets/uploads/payments/<?php echo $row['slip']; ?>" class="img-fluid rounded-3 shadow" style="max-height: 500px;">
-                                    <div class="mt-4"><button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ປິດ</button></div>
-                                </div></div></div>
-                            </div>
-                            <?php endif; ?>
-
                         <?php endwhile; else: ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນການຈອງ</td></tr>
+                            <tr><td colspan="7" class="text-center py-5 text-muted">ບໍ່ມີຂໍ້ມູນ</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -144,5 +147,11 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
         </div>
     </div>
 </main>
-<style> .btn-white { background: #fff; border: none; } .btn-white:hover { background: #f8f9fa; } </style>
+
+<style>
+    .btn-white { background: #fff; border: none; padding: 5px 10px; }
+    .btn-white:hover { background: #f8f9fa; }
+    .btn-group .btn { font-size: 0.85rem; }
+</style>
+
 <?php include '../../includes/footer.php'; ?>

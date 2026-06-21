@@ -29,8 +29,22 @@ function isAdmin() {
 $current_page = basename($_SERVER['PHP_SELF']);
 $current_path = $_SERVER['PHP_SELF'];
 
-// ໜ້າທີ່ລູກຄ້າເຂົ້າໄດ້ໂດຍບໍ່ຕ້ອງ Login
-$frontend_pages = ['index.php', 'booking_form.php', 'process_booking.php', 'checkout.php', 'check_status.php', 'save_review.php', 'ticket.php', 'login.php', 'auth_action.php', 'register.php', 'register_action.php', 'setup_db.php'];
+// ໜ້າທີ່ລູກຄ້າເຂົ້າໄດ້ໂດຍບໍ່ຕ້ອງ Login (ເພີ່ມ get_occupied_seats.php)
+$frontend_pages = [
+    'index.php', 
+    'booking_form.php', 
+    'process_booking.php', 
+    'checkout.php', 
+    'check_status.php', 
+    'save_review.php', 
+    'ticket.php', 
+    'login.php', 
+    'auth_action.php', 
+    'register.php', 
+    'register_action.php', 
+    'setup_db.php',
+    'get_occupied_seats.php' // *** ຕ້ອງມີບັນທັດນີ້ ***
+];
 
 if (!in_array($current_page, $frontend_pages) && !isset($_SESSION['user_id'])) {
     $is_sub = (strpos($current_path, 'pages/') !== false);
@@ -38,13 +52,10 @@ if (!in_array($current_page, $frontend_pages) && !isset($_SESSION['user_id'])) {
     exit();
 }
 
-// *** ປັບປຸງການຈຳກັດສິດ Staff ***
+// ການຈຳກັດສິດ Staff
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff') {
-    // ບລັອກສະເພາະ ຈັດການຜູ້ໃຊ້ ແລະ ຄູປອງ
-    // ສ່ວນ payments/index.php (ລາຍງານ) ເຮົາຈະໄປລັອກໃນຕົວໄຟລ໌ນັ້ນແທນ ເພື່ອໃຫ້ Staff ເຂົ້າ add.php ໄດ້
     if (strpos($current_path, 'pages/users/') !== false || 
         strpos($current_path, 'pages/coupons/') !== false) {
-        
         header("Location: " . (strpos($current_path, 'pages/') !== false ? '../dashboard/index.php' : 'pages/dashboard/index.php'));
         exit();
     }

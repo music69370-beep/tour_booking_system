@@ -23,9 +23,14 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
         .form-card { border-radius: 25px; border: none; }
         .section-title { font-weight: 700; color: #0d6efd; border-bottom: 2px solid #0d6efd; display: inline-block; padding-bottom: 5px; margin-bottom: 20px; font-size: 1.1rem; }
         .seat { width: 45px; height: 45px; background: white; border: 2px solid #cbd5e0; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
-        .seat.selected { background: #0d6efd; color: white; border-color: #0d6efd; }
-        .seat.occupied { background: #ff4757; color: white; cursor: not-allowed; border-color: #ff4757; opacity: 0.8; }
+        .seat.selected { background: #0d6efd !important; color: white !important; border-color: #0d6efd !important; transform: scale(1.1); box-shadow: 0 5px 15px rgba(13,110,253,0.3); }
+        .seat.occupied { background: #ff4757 !important; color: white !important; cursor: not-allowed !important; border-color: #ff4757 !important; opacity: 0.6; }
         .participant-item { background: #f8f9fc; border-radius: 20px; padding: 20px; border: 1px solid #edf2f7; margin-bottom: 15px; }
+
+        /* Style ໃໝ່ສຳລັບສ່ວນເລືອກປະເພດຫ້ອງ */
+        .room-card-input { cursor: pointer; border: 2px solid #eee; border-radius: 15px; transition: 0.3s; background: white; }
+        .room-card-input:hover { border-color: #0d6efd; }
+        .room-check:checked + .room-card-input { border-color: #0d6efd; background-color: #f0f7ff; box-shadow: 0 5px 15px rgba(13,110,253,0.1); }
     </style>
 </head>
 <body>
@@ -33,7 +38,8 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
 <div class="container my-5">
     <form action="process_booking.php" method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
         <input type="hidden" name="tour_id" value="<?php echo $tour_id; ?>">
-        <input type="hidden" name="price" value="<?php echo $tour['price']; ?>">
+        <!-- ຕັ້ງ ID ໃຫ້ລາຄາພື້ນຖານເພື່ອໃຊ້ໃນ JS -->
+        <input type="hidden" name="price" id="base_price" value="<?php echo $tour['price']; ?>">
 
         <div class="row g-4">
             <!-- ເບື້ອງຊ້າຍ: ຟອມຂໍ້ມູນ -->
@@ -98,8 +104,27 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         </div>
                     </div>
 
-                    <!-- 3. ຈຳນວນຄົນ ແລະ ຜູ້ຮ່ວມທາງ -->
-                    <div class="section-title text-success" style="border-color:#198754"><i class="fas fa-users me-2"></i>3. ຈຳນວນຄົນ ແລະ ຜູ້ຮ່ວມທາງ</div>
+                    <!-- ເພີ່ມໃໝ່: 3. ປະເພດຫ້ອງພັກ -->
+                    <div class="section-title text-warning" style="border-color:#f1c40f"><i class="fas fa-bed me-2"></i>3. ປະເພດຫ້ອງພັກ</div>
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-6">
+                            <input type="radio" name="room_type" value="Twin" id="roomTwin" class="d-none room-check" checked onchange="updateTotal()">
+                            <label for="roomTwin" class="room-card-input p-3 d-block shadow-sm">
+                                <div class="fw-bold"><i class="fas fa-users me-2"></i>Twin/Double Sharing</div>
+                                <small class="text-muted">ພັກຫ້ອງຄູ່ (ນອນນຳໝູ່ 2 ທ່ານ) - ຟຣີ</small>
+                            </label>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="radio" name="room_type" value="Single" id="roomSingle" class="d-none room-check" onchange="updateTotal()">
+                            <label for="roomSingle" class="room-card-input p-3 d-block shadow-sm">
+                                <div class="fw-bold text-danger"><i class="fas fa-user me-2"></i>Single Room Supplement</div>
+                                <small class="text-muted">ນອນຫ້ອງດຽວສ່ວນຕົວ (+ 200,000 ກີບ)</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 4. ຈຳນວນຄົນ ແລະ ຜູ້ຮ່ວມທາງ -->
+                    <div class="section-title text-success" style="border-color:#198754"><i class="fas fa-users me-2"></i>4. ຈຳນວນຄົນ ແລະ ຜູ້ຮ່ວມທາງ</div>
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label fw-bold">ຈຳນວນຄົນທັງໝົດ</label>
@@ -110,8 +135,8 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         <div id="participant_inputs"></div>
                     </div>
 
-                    <!-- 4. ເລືອກບ່ອນນັ່ງ -->
-                    <div class="section-title text-dark" style="border-color:#2d3436"><i class="fas fa-couch me-2"></i>4. ເລືອກບ່ອນນັ່ງ</div>
+                    <!-- 5. ເລືອກບ່ອນນັ່ງ -->
+                    <div class="section-title text-dark" style="border-color:#2d3436"><i class="fas fa-couch me-2"></i>5. ເລືອກບ່ອນນັ່ງ</div>
                     <div class="p-4 bg-light rounded-4 border text-center">
                         <div class="d-flex flex-wrap justify-content-center gap-2" id="seatMap" style="max-width: 350px; margin: 0 auto;"></div>
                         <input type="hidden" name="selected_seats" id="selected_seats_input" required>
@@ -127,7 +152,7 @@ $remaining = $tour['max_seats'] - ($booked['total'] ?? 0);
                         <h5 class="fw-bold"><?php echo $tour['tour_name']; ?></h5>
                         <div class="p-3 bg-light rounded-4 border mt-3">
                             <small class="text-muted fw-bold">ລາຄາລວມທັງໝົດ</small>
-                            <h2 class="text-danger fw-bold mb-0" id="display_total"><?php echo number_format($tour['price']); ?></h2>
+                            <h2 class="text-danger fw-bold mb-0" id="display_total">0</h2>
                             <small class="fw-bold">LAK</small>
                         </div>
                         <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-lg fw-bold py-3 mt-4">ຢືນຢັນການຈອງ</button>
@@ -195,9 +220,17 @@ function renderSeatMap() {
 }
 
 function updateTotal() {
-    const price = <?php echo $tour['price']; ?>;
+    const price = parseFloat(document.getElementById('base_price').value);
     const num = parseInt(document.getElementById('num_people').value) || 1;
-    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(price * num);
+    
+    // ກວດສອບປະເພດຫ້ອງທີ່ເລືອກ
+    const roomTypeInput = document.querySelector('input[name="room_type"]:checked');
+    const roomType = roomTypeInput ? roomTypeInput.value : 'Twin';
+    
+    let supplement = (roomType === 'Single') ? 200000 : 0;
+    let total = (price * num) + supplement;
+    
+    document.getElementById('display_total').innerText = new Intl.NumberFormat().format(total);
 }
 
 function validateForm() {
@@ -208,7 +241,11 @@ function validateForm() {
     }
     return true;
 }
-window.onload = renderSeatMap;
+
+window.onload = function() {
+    renderSeatMap();
+    updateTotal();
+};
 </script>
 </body>
 </html>

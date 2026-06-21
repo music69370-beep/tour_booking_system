@@ -73,6 +73,12 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/add.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ບັນທຶກລົດອອກທົວ
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'master_rooming.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
+                    href="<?php echo BASE_URL; ?>pages/bookings/master_rooming.php">
+                        <i class="fas fa-hotel me-2"></i> ຈັດການຫ້ອງພັກລວມ
+                    </a>
+                </li>
             </ul>
 
             <!-- Category: REPORTS -->
