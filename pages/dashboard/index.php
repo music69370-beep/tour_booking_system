@@ -4,255 +4,212 @@ include '../../config/db.php';
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 
-// 1. ດຶງຂໍ້ມູນສະຫຼຸບຈຳນວນ
-$c_book = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM bookings"))['c'];
-$c_tour = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM tours"))['c'];
-$c_guide = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM guides"))['c'];
-$c_cust = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM customers"))['c'];
+// --- 1. ດຶງຂໍ້ມູນສະຫຼຸບຊັບພະຍາກອນ (System Resources) ---
+$c_tour = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM tours"))['c'] ?? 0;
+$c_guide = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM guides"))['c'] ?? 0;
+$c_driver = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM drivers"))['c'] ?? 0;
+$c_vehicle = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM vehicles"))['c'] ?? 0;
+$c_cust = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM customers"))['c'] ?? 0;
+$c_book = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM bookings"))['c'] ?? 0;
 
-// 2. ກວດສອບຊ່ວງເວລາ (Date Filter)
+// --- 2. ຂໍ້ມູນແຈ້ງເຕືອນວຽກດ່ວນ (Smart Alerts) ---
+// 2.1 ລໍຖ້າອະນຸມັດ
+$pending_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM bookings WHERE status='Pending'"))['c'] ?? 0;
+// 2.2 ເດີນທາງມື້ອື່ນ
+$tomorrow = date('Y-m-d', strtotime('+1 day'));
+$upcoming_tomorrow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(num_people) as c FROM bookings WHERE travel_date='$tomorrow' AND status='Confirmed'"))['c'] ?? 0;
+// 2.3 ເອກະສານໃກ້ໝົດອາຍຸ (ພາຍໃນ 30 ວັນ)
+$exp_driver = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM drivers WHERE license_expiry <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)"))['c'] ?? 0;
+$exp_vehicle = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM vehicles WHERE insurance_expiry <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)"))['c'] ?? 0;
+$total_alerts = $exp_driver + $exp_vehicle;
+
+// --- 3. ກວດສອບຊ່ວງເວລາ ---
 $range = isset($_GET['range']) ? $_GET['range'] : 'month';
 $start_date = ($range == 'today') ? date('Y-m-d') : (($range == 'week') ? date('Y-m-d', strtotime("-7 days")) : date('Y-m-01'));
 
-// 3. ດຶງຂໍ້ມູນການເງິນ ( Admin Only )
-$total_revenue = 0; 
-$sales_target = 100000000; // ເປົ້າໝາຍ 100 ລ້ານ
-$target_percent = 0;
+// --- 4. ການເງິນ (ລາຍຮັບ - ລາຍຈ່າຍ = ກຳໄລ) ---
+$rev_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_price) as confirmed_rev FROM bookings WHERE status = 'Confirmed' AND DATE(booking_date) >= '$start_date'"));
+$total_revenue = (float)($rev_res['confirmed_rev'] ?? 0);
+$exp_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(amount) as total_exp FROM tour_expenses WHERE travel_date >= '$start_date'"));
+$total_expense = (float)($exp_res['total_exp'] ?? 0);
+$net_profit = $total_revenue - $total_expense;
 
-if (isAdmin()) {
-    $rev_res = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_price) as confirmed_rev FROM bookings WHERE status = 'Confirmed' AND DATE(booking_date) >= '$start_date'"));
-    $total_revenue = $rev_res['confirmed_rev'] ?? 0;
-    $target_percent = ($total_revenue / $sales_target) * 100;
+$sales_target = 100000000; 
+$target_percent = ($total_revenue > 0) ? ($total_revenue / $sales_target) * 100 : 0;
+
+// --- 5. ຂໍ້ມູນກຣາຟແນວໂນ້ມ (Line Chart) ---
+$line_labels = []; $line_data = [];
+for ($i = 6; $i >= 0; $i--) {
+    $d = date('Y-m-d', strtotime("-$i days"));
+    $line_labels[] = date('d/m', strtotime($d));
+    $val = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_price) as t FROM bookings WHERE status = 'Confirmed' AND DATE(booking_date) = '$d'"))['t'];
+    $line_data[] = (float)($val ?? 0);
 }
 
-// 4. ຂໍ້ມູນກຣາຟ ແລະ ລາຍການເພີ່ມເຕີມ
-$line_labels = []; $line_data = []; $status_labels = []; $status_data = [];
-if (isAdmin()) {
-    for ($i = 6; $i >= 0; $i--) {
-        $d = date('Y-m-d', strtotime("-$i days"));
-        $line_labels[] = date('d/m', strtotime($d));
-        $val = mysqli_fetch_assoc(mysqli_query($conn, "SELECT SUM(total_price) as t FROM bookings WHERE status = 'Confirmed' AND DATE(booking_date) = '$d'"))['t'];
-        $line_data[] = (float)($val ?? 0);
-    }
-    $st_query = mysqli_query($conn, "SELECT status, COUNT(*) as count FROM bookings GROUP BY status");
-    while($st = mysqli_fetch_assoc($st_query)) {
-        $status_labels[] = ($st['status'] == 'Confirmed') ? 'ອະນຸມັດ' : (($st['status'] == 'Cancelled') ? 'ຍົກເລີກ' : 'ລໍຖ້າ');
-        $status_data[] = $st['count'];
-    }
+// --- 6. ຂໍ້ມູນກຣາຟວົງມົນ (ສະຖານະການຈອງ) ---
+$st_labels = []; $st_data = [];
+$st_query = mysqli_query($conn, "SELECT status, COUNT(*) as count FROM bookings GROUP BY status");
+while($st = mysqli_fetch_assoc($st_query)) {
+    $l = $st['status'];
+    $label = ($l == 'Confirmed') ? 'ອະນຸມັດແລ້ວ' : (($l == 'Cancelled') ? 'ຍົກເລີກແລ້ວ' : 'ລໍຖ້າອະນຸມັດ');
+    $st_labels[] = $label;
+    $st_data[] = $st['count'];
+}
+
+// --- 7. ຂໍ້ມູນກຣາຟວົງມົນ (ສັດສ່ວນລາຍຈ່າຍ) ---
+$cat_labels = []; $cat_data = [];
+$cat_map = ['Fuel'=>'ຄ່ານ້ຳມັນ','Hotel'=>'ທີ່ພັກ','Maintenance'=>'ສ້ອມແປງ','Food'=>'ອາຫານ','Guide_Fee'=>'ຄ່າໄກ້','Other'=>'ອື່ນໆ'];
+$exp_cat_query = mysqli_query($conn, "SELECT category, SUM(amount) as total FROM tour_expenses GROUP BY category");
+while($ec = mysqli_fetch_assoc($exp_cat_query)) {
+    $cat_labels[] = $cat_map[$ec['category']] ?? $ec['category'];
+    $cat_data[] = $ec['total'];
 }
 ?>
 
 <style>
-    /* ຕົບແຕ່ງພິເສດ */
     .main-content { background-color: #f4f7f6; }
-    .stat-card {
-        border: none;
-        border-radius: 20px;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        position: relative;
-    }
-    .stat-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
-    }
-    .icon-shape {
-        width: 60px;
-        height: 60px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        margin-bottom: 15px;
-    }
-    .progress {
-        background-color: #e9ecef;
-        border-radius: 50px;
-        overflow: hidden;
-    }
-    .card-title-custom { font-size: 1.1rem; font-weight: 700; color: #333; margin-bottom: 20px; }
-    .table thead th { background-color: #f8f9fa; border: none; font-size: 0.8rem; text-transform: uppercase; color: #888; }
-    .table tbody td { border-bottom: 1px solid #f0f0f0; padding: 15px 10px; }
-    .badge-soft-success { background-color: #e1f5ea; color: #198754; }
-    .badge-soft-warning { background-color: #fff9db; color: #f08c00; }
-    .badge-soft-danger { background-color: #ffe3e3; color: #e03131; }
+    .stat-card { border: none; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .resource-card { border: none; border-radius: 15px; background: #fff; padding: 15px; display: flex; align-items: center; gap: 12px; height: 100%; }
+    .resource-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .alert-card { border: none; border-radius: 15px; background: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 15px; border-left: 5px solid #0d6efd; transition: 0.3s; }
+    .alert-card:hover { background: #f8f9fa; }
+    .review-item { border-left: 3px solid #ffc107; background: #fffcf0; padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #eee; }
+    .top-tour-card { border: none; border-radius: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 10px; }
+    .table-custom thead th { background: #f8f9fa; border: none; color: #888; font-size: 0.75rem; text-transform: uppercase; }
+    .badge-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .inner-chart-title { font-size: 0.85rem; font-weight: 700; color: #555; text-align: center; margin-bottom: 10px; }
 </style>
 
 <main class="col-md-10 ms-sm-auto col-lg-10 p-0 main-content font-lao">
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 py-4">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold text-dark mb-1">ໝ້າຫຼັກ</h2>
-                <p class="text-muted mb-0">ນີ້ແມ່ນພາບລວມການເຮັດວຽກຂອງລະບົບໃນມື້ນີ້.</p>
+        <!-- 1. Smart Alerts Bar -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="alert-card shadow-sm border-warning">
+                    <div class="fs-4 text-warning"><i class="fas fa-clock"></i></div>
+                    <div><h6 class="fw-bold mb-0"><?php echo $pending_count; ?> ລາຍການ</h6><small class="text-muted">ລໍຖ້າອະນຸມັດ</small></div>
+                </div>
             </div>
-            <div class="btn-group shadow-sm p-1 bg-white rounded-pill">
-                <a href="?range=today" class="btn rounded-pill px-4 <?php echo ($range == 'today') ? 'btn-primary' : 'btn-light'; ?> border-0">ມື້ນີ້</a>
-                <a href="?range=week" class="btn rounded-pill px-4 <?php echo ($range == 'week') ? 'btn-primary' : 'btn-light'; ?> border-0">7 ວັນ</a>
-                <a href="?range=month" class="btn rounded-pill px-4 <?php echo ($range == 'month') ? 'btn-primary' : 'btn-light'; ?> border-0">ເດືອນນີ້</a>
+            <div class="col-md-3">
+                <div class="alert-card shadow-sm border-primary">
+                    <div class="fs-4 text-primary"><i class="fas fa-plane-departure"></i></div>
+                    <div><h6 class="fw-bold mb-0"><?php echo $upcoming_tomorrow ?: 0; ?> ຄົນ</h6><small class="text-muted">ເດີນທາງມື້ອື່ນ</small></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="alert-card shadow-sm border-danger">
+                    <div class="fs-4 text-danger"><i class="fas fa-file-invoice"></i></div>
+                    <div><h6 class="fw-bold mb-0"><?php echo $total_alerts; ?> ລາຍການ</h6><small class="text-muted">ເອກະສານໃກ້ໝົດອາຍຸ</small></div>
+                </div>
+            </div>
+            <div class="col-md-3 text-end d-flex align-items-center justify-content-end">
+                <div class="btn-group shadow-sm p-1 bg-white rounded-pill">
+                    <a href="?range=today" class="btn rounded-pill px-4 <?php echo ($range == 'today') ? 'btn-primary' : 'btn-light'; ?> border-0">ມື້ນີ້</a>
+                    <a href="?range=month" class="btn rounded-pill px-4 <?php echo ($range == 'month') ? 'btn-primary' : 'btn-light'; ?> border-0">ເດືອນນີ້</a>
+                </div>
             </div>
         </div>
 
-        <!-- Section 1: Top Statistics -->
+        <!-- 2. System Resources Widgets -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-2"><div class="resource-card shadow-sm"><div class="resource-icon bg-primary text-white"><i class="fas fa-map"></i></div><div><small class="text-muted d-block small">ແພັກເກັດ</small><h5 class="fw-bold mb-0"><?php echo $c_tour; ?></h5></div></div></div>
+            <div class="col-md-2"><div class="resource-card shadow-sm"><div class="resource-icon bg-info text-white"><i class="fas fa-user-tie"></i></div><div><small class="text-muted d-block small">ໃຫ້ບີ້ນທົວ</small><h5 class="fw-bold mb-0"><?php echo $c_guide; ?></h5></div></div></div>
+            <div class="col-md-2"><div class="resource-card shadow-sm"><div class="resource-icon bg-success text-white"><i class="fas fa-user-check"></i></div><div><small class="text-muted d-block small">ຄົນຂັບ</small><h5 class="fw-bold mb-0"><?php echo $c_driver; ?></h5></div></div></div>
+            <div class="col-md-2"><div class="resource-card shadow-sm"><div class="resource-icon bg-warning text-white"><i class="fas fa-bus"></i></div><div><small class="text-muted d-block small">ລົດທົວ</small><h5 class="fw-bold mb-0"><?php echo $c_vehicle; ?></h5></div></div></div>
+            <div class="col-md-2"><div class="resource-card shadow-sm"><div class="resource-icon bg-dark text-white"><i class="fas fa-users"></i></div><div><small class="text-muted d-block small">ລູກຄ້າ</small><h5 class="fw-bold mb-0"><?php echo $c_cust; ?></h5></div></div></div>
+            <div class="col-md-2"><div class="resource-card shadow-sm border-start border-primary border-4"><div class="resource-icon bg-light text-primary"><i class="fas fa-calendar-check"></i></div><div><small class="text-muted d-block small">ຈອງລວມ</small><h5 class="fw-bold mb-0"><?php echo $c_book; ?></h5></div></div></div>
+        </div>
+
+        <!-- 3. Financial Totals -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="card stat-card shadow-sm bg-primary text-white p-4">
-                    <div class="icon-shape"><i class="fas fa-calendar-check"></i></div>
-                    <h5 class="opacity-75 mb-1 small">ລາຍການຈອງທັງໝົດ</h5>
-                    <h2 class="fw-bold mb-0"><?php echo number_format($c_book); ?></h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card shadow-sm bg-success text-white p-4">
-                    <div class="icon-shape"><i class="fas fa-map-marked-alt"></i></div>
-                    <h5 class="opacity-75 mb-1 small">ແພັກເກັດທີ່ເປີດຂາຍ</h5>
-                    <h2 class="fw-bold mb-0"><?php echo number_format($c_tour); ?></h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card shadow-sm bg-info text-white p-4">
-                    <div class="icon-shape"><i class="fas fa-user-tie"></i></div>
-                    <h5 class="opacity-75 mb-1 small">ໄກ້ຜູ້ນຳທ່ຽວ</h5>
-                    <h2 class="fw-bold mb-0"><?php echo number_format($c_guide); ?></h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card shadow-sm bg-warning text-white p-4">
-                    <div class="icon-shape"><i class="fas fa-users"></i></div>
-                    <h5 class="opacity-75 mb-1 small">ລູກຄ້າທັງໝົດ</h5>
-                    <h2 class="fw-bold mb-0"><?php echo number_format($c_cust); ?></h2>
-                </div>
-            </div>
+            <div class="col-md-4"><div class="card stat-card p-4 bg-white border-start border-primary border-5"><small class="text-muted fw-bold">ລາຍຮັບ</small><h2 class="fw-bold text-primary mb-0">₭ <?php echo number_format($total_revenue); ?></h2></div></div>
+            <div class="col-md-4"><div class="card stat-card p-4 bg-white border-start border-danger border-5"><small class="text-muted fw-bold">ລາຍຈ່າຍ</small><h2 class="fw-bold text-danger mb-0">₭ <?php echo number_format($total_expense); ?></h2></div></div>
+            <div class="col-md-4"><div class="card stat-card p-4 <?php echo ($net_profit >= 0) ? 'bg-success text-white' : 'bg-danger text-white'; ?> shadow-lg"><small class="opacity-75 fw-bold">ກຳໄລສຸດທິ</small><h2 class="fw-bold mb-0">₭ <?php echo number_format($net_profit); ?></h2></div></div>
         </div>
 
-        <?php if(isAdmin()): ?>
-        <!-- Section 2: Financial Focus -->
+        <!-- 4. Revenue Trend & Visual Analytics (Section with TWO Donut Charts together) -->
         <div class="row g-4 mb-4">
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
-                    <h6 class="text-muted fw-bold small text-uppercase mb-3">ລາຍຮັບສຸດທິ (Confirmed)</h6>
-                    <h1 class="fw-bold text-primary display-5 mb-2">₭ <?php echo number_format($total_revenue); ?></h1>
-                    <div class="mt-auto pt-3 border-top">
-                        <span class="text-success fw-bold"><i class="fas fa-arrow-up"></i> ລາຍຮັບທີ່ຢືນຢັນແລ້ວ</span>
-                    </div>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h6 class="fw-bold mb-4">ແນວໂນ້ມລາຍຮັບ 7 ວັນ</h6>
+                    <div style="height: 300px;"><canvas id="revenueLineChart"></canvas></div>
                 </div>
             </div>
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="text-muted fw-bold small text-uppercase mb-0">ເປົ້າໝາຍຍອດຂາຍປະຈຳເດືອນ (100 ລ້ານ)</h6>
-                        <span class="fw-bold text-dark"><?php echo round($target_percent, 1); ?>%</span>
-                    </div>
-                    <div class="progress mb-4" style="height: 25px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
-                             style="width: <?php echo min($target_percent, 100); ?>%">
-                             <?php echo (round($target_percent) >= 10) ? round($target_percent).'%' : ''; ?>
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                    <h6 class="fw-bold mb-4 text-center">ບົດວິເຄາະການເງິນ (Financial Visuals)</h6>
+                    <div class="row">
+                        <!-- Chart 1: Revenue vs Expense Comparison -->
+                        <div class="col-md-6 border-end">
+                            <p class="inner-chart-title">ລາຍຮັບ vs ລາຍຈ່າຍ</p>
+                            <div style="height: 200px;"><canvas id="profitComparisonChart"></canvas></div>
+                            <div class="text-center mt-2 small">
+                                <span class="badge bg-primary rounded-pill me-1">ຮັບ</span>
+                                <span class="badge bg-danger rounded-pill">ຈ່າຍ</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row text-center">
-                        <div class="col-4 border-end">
-                            <small class="text-muted d-block">ຂາດອີກ</small>
-                            <span class="fw-bold text-danger">₭ <?php echo number_format(max($sales_target - $total_revenue, 0)); ?></span>
-                        </div>
-                        <div class="col-4 border-end">
-                            <small class="text-muted d-block">ສະເລ່ຍ/ມື້</small>
-                            <span class="fw-bold text-dark">₭ <?php echo number_format($total_revenue / date('d')); ?></span>
-                        </div>
-                        <div class="col-4">
-                            <small class="text-muted d-block">ສະຖານະ</small>
-                            <span class="badge bg-soft-success rounded-pill px-3">ກຳລັງເຕີບໂຕ</span>
+                        <!-- Chart 2: Expense Breakdown -->
+                        <div class="col-md-6">
+                            <p class="inner-chart-title">ສັດສ່ວນລາຍຈ່າຍ</p>
+                            <div style="height: 200px;"><canvas id="expenseDonutChart"></canvas></div>
+                            <div class="text-center mt-2 small text-muted">ແຍກຕາມໝວດໝູ່</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section 3: Graphs & Analytics -->
-        <div class="row g-4 mb-4">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
-                    <h6 class="card-title-custom"><i class="fas fa-chart-area text-primary me-2"></i>ແນວໂນ້ມລາຍຮັບ 7 ວັນຫຼ້າສຸດ</h6>
-                    <div style="height: 350px;"><canvas id="revenueLineChart"></canvas></div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white text-center">
-                    <h6 class="card-title-custom"><i class="fas fa-chart-pie text-danger me-2"></i>ສະຖານະການຈອງ</h6>
-                    <div style="height: 300px;"><canvas id="statusPieChart"></canvas></div>
-                    <div class="mt-3 d-flex justify-content-center gap-3 small">
-                        <span class="text-success">● ອະນຸມັດ</span>
-                        <span class="text-danger">● ຍົກເລີກ</span>
-                        <span class="text-warning">● ລໍຖ້າ</span>
-                    </div>
-                </div>
-            </div>
+        <!-- 5. Sales Target -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mb-4">
+            <div class="d-flex justify-content-between mb-2"><h6 class="fw-bold mb-0">ຄວາມຄືບໜ້າຍອດຂາຍ (ເປົ້າໝາຍ 100 ລ້ານ)</h6><span class="fw-bold text-primary"><?php echo round($target_percent, 1); ?>%</span></div>
+            <div class="progress" style="height:12px; border-radius:50px; background:#eee;"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: <?php echo min($target_percent, 100); ?>%"></div></div>
         </div>
 
-        <!-- Section 4: Data Lists -->
+        <!-- 6. Bottom Multi-Grid -->
         <div class="row g-4">
-            <!-- Best Selling Tours -->
-            <div class="col-lg-5">
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
-                    <div class="card-header bg-white py-3 border-0">
-                        <h6 class="fw-bold mb-0"><i class="fas fa-fire text-orange me-2"></i>ແພັກເກັດທົວທີ່ຂາຍດີທີ່ສຸດ</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <ul class="list-group list-group-flush">
-                            <?php 
-                            $best_query = mysqli_query($conn, "SELECT t.tour_name, t.image, COUNT(b.booking_id) as total_sold FROM tours t JOIN bookings b ON t.tour_id = b.tour_id GROUP BY t.tour_id ORDER BY total_sold DESC LIMIT 5");
-                            while($bt = mysqli_fetch_assoc($best_query)):
-                            ?>
-                            <li class="list-group-item d-flex align-items-center border-0 px-4 py-3">
-                                <img src="../../assets/uploads/tours/<?php echo $bt['image']; ?>" class="rounded-3 me-3" width="50" height="50" style="object-fit: cover;">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0 fw-bold small"><?php echo $bt['tour_name']; ?></h6>
-                                    <small class="text-muted">ຂາຍອອກແລ້ວ <?php echo $bt['total_sold']; ?> ລາຍການ</small>
-                                </div>
-                                <span class="badge bg-soft-success rounded-pill px-3">Top Sell</span>
-                            </li>
-                            <?php endwhile; ?>
-                        </ul>
-                    </div>
+            <!-- Left: Top Selling & Reviews -->
+            <div class="col-lg-4">
+                <h6 class="fw-bold mb-3"><i class="fas fa-trophy text-warning me-2"></i>ແພັກເກັດຂາຍດີ</h6>
+                <?php 
+                $top_sql = "SELECT t.tour_name, COUNT(b.booking_id) as total FROM tours t JOIN bookings b ON t.tour_id=b.tour_id WHERE b.status='Confirmed' GROUP BY t.tour_id ORDER BY total DESC LIMIT 2";
+                $top_res = mysqli_query($conn, $top_sql); $rank = 1;
+                while($top = mysqli_fetch_assoc($top_res)): ?>
+                <div class="card top-tour-card p-3 shadow-sm"><div class="d-flex align-items-center gap-3"><h4 class="mb-0 opacity-50">#<?php echo $rank++; ?></h4><div><h6 class="mb-0 fw-bold"><?php echo $top['tour_name']; ?></h6><small class="opacity-75"><?php echo $top['total']; ?> ຈອງ</small></div></div></div>
+                <?php endwhile; ?>
+
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mt-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-star text-warning me-2"></i>ຄຳຊົມເຊີຍລູກຄ້າ</h6>
+                    <?php 
+                    $rev_sql = "SELECT r.*, c.fullname FROM reviews r JOIN customers c ON r.customer_id=c.customer_id ORDER BY r.review_id DESC LIMIT 2";
+                    $rev_res = mysqli_query($conn, $rev_sql);
+                    while($rv = mysqli_fetch_assoc($rev_res)): ?>
+                    <div class="review-item small"><div class="d-flex justify-content-between"><b><?php echo $rv['fullname']; ?></b> <span class="text-warning">★ <?php echo $rv['rating']; ?></span></div><p class="mb-0 text-muted">"<?php echo $rv['comment']; ?>"</p></div>
+                    <?php endwhile; ?>
                 </div>
             </div>
 
             <!-- Recent Bookings Table -->
-            <div class="col-lg-7">
+            <div class="col-lg-5">
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white h-100">
-                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                        <h6 class="fw-bold mb-0"><i class="fas fa-clock text-info me-2"></i>ລາຍການຈອງຫຼ້າສຸດ</h6>
-                        <a href="../bookings/index.php" class="btn btn-sm btn-light rounded-pill px-3 small">ເບິ່ງທັງໝົດ</a>
-                    </div>
+                    <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center"><h6 class="fw-bold mb-0">ການຈອງຫຼ້າສຸດ</h6><a href="../bookings/index.php" class="btn btn-sm btn-outline-primary rounded-pill px-3">ທັງໝົດ</a></div>
                     <div class="table-responsive">
-                        <table class="table mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">ລູກຄ້າ</th>
-                                    <th>ແພັກເກັດ</th>
-                                    <th class="text-end">ຍອດລວມ</th>
-                                    <th class="text-center">ສະຖານະ</th>
-                                </tr>
-                            </thead>
+                        <table class="table table-custom mb-0 align-middle">
+                            <thead><tr><th class="ps-4">ລູກຄ້າ</th><th>ແພັກເກັດ</th><th>ສະຖານະ</th></tr></thead>
                             <tbody>
                                 <?php 
-                                $recent = mysqli_query($conn, "SELECT b.*, c.fullname, t.tour_name FROM bookings b JOIN customers c ON b.customer_id=c.customer_id JOIN tours t ON b.tour_id=t.tour_id ORDER BY b.booking_id DESC LIMIT 5");
-                                while($r = mysqli_fetch_assoc($recent)): 
-                                    $st = $r['status'];
-                                    $st_class = ($st=='Confirmed') ? 'badge-soft-success' : (($st=='Cancelled') ? 'badge-soft-danger' : 'badge-soft-warning');
-                                    $st_label = ($st=='Confirmed') ? 'ສຳເລັດ' : (($st=='Cancelled') ? 'ຍົກເລີກ' : 'ລໍຖ້າ');
+                                $rec_sql = "SELECT b.*, c.fullname, t.tour_name FROM bookings b JOIN customers c ON b.customer_id=c.customer_id JOIN tours t ON b.tour_id=t.tour_id ORDER BY b.booking_id DESC LIMIT 5";
+                                $rec_res = mysqli_query($conn, $rec_sql);
+                                while($r = mysqli_fetch_assoc($rec_res)):
+                                    $s = $r['status'];
+                                    $s_lao = ($s=='Confirmed')?'ອະນຸມັດ':(($s=='Cancelled')?'ຍົກເລີກ':'ລໍຖ້າ');
+                                    $dot = ($s=='Confirmed')?'bg-success':(($s=='Cancelled')?'bg-danger':'bg-warning');
                                 ?>
                                 <tr>
-                                    <td class="ps-4">
-                                        <div class="fw-bold small"><?php echo $r['fullname']; ?></div>
-                                        <small class="text-muted" style="font-size: 0.7rem;"><?php echo date('d/m/Y H:i', strtotime($r['booking_date'])); ?></small>
-                                    </td>
-                                    <td class="small text-truncate" style="max-width: 180px;"><?php echo $r['tour_name']; ?></td>
-                                    <td class="text-end fw-bold text-danger">₭ <?php echo number_format($r['total_price']); ?></td>
-                                    <td class="text-center"><span class="badge rounded-pill <?php echo $st_class; ?> px-3"><?php echo $st_label; ?></span></td>
+                                    <td class="ps-4"><b><?php echo $r['fullname']; ?></b><br><small class="text-muted"><?php echo date('d/m', strtotime($r['booking_date'])); ?></small></td>
+                                    <td class="small text-truncate" style="max-width: 100px;"><?php echo $r['tour_name']; ?></td>
+                                    <td><span class="badge-dot <?php echo $dot; ?>"></span> <small><?php echo $s_lao; ?></small></td>
                                 </tr>
                                 <?php endwhile; ?>
                             </tbody>
@@ -260,66 +217,54 @@ if (isAdmin()) {
                     </div>
                 </div>
             </div>
+
+            <!-- Booking Status Pie -->
+            <div class="col-lg-3">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 text-center">
+                    <h6 class="fw-bold mb-4">ສະຖານະການຈອງ</h6>
+                    <div style="height: 180px;"><canvas id="statusDoughnutChart"></canvas></div>
+                    <div class="mt-4 small d-flex flex-column gap-2 text-start">
+                        <div class="d-flex align-items-center"><span class="badge-dot bg-success"></span> ອະນຸມັດແລ້ວ</div>
+                        <div class="d-flex align-items-center"><span class="badge-dot bg-warning"></span> ລໍຖ້າອະນຸມັດ</div>
+                        <div class="d-flex align-items-center"><span class="badge-dot bg-danger"></span> ຍົກເລີກແລ້ວ</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <?php endif; ?>
     </div>
 </main>
 
-<?php if(isAdmin()): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Line Chart: Revenue Trend
-    const lineCtx = document.getElementById('revenueLineChart').getContext('2d');
-    new Chart(lineCtx, {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($line_labels); ?>,
-            datasets: [{
-                label: 'ລາຍຮັບປະຈຳມື້',
-                data: <?php echo json_encode($line_data); ?>,
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                borderWidth: 4,
-                tension: 0.4,
-                fill: true,
-                pointRadius: 6,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#0d6efd',
-                pointBorderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { beginAtZero: true, grid: { color: '#f0f0f0' }, ticks: { callback: v => v.toLocaleString() + ' ₭' } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
+    // 1. Line Chart
+    new Chart(document.getElementById('revenueLineChart'), { type: 'line', data: { labels: <?php echo json_encode($line_labels); ?>, datasets: [{ label: 'ລາຍຮັບ', data: <?php echo json_encode($line_data); ?>, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.05)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    
+    // 2. Status Donut Chart
+    new Chart(document.getElementById('statusDoughnutChart'), { type: 'doughnut', data: { labels: <?php echo json_encode($st_labels); ?>, datasets: [{ data: <?php echo json_encode($st_data); ?>, backgroundColor: ['#198754', '#dc3545', '#ffc107'] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { display: false } } } });
 
-    // Pie Chart: Booking Status
-    const pieCtx = document.getElementById('statusPieChart').getContext('2d');
-    new Chart(pieCtx, {
+    // 3. New Donut Chart: Profit Summary (Revenue vs Expenditure Comparison)
+    new Chart(document.getElementById('profitComparisonChart'), {
         type: 'doughnut',
         data: {
-            labels: <?php echo json_encode($status_labels); ?>,
+            labels: ['ລາຍຮັບ', 'ລາຍຈ່າຍ'],
             datasets: [{
-                data: <?php echo json_encode($status_data); ?>,
-                backgroundColor: ['#198754', '#e03131', '#f08c00'],
-                borderWidth: 0,
-                hoverOffset: 10
+                data: [<?php echo $total_revenue; ?>, <?php echo $total_expense; ?>],
+                backgroundColor: ['#0d6efd', '#dc3545'],
+                borderWidth: 0
             }]
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '80%',
-            plugins: { legend: { display: false } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+    });
+
+    // 4. Expense Breakdown Donut Chart
+    new Chart(document.getElementById('expenseDonutChart'), { 
+        type: 'doughnut', 
+        data: { 
+            labels: <?php echo json_encode($cat_labels); ?>, 
+            datasets: [{ data: <?php echo json_encode($cat_data); ?>, backgroundColor: ['#ff6384','#36a2eb','#ffce56','#4bc0c0','#9966ff','#ff9f40'] }] 
+        }, 
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } } 
     });
 </script>
-<?php endif; ?>
 
 <?php include '../../includes/footer.php'; ?>

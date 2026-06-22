@@ -194,5 +194,16 @@ $tables = [
         status ENUM('Pending', 'Approved') DEFAULT 'Approved',
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
-    )"
+    )",
+        "tour_expenses" => "CREATE TABLE IF NOT EXISTS tour_expenses (
+        expense_id INT PRIMARY KEY AUTO_INCREMENT,
+        tour_id INT,
+        travel_date DATE NOT NULL,
+        category ENUM('Hotel', 'Fuel', 'Maintenance', 'Food', 'Guide_Fee', 'Other') NOT NULL,
+        amount DECIMAL(15,2) NOT NULL,
+        description TEXT,
+        expense_date DATE, -- ເພີ່ມ Column ນີ້ເພື່ອເກັບວັນທີທີ່ຈ່າຍແທ້
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
+    )",
 ];

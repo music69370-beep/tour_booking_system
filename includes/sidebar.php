@@ -3,7 +3,8 @@
 $current_page = $_SERVER['PHP_SELF'];
 ?>
 
-<nav class="col-md-2 d-none d-md-block sidebar shadow-sm p-0 bg-white">
+<!-- ເພີ່ມ id="mainSidebar" ເພື່ອໃຫ້ JS ຈັບຕຳແໜ່ງໄດ້ -->
+<nav id="mainSidebar" class="col-md-2 d-none d-md-block sidebar shadow-sm p-0 bg-white">
     <div class="position-sticky">
         <!-- Logo Section -->
         <div class="p-3 text-center border-bottom bg-primary text-white shadow-sm">
@@ -79,6 +80,11 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-hotel me-2"></i> ຈັດການຫ້ອງພັກລວມ
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'expenses/index.php') !== false && strpos($current_page, 'profit_report.php') === false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/expenses/index.php">
+                        <i class="fas fa-file-invoice-dollar me-2 <?php echo (strpos($current_page, 'expenses/index.php') !== false && strpos($current_page, 'profit_report.php') === false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກລາຍຈ່າຍທົວ
+                    </a>
+                </li>
             </ul>
 
             <!-- Category: REPORTS -->
@@ -132,9 +138,16 @@ $current_page = $_SERVER['PHP_SELF'];
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'drivers/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/drivers/index.php">
                         <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍຊື່ຄົນຂັບ
                     </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/customers/index.php">
                         <i class="fas fa-users me-2 <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ລາຍຊື່ລູກຄ້າ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'profit_report.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
+                       href="<?php echo BASE_URL; ?>pages/expenses/profit_report.php">
+                        <i class="fas fa-chart-pie me-2 <?php echo (strpos($current_page, 'profit_report.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ລາຍງານກຳໄລສຸດທິ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -170,9 +183,34 @@ $current_page = $_SERVER['PHP_SELF'];
 <style>
     .sidebar { height: 100vh; overflow-y: auto; border-right: 1px solid #e3e6f0; position: fixed; left: 0; top: 0; z-index: 100; }
     .nav-link { font-size: 0.85rem; transition: all 0.2s ease-in-out; padding: 10px 15px; margin: 2px 8px; border-radius: 10px !important; }
-    .nav-link:hover:not(.active) { background-color: #f8f9fc; color: #4e73df !important; transform: translateX(5px); }
+    .nav-link:hover:not(.active) { background-color: #f8f9fa; color: #4e73df !important; transform: translateX(5px); }
     .nav-link.active { box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2) !important; }
     .nav-link i { width: 25px; text-align: center; }
     .sidebar::-webkit-scrollbar { width: 5px; }
     .sidebar::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
 </style>
+
+<!-- JS ສໍາລັບຈື່ຈຳຕຳແໜ່ງ Scroll ຂອງ Sidebar -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var sidebar = document.getElementById("mainSidebar");
+    
+    // 1. ດຶງຕຳແໜ່ງທີ່ເຄີຍບັນທຶກໄວ້ໃນ Session
+    var scrollPos = sessionStorage.getItem("sidebarScroll");
+    if (scrollPos) {
+        sidebar.scrollTop = scrollPos;
+    }
+
+    // 2. ເມື່ອມີການກົດ Link ໃດໆໃນ Sidebar ໃຫ້ບັນທຶກຕຳແໜ່ງ Scroll ໄວ້
+    sidebar.addEventListener("click", function(e) {
+        if (e.target.closest("a")) {
+            sessionStorage.setItem("sidebarScroll", sidebar.scrollTop);
+        }
+    });
+
+    // 3. ບັນທຶກຕຳແໜ່ງອັດຕະໂນມັດເມື່ອມີການເລື່ອນ (ປ້ອງກັນກໍລະນີ Refresh ໜ້າຈໍ)
+    sidebar.onscroll = function() {
+        sessionStorage.setItem("sidebarScroll", sidebar.scrollTop);
+    };
+});
+</script>
