@@ -86,14 +86,14 @@ include '../../includes/sidebar.php';
                             <div class="col-md-6">
                                 <input type="radio" name="room_type" value="Twin" id="roomTwin" class="d-none room-check" checked onchange="updateTotal()">
                                 <label for="roomTwin" class="room-card-input p-3 d-block shadow-sm">
-                                    <div class="fw-bold d-flex justify-content-between"><span>Twin Sharing</span><span class="text-success small">ຟຣີ</span></div>
+                                    <div class="fw-bold d-flex justify-content-between"><span>ທຳມະດາ</span><span class="text-success small">ຟຣີ</span></div>
                                     <small class="text-muted">ພັກຫ້ອງຄູ່ (ນອນນຳໝູ່)</small>
                                 </label>
                             </div>
                             <div class="col-md-6">
                                 <input type="radio" name="room_type" value="Single" id="roomSingle" class="d-none room-check" onchange="updateTotal()">
                                 <label for="roomSingle" class="room-card-input p-3 d-block shadow-sm">
-                                    <div class="fw-bold d-flex justify-content-between"><span>Single Room</span><span class="text-danger small">+ 200,000</span></div>
+                                    <div class="fw-bold d-flex justify-content-between"><span>VIP</span><span class="text-danger small">+ 200,000</span></div>
                                     <small class="text-muted">ນອນຫ້ອງດຽວສ່ວນຕົວ</small>
                                 </label>
                             </div>

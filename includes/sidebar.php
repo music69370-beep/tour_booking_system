@@ -29,17 +29,17 @@ $current_page = $_SERVER['PHP_SELF'];
             <ul class="nav flex-column mb-3">
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'bookings/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/bookings/add.php">
-                        <i class="fas fa-plus-circle me-2 <?php echo (strpos($current_page, 'bookings/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ຈອງທົວໃໝ່
+                        <i class="fas fa-plus-circle me-2 <?php echo (strpos($current_page, 'bookings/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ຈອງທົວ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'tours/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/tours/add.php">
-                        <i class="fas fa-folder-plus me-2 <?php echo (strpos($current_page, 'tours/add.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ເພີ່ມແພັກເກັດທົວ
+                        <i class="fas fa-folder-plus me-2 <?php echo (strpos($current_page, 'tours/add.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ເພີ່ມແພັກເກັດ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/vehicles/add.php">
-                        <i class="fas fa-bus-alt me-2 <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ເພີ່ມຂໍ້ມູນລົດທົວ
+                        <i class="fas fa-bus-alt me-2 <?php echo (strpos($current_page, 'vehicles/add.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ເພີ່ມຂໍ້ມູນລົດ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -50,7 +50,7 @@ $current_page = $_SERVER['PHP_SELF'];
                 <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/coupons/add.php">
-                        <i class="fas fa-ticket-alt me-2 <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ສ້າງຄູປອງໃໝ່
+                        <i class="fas fa-ticket-alt me-2 <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ສ້າງຄູປອງ
                     </a>
                 </li>
                 <?php endif; ?>
@@ -61,12 +61,12 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/payments/add.php">
-                        <i class="fas fa-cash-register me-2 <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກຮັບເງິນ
+                        <i class="fas fa-cash-register me-2 <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກການຮັບເງິນ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/drivers/add.php">
-                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ເພີ່ມຄົນຂັບໃໝ່
+                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ເພີ່ມຄົນຂັບ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -77,7 +77,7 @@ $current_page = $_SERVER['PHP_SELF'];
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'master_rooming.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                     href="<?php echo BASE_URL; ?>pages/bookings/master_rooming.php">
-                        <i class="fas fa-hotel me-2"></i> ຈັດການຫ້ອງພັກລວມ
+                        <i class="fas fa-hotel me-2"></i> ຈັດການຫ້ອງພັກ
                     </a>
                 </li>
                 <li class="nav-item">
@@ -97,7 +97,7 @@ $current_page = $_SERVER['PHP_SELF'];
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'bookings/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/bookings/index.php">
-                        <i class="fas fa-list-ul me-2 <?php echo (strpos($current_page, 'bookings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການຈອງທັງໝົດ
+                        <i class="fas fa-list-ul me-2 <?php echo (strpos($current_page, 'bookings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການຈອງ ເເລະ ອະນຸມັດ
                     </a>
                 </li>
                 
@@ -116,22 +116,22 @@ $current_page = $_SERVER['PHP_SELF'];
 
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/tours/index.php">
-                        <i class="fas fa-map-marked-alt me-2 <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ລາຍການທົວທັງໝົດ
+                        <i class="fas fa-map-marked-alt me-2 <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ລາຍການທົວ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'vehicles/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/vehicles/index.php">
-                        <i class="fas fa-shuttle-van me-2 <?php echo (strpos($current_page, 'vehicles/index.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ລາຍການລົດທັງໝົດ
+                        <i class="fas fa-shuttle-van me-2 <?php echo (strpos($current_page, 'vehicles/index.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ລາຍການລົດ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'outings/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/outings/index.php">
-                        <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການອອກທົວ
+                        <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການລົດອອກທົວ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'guides/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/guides/index.php">
-                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'guides/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການໄກ້ທັງໝົດ
+                        <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'guides/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍການໄກ້
                     </a>
                 </li>
                 <li class="nav-item">
