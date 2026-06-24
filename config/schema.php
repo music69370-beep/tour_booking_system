@@ -206,4 +206,26 @@ $tables = [
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
     )",
+        "tour_images" => "CREATE TABLE IF NOT EXISTS tour_images (
+        image_id INT PRIMARY KEY AUTO_INCREMENT,
+        tour_id INT,
+        image_name VARCHAR(255),
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE
+    )",
+    "vehicle_outings" => "CREATE TABLE IF NOT EXISTS vehicle_outings (
+        outing_id INT PRIMARY KEY AUTO_INCREMENT,
+        vehicle_id INT,
+        tour_id INT,
+        driver_id INT,
+        start_date DATE,
+        return_date DATE,
+        start_mileage INT DEFAULT 0,
+        end_mileage INT DEFAULT 0,
+        status ENUM('On Trip', 'Completed', 'Cancelled') DEFAULT 'On Trip',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE CASCADE,
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
+        FOREIGN KEY (driver_id) REFERENCES drivers(driver_id) ON DELETE SET NULL
+    )",
 ];
