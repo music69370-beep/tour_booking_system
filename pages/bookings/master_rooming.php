@@ -162,7 +162,14 @@ function getRoom($conn, $bid, $hotel, $name) {
                                         <td>
                                             <span class="badge badge-room <?php echo $b['room_type'] == 'Single' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'; ?>">
                                                 <i class="fas <?php echo $b['room_type'] == 'Single' ? 'fa-user' : 'fa-users'; ?> me-1"></i>
-                                                <?php echo $b['room_type']; ?>
+                                                <?php 
+                                                    // ປ່ຽນການສະແດງຜົນເປັນພາສາລາວ
+                                                    if($b['room_type'] == 'Single') {
+                                                        echo 'VIP';
+                                                    } else {
+                                                        echo 'ທຳມະດາ';
+                                                    }
+                                                ?>
                                             </span>
                                         </td>
                                         <td><div class="hotel-label text-truncate" style="max-width: 200px;"><i class="fas fa-hotel me-1 opacity-50"></i> <?php echo $h; ?></div></td>

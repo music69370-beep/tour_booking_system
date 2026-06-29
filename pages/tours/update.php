@@ -8,62 +8,61 @@ if (isset($_POST['update_tour'])) {
     $tour_name = mysqli_real_escape_string($conn, $_POST['tour_name']);
     $category = mysqli_real_escape_string($conn, $_POST['category']);
     $price = $_POST['price'];
-    
-    // ຮັບຄ່າວັນທີ
-    $start_date = mysqli_real_escape_string($conn, $_POST['start_date']);
-    $end_date = mysqli_real_escape_string($conn, $_POST['end_date']);
-    
-    // ຮັບຄ່າບໍລິການອື່ນໆ
+    $start_date = $_POST['start_date'];
+    $end_date = $_POST['end_date'];
     $max_seats = intval($_POST['max_seats']);
-    $min_pax = intval($_POST['min_pax']);
-    $meals = intval($_POST['meals']);
-    $duration = mysqli_real_escape_string($conn, $_POST['duration']);
-    $meeting_point = mysqli_real_escape_string($conn, $_POST['meeting_point']);
-    $highlights = mysqli_real_escape_string($conn, $_POST['highlights']);
-    $whats_included = mysqli_real_escape_string($conn, $_POST['whats_included']);
-    $whats_excluded = mysqli_real_escape_string($conn, $_POST['whats_excluded']);
-    $cancellation_policy = mysqli_real_escape_string($conn, $_POST['cancellation_policy']);
-    $activities = mysqli_real_escape_string($conn, $_POST['activities']);
     $itinerary = mysqli_real_escape_string($conn, $_POST['itinerary']);
     
+    // ຮັບຄ່າໄກ້
+    $guide_id = !empty($_POST['guide_id']) ? intval($_POST['guide_id']) : "NULL";
+    $old_guide_id = $_POST['old_guide_id'];
+
     $old_image = $_POST['old_image'];
 
     // ຈັດການຮູບພາບ
     $new_name = $old_image;
     if (!empty($_FILES['image']['name'])) {
-        $new_name = time() . "_" . $_FILES['image']['name'];
+        $new_name = time() . "_" . basename($_FILES['image']['name']);
         move_uploaded_file($_FILES['image']['tmp_name'], "../../assets/uploads/tours/" . $new_name);
         if ($old_image && file_exists("../../assets/uploads/tours/" . $old_image)) {
             unlink("../../assets/uploads/tours/" . $old_image);
         }
     }
 
-    // SQL ອັບເດດຂໍ້ມູນ (ບໍ່ມີ column cost_per_person ໃນ Query ນີ້)
+    // 1. ອັບເດດຂໍ້ມູນທົວ (ເພີ່ມ guide_id)
     $sql = "UPDATE tours SET 
             tour_code = '$tour_code', 
             tour_name = '$tour_name', 
+            guide_id = $guide_id,
             category = '$category',
             price = '$price', 
             start_date = '$start_date', 
             end_date = '$end_date', 
             max_seats = '$max_seats', 
-            min_pax = '$min_pax',
-            meals = '$meals',
-            duration = '$duration',
-            meeting_point = '$meeting_point',
-            highlights = '$highlights',
-            whats_included = '$whats_included',
-            whats_excluded = '$whats_excluded',
-            cancellation_policy = '$cancellation_policy',
-            activities = '$activities',
             itinerary = '$itinerary', 
             image = '$new_name'
             WHERE tour_id = $id";
 
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php?msg=updated");
-        exit();
-    } else {
+    // ຕື່ມໃສ່ພາຍໃນ if (mysqli_query($conn, $sql)) ໃນ update.php
+
+        if (mysqli_query($conn, $sql)) {
+            // ... logic ອື່ນໆ ...
+
+            // ຈັດການອັບໂຫລດຮູບ Gallery ເພີ່ມເຕີມ (ຖ້າມີການເລືອກໃໝ່)
+            if (!empty($_FILES['gallery']['name'][0])) {
+                foreach ($_FILES['gallery']['tmp_name'] as $k => $tmp) {
+                    if(!empty($tmp)) {
+                        $g_name = time() . "_gal_" . $k . "_" . basename($_FILES['gallery']['name'][$k]);
+                        if (move_uploaded_file($tmp, "../../assets/uploads/tours/" . $g_name)) {
+                            mysqli_query($conn, "INSERT INTO tour_images (tour_id, image_name) VALUES ($id, '$g_name')");
+                        }
+                    }
+                }
+            }
+
+            header("Location: index.php?msg=updated");
+            exit();
+        } else {
         echo "Error: " . mysqli_error($conn);
     }
 }

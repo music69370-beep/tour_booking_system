@@ -1,5 +1,6 @@
 <?php 
-include '../../config/db.php'; 
+include '../../config/db.php';
+/** @var mysqli $conn */
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
 ?>
@@ -24,10 +25,10 @@ include '../../includes/sidebar.php';
                                     <?php 
                                     // ດຶງສະເພາະການຈອງທີ່ Pending ແລະ ຍັງບໍ່ມີຂໍ້ມູນໃນ table payments
                                     $sql = "SELECT b.booking_id, c.fullname, b.total_price 
-                                            FROM bookings b 
-                                            JOIN customers c ON b.customer_id = c.customer_id 
-                                            WHERE b.status = 'Pending' 
-                                            AND b.booking_id NOT IN (SELECT booking_id FROM payments)";
+                                        FROM bookings b 
+                                        JOIN customers c ON b.customer_id = c.customer_id 
+                                        WHERE b.status != 'Cancelled' 
+                                        AND b.booking_id NOT IN (SELECT booking_id FROM payments)";
                                     $res_b = mysqli_query($conn, $sql);
                                     while($b = mysqli_fetch_assoc($res_b)) {
                                         echo "<option value='".$b['booking_id']."' data-amount='".$b['total_price']."'>#BK-".$b['booking_id']." - ".$b['fullname']." (ຍອດ: ".number_format($b['total_price'])." ກີບ)</option>";

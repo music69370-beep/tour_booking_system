@@ -41,6 +41,20 @@ include '../../includes/sidebar.php';
                                     <option value="ທົວພັກຜ່ອນ">ທົວພັກຜ່ອນ</option>
                                 </select>
                             </div>
+                            <!-- ເພີ່ມສ່ວນເລືອກໄກ້ (Guide) ເຂົ້າໃນ pages/tours/add.php -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-primary">ເລືອກໄກ້ຜູ້ນຳທ່ຽວປະຈຳແພັກເກັດ</label>
+                                <select name="guide_id" class="form-select bg-light border-0 py-2 shadow-none" required>
+                                    <option value="">-- ເລືອກໄກ້ຜູ້ນຳທ່ຽວ --</option>
+                                    <?php 
+                                    $g_res = mysqli_query($conn, "SELECT guide_id, fullname FROM guides WHERE status='Available'");
+                                    while($g = mysqli_fetch_assoc($g_res)) {
+                                        echo "<option value='{$g['guide_id']}'>{$g['fullname']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <small class="text-muted" style="font-size: 0.7rem;">* ຈະສະແດງສະເພາະໄກ້ທີ່ມີສະຖານະ "ວ່າງ"</small>
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-primary">ລາຄາຂາຍ/ທ່ານ</label>
                                 <input type="number" name="price" class="form-control border-primary py-2" required>

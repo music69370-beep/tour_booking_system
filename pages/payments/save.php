@@ -1,6 +1,6 @@
 <?php
 include '../../config/db.php';
-
+/** @var mysqli $conn */
 if (isset($_POST['save_payment'])) {
     $booking_id = mysqli_real_escape_string($conn, $_POST['booking_id']);
     $payment_method = mysqli_real_escape_string($conn, $_POST['payment_method']);

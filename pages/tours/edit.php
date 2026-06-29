@@ -49,6 +49,24 @@ if (!$row) exit("Tour not found");
                                     <option value="ທົວພັກຜ່ອນ" <?php if($row['category']=='ທົວພັກຜ່ອນ') echo 'selected'; ?>>ທົວພັກຜ່ອນ</option>
                                 </select>
                             </div>
+                            <!-- ເພີ່ມສ່ວນເລືອກໄກ້ ໃນ pages/tours/edit.php -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-primary">ໄກ້ຜູ້ນຳທ່ຽວ (Guide)</label>
+                                <select name="guide_id" class="form-select bg-light border-0 py-2 shadow-none" required>
+                                    <option value="">-- ເລືອກໄກ້ --</option>
+                                    <?php 
+                                    // ດຶງລາຍຊື່ໄກ້ທັງໝົດ ທີ່ "ວ່າງ" ຫຼື "ແມ່ນຄົນທີ່ຖືກເລືອກໄວ້ແລ້ວ"
+                                    $current_guide = $row['guide_id'];
+                                    $g_res = mysqli_query($conn, "SELECT guide_id, fullname FROM guides WHERE status='Available' OR guide_id='$current_guide'");
+                                    while($g = mysqli_fetch_assoc($g_res)) {
+                                        $selected = ($g['guide_id'] == $current_guide) ? 'selected' : '';
+                                        echo "<option value='{$g['guide_id']}' $selected>{$g['fullname']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <!-- ສົ່ງ ID ໄກ້ເກົ່າໄປນຳ ເພື່ອໃຊ້ຈັດການສະຖານະໃນພາຍຫຼັງ -->
+                                <input type="hidden" name="old_guide_id" value="<?php echo $current_guide; ?>">
+                            </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small text-danger">ວັນທີເລີ່ມເດີນທາງ</label>
                                 <input type="date" name="start_date" class="form-control border-danger py-2" value="<?php echo $row['start_date']; ?>" required>
@@ -79,17 +97,40 @@ if (!$row) exit("Tour not found");
                     </div>
                 </div>
 
-                <!-- 3. ຮູບພາບ -->
+                <!-- ສ່ວນຈັດການຮູບພາບໃນ pages/tours/edit.php -->
                 <div class="col-md-5">
                     <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
-                        <h5 class="fw-bold mb-4 text-warning"><i class="fas fa-image me-2"></i>3. ຮູບພາບ</h5>
-                        <label class="fw-bold small">ປ່ຽນຮູບໜ້າປົກ (ຖ້າຕ້ອງການ)</label>
-                        <input type="file" name="image" class="form-control bg-light border-0 small mb-3">
-                        <div class="text-center">
-                            <small class="text-muted d-block mb-1">ຮູບປັດຈຸບັນ:</small>
-                            <?php if($row['image']): ?>
-                                <img src="../../assets/uploads/tours/<?php echo $row['image']; ?>" class="rounded border shadow-sm" width="150">
-                            <?php endif; ?>
+                        <h5 class="fw-bold mb-4 text-warning"><i class="fas fa-image me-2"></i>3. ຈັດການຮູບພາບ</h5>
+                        
+                        <!-- 1. ຮູບໜ້າປົກ -->
+                        <div class="mb-4 p-3 bg-light rounded-4 border">
+                            <label class="form-label fw-bold small text-primary">ຮູບໜ້າປົກ (Cover Image)</label>
+                            <input type="file" name="image" class="form-control bg-white border-0 small mb-2" accept="image/*">
+                            <div class="text-center">
+                                <img src="../../assets/uploads/tours/<?php echo $row['image']; ?>" class="rounded shadow-sm border" width="120">
+                            </div>
+                        </div>
+
+                        <!-- 2. ຮູບ Gallery (ຮູບເພີ່ມເຕີມ) -->
+                        <div class="p-3 bg-light rounded-4 border">
+                            <label class="form-label fw-bold small text-primary">ເພີ່ມຮູບ Gallery (ເລືອກໄດ້ຫຼາຍຮູບ)</label>
+                            <input type="file" name="gallery[]" class="form-control bg-white border-0 small mb-3" accept="image/*" multiple>
+                            
+                            <label class="d-block small fw-bold mb-2 text-muted">ຮູບ Gallery ປັດຈຸບັນ:</label>
+                            <div class="row g-2">
+                                <?php 
+                                $gal_res = mysqli_query($conn, "SELECT * FROM tour_images WHERE tour_id = '$id'");
+                                while($g = mysqli_fetch_assoc($gal_res)): ?>
+                                    <div class="col-4 position-relative mb-2">
+                                        <img src="../../assets/uploads/tours/<?php echo $g['image_name']; ?>" class="w-100 rounded border shadow-xs" style="height: 60px; object-fit: cover;">
+                                        <!-- ປຸ່ມລຶບຮູບ Gallery ເທື່ອລະໃບ -->
+                                        <a href="delete_gallery.php?img_id=<?php echo $g['image_id']; ?>&tour_id=<?php echo $id; ?>" 
+                                        class="btn btn-danger btn-sm position-absolute top-0 end-0 p-0 px-1 rounded-circle shadow-sm" 
+                                        onclick="return confirm('ລຶບຮູບນີ້ແທ້ບໍ?')" 
+                                        style="width: 20px; height: 20px; line-height: 15px; font-size: 12px;">&times;</a>
+                                    </div>
+                                <?php endwhile; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
