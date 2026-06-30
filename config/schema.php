@@ -70,6 +70,7 @@ $tables = [
         tour_id INT PRIMARY KEY AUTO_INCREMENT,
         tour_code VARCHAR(50),
         tour_name VARCHAR(255) NOT NULL,
+        guide_id INT, -- ເພີ່ມ Column ນີ້ເພື່ອເກັບ ID ຂອງໄກ້
         category VARCHAR(100),
         price DECIMAL(15,2) NOT NULL,
         cost_per_person DECIMAL(15,2) DEFAULT 0,
@@ -87,7 +88,9 @@ $tables = [
         max_seats INT DEFAULT 10,
         min_pax INT DEFAULT 1,
         image VARCHAR(255),
-        status ENUM('Active', 'Inactive') DEFAULT 'Active'
+        status ENUM('Active', 'Inactive') DEFAULT 'Active',
+        -- ສ້າງຄວາມສຳພັນຫາ Guides
+        FOREIGN KEY (guide_id) REFERENCES guides(guide_id) ON DELETE SET NULL
     )",
 
     "customers" => "CREATE TABLE IF NOT EXISTS customers (
