@@ -100,7 +100,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                     <div class="fw-bold text-dark"><?php echo $row['fullname']; ?></div>
                                     <small class="text-muted"><?php echo $row['phone']; ?></small>
                                 </td>
-                                <td>
+                                <td>  
                                     <div class="small fw-bold text-dark"><?php echo $row['tour_name']; ?></div>
                                     <span class="badge bg-light text-dark border small" style="font-size: 0.65rem;">Room: <?php echo $row['room_type']; ?></span>
                                 </td>
@@ -119,15 +119,15 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group border rounded-pill overflow-hidden shadow-sm bg-white">
-                                        <!-- ປຸ່ມອະນຸມັດ (ສະແດງສະເພາະ Pending) -->
-                                        <?php if($st == 'Pending'): ?>
+                                        <!-- ປຸ່ມອະນຸມັດ (ແກ້ໄຂໃຫ້ສະແດງສະເພາະ Admin ເທົ່ານັ້ນ) -->
+                                        <?php if($st == 'Pending' && isAdmin()): ?> 
                                             <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php')" class="btn btn-sm btn-white text-success border-end" title="ອະນຸມັດ">
                                                 <i class="fas fa-check-circle"></i>
                                             </a>
                                         <?php endif; ?>
 
-                                        <!-- ປຸ່ມຍົກເລີກ (ສະແດງຖ້າຍັງບໍ່ຖືກຍົກເລີກ) -->
-                                        <?php if($st != 'Cancelled'): ?>
+                                        <!-- ປຸ່ມຍົກເລີກ (ໃຫ້ສະແດງສະເພາະ Admin ເທົ່ານັ້ນ) -->
+                                        <?php if($st != 'Cancelled' && isAdmin()): ?>
                                             <a href="cancel_form.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-secondary border-end" title="ຍົກເລີກ">
                                                 <i class="fas fa-times-circle"></i>
                                             </a>

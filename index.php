@@ -110,6 +110,7 @@ $category_filter = isset($_GET['cat']) ? $_GET['cat'] : 'all';
         footer { background: #1a1c23; color: white; padding: 80px 0 30px; }
         .footer-link { color: #a0a0a0; text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
         .footer-link:hover { color: white; padding-left: 5px; }
+        
     </style>
 </head>
 <body>
@@ -118,18 +119,50 @@ $category_filter = isset($_GET['cat']) ? $_GET['cat'] : 'all';
 <nav class="navbar navbar-expand-lg navbar-light sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold" href="index.php"><i class="fas fa-paper-plane me-2"></i>TourBooking</a>
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+        
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto fw-bold align-items-center">
-                <li class="nav-item"><a class="nav-link px-3 active" href="index.php">ໜ້າຫຼັກ</a></li>
-                <li class="nav-item"><a class="nav-link px-3" href="check_status.php">ຕິດຕາມການຈອງ</a></li>
+                
+                <!-- ໃຊ້ຕົວແປ $lang ເພື່ອໃຫ້ພາສາປ່ຽນຕາມປຸ່ມທີ່ກົດ -->
+                <li class="nav-item">
+                    <a class="nav-link px-3 active" href="index.php">
+                        <?php echo $lang['nav_home']; ?>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link px-3" href="check_status.php">
+                        <?php echo $lang['nav_status']; ?>
+                    </a>
+                </li>
+
+                <!-- ປຸ່ມປ່ຽນພາສາ -->
                 <li class="nav-item ms-lg-3">
                     <div class="lang-box">
+                        <!-- ສັ່ງໃຫ້ປ່ຽນພາສາ ແລະ ຮັກສາໜ້າເດີມໄວ້ -->
                         <a href="?lang=lao" class="lang-btn <?php echo ($current_lang == 'lao') ? 'active' : ''; ?>">LAO</a>
                         <a href="?lang=eng" class="lang-btn <?php echo ($current_lang == 'eng') ? 'active' : ''; ?>">ENG</a>
                     </div>
                 </li>
-                <li class="nav-item ms-lg-3"><a href="login.php" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm small fw-bold">ເຂົ້າສູ່ລະບົບ</a></li>
+
+                <!-- ປຸ່ມເຂົ້າສູ່ລະບົບ / ຈັດການລະບົບ -->
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <li class="nav-item ms-lg-3">
+                        <a href="login.php" class="btn btn-success rounded-pill px-4 py-2 shadow-sm small fw-bold">
+                            <i class="fas fa-user-cog me-1"></i> 
+                            <?php echo ($current_lang == 'lao') ? 'ຈັດການລະບົບ' : 'Management'; ?>
+                        </a>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item ms-lg-3">
+                        <a href="login.php" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm small fw-bold">
+                            <?php echo ($current_lang == 'lao') ? 'ເຂົ້າສູ່ລະບົບ' : 'Staff Login'; ?>
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </div>

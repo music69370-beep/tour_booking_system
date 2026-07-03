@@ -1,6 +1,14 @@
 <?php
 include '../../config/db.php';
+
+// ບລັອກບໍ່ໃຫ້ Staff ເຂົ້າໜ້ານີ້
+if (!isAdmin()) {
+    header("Location: index.php?msg=error_permission");
+    exit();
+}
+
 /** @var mysqli $conn */
+// ... ໂຄ້ດເກົ່າຂອງເຈົ້າ ...
 
 // --- ນຳເຂົ້າ PHPMailer ---
 use PHPMailer\PHPMailer\PHPMailer;

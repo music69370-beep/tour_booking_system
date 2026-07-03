@@ -13,7 +13,8 @@ $current_page = $_SERVER['PHP_SELF'];
         
         <div class="sidebar-content p-2">
             
-            <!-- Category: MENU -->
+            <!-- Category: MENU (Admin Only) -->
+            <?php if(isAdmin()): ?>
             <h6 class="sidebar-heading px-3 mt-3 mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">ເມນູຫຼັກ</h6>
             <ul class="nav flex-column mb-3">
                 <li class="nav-item">
@@ -23,6 +24,7 @@ $current_page = $_SERVER['PHP_SELF'];
                     </a>
                 </li>
             </ul>
+            <?php endif; ?>
 
             <!-- Category: ENTRY FORMS -->
             <h6 class="sidebar-heading px-3 mt-4 mb-2 text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">ການບັນທຶກຂໍ້ມູນ</h6>
@@ -32,6 +34,8 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-plus-circle me-2 <?php echo (strpos($current_page, 'bookings/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ຈອງທົວ
                     </a>
                 </li>
+                
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'tours/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/tours/add.php">
                         <i class="fas fa-folder-plus me-2 <?php echo (strpos($current_page, 'tours/add.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ເພີ່ມແພັກເກັດ
@@ -47,13 +51,13 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-user-plus me-2 <?php echo (strpos($current_page, 'guides/add.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ເພີ່ມໄກ້ຜູ້ນຳທ່ຽວ
                     </a>
                 </li>
-                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/coupons/add.php">
                         <i class="fas fa-ticket-alt me-2 <?php echo (strpos($current_page, 'coupons/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ສ້າງຄູປອງ
                     </a>
                 </li>
                 <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/customers/add.php">
                         <i class="fas fa-user-tag me-2 <?php echo (strpos($current_page, 'customers/add.php') !== false) ? 'text-white' : 'text-secondary'; ?>"></i> ເພີ່ມຂໍ້ມູນລູກຄ້າ
@@ -64,6 +68,8 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-cash-register me-2 <?php echo (strpos($current_page, 'payments/add.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກການຮັບເງິນ
                     </a>
                 </li>
+
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/drivers/add.php">
                         <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/add.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ເພີ່ມຄົນຂັບ
@@ -74,17 +80,22 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-route me-2 <?php echo (strpos($current_page, 'outings/add.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ບັນທຶກລົດອອກທົວ
                     </a>
                 </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'master_rooming.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                     href="<?php echo BASE_URL; ?>pages/bookings/master_rooming.php">
                         <i class="fas fa-hotel me-2"></i> ຈັດການຫ້ອງພັກ
                     </a>
                 </li>
+
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'expenses/index.php') !== false && strpos($current_page, 'profit_report.php') === false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/expenses/index.php">
                         <i class="fas fa-file-invoice-dollar me-2 <?php echo (strpos($current_page, 'expenses/index.php') !== false && strpos($current_page, 'profit_report.php') === false) ? 'text-white' : 'text-danger'; ?>"></i> ບັນທຶກລາຍຈ່າຍທົວ
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
 
             <!-- Category: REPORTS -->
@@ -101,19 +112,18 @@ $current_page = $_SERVER['PHP_SELF'];
                     </a>
                 </li>
                 
-                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'payments/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/payments/index.php">
                         <i class="fas fa-file-invoice-dollar me-2 <?php echo (strpos($current_page, 'payments/index.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ປະຫວັດການຮັບເງິນ
                     </a>
                 </li>
+
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'coupons/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/coupons/index.php">
                         <i class="fas fa-tags me-2 <?php echo (strpos($current_page, 'coupons/index.php') !== false) ? 'text-white' : 'text-danger'; ?>"></i> ລາຍການຄູປອງ
                     </a>
                 </li>
-                <?php endif; ?>
-
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/tours/index.php">
                         <i class="fas fa-map-marked-alt me-2 <?php echo (strpos($current_page, 'tours/index.php') !== false) ? 'text-white' : 'text-info'; ?>"></i> ລາຍການທົວ
@@ -139,11 +149,15 @@ $current_page = $_SERVER['PHP_SELF'];
                         <i class="fas fa-user-tie me-2 <?php echo (strpos($current_page, 'drivers/index.php') !== false) ? 'text-white' : 'text-primary'; ?>"></i> ລາຍຊື່ຄົນຂັບ
                     </a>
                 </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/customers/index.php">
                         <i class="fas fa-users me-2 <?php echo (strpos($current_page, 'customers/index.php') !== false) ? 'text-white' : 'text-success'; ?>"></i> ລາຍຊື່ລູກຄ້າ
                     </a>
                 </li>
+
+                <?php if(isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'profit_report.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" 
                        href="<?php echo BASE_URL; ?>pages/expenses/profit_report.php">
@@ -151,10 +165,16 @@ $current_page = $_SERVER['PHP_SELF'];
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link py-2 rounded" href="<?php echo BASE_URL; ?>pages/guides/schedule.php">
+                        <i class="fas fa-calendar-check me-2 text-info"></i> ຕາຕະລາງວຽກໄກ້ລວມ
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link py-2 rounded <?php echo (strpos($current_page, 'reviews/index.php') !== false) ? 'active bg-primary text-white shadow' : 'text-dark'; ?>" href="<?php echo BASE_URL; ?>pages/reviews/index.php">
                         <i class="fas fa-comment-dots me-2 <?php echo (strpos($current_page, 'reviews/index.php') !== false) ? 'text-white' : 'text-warning'; ?>"></i> ຈັດການຄຳຍ້ອງຍໍ
                     </a>
                 </li>
+                <?php endif; ?>
             </ul>
 
             <!-- Category: SYSTEM -->
@@ -194,23 +214,11 @@ $current_page = $_SERVER['PHP_SELF'];
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     var sidebar = document.getElementById("mainSidebar");
-    
-    // 1. ດຶງຕຳແໜ່ງທີ່ເຄີຍບັນທຶກໄວ້ໃນ Session
     var scrollPos = sessionStorage.getItem("sidebarScroll");
-    if (scrollPos) {
-        sidebar.scrollTop = scrollPos;
-    }
-
-    // 2. ເມື່ອມີການກົດ Link ໃດໆໃນ Sidebar ໃຫ້ບັນທຶກຕຳແໜ່ງ Scroll ໄວ້
+    if (scrollPos) { sidebar.scrollTop = scrollPos; }
     sidebar.addEventListener("click", function(e) {
-        if (e.target.closest("a")) {
-            sessionStorage.setItem("sidebarScroll", sidebar.scrollTop);
-        }
+        if (e.target.closest("a")) { sessionStorage.setItem("sidebarScroll", sidebar.scrollTop); }
     });
-
-    // 3. ບັນທຶກຕຳແໜ່ງອັດຕະໂນມັດເມື່ອມີການເລື່ອນ (ປ້ອງກັນກໍລະນີ Refresh ໜ້າຈໍ)
-    sidebar.onscroll = function() {
-        sessionStorage.setItem("sidebarScroll", sidebar.scrollTop);
-    };
+    sidebar.onscroll = function() { sessionStorage.setItem("sidebarScroll", sidebar.scrollTop); };
 });
 </script>

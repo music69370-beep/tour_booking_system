@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['customer_id'])) {
     $single_fee = ($room_type == 'Single') ? 200000 : 0;
 
     // --- ປ້ອງກັນການບັນທຶກຊ້ຳ (Double Submit Protection) ---
-    // ແກ້ໄຂຈາກ created_at ເປັນ booking_date ໃຫ້ຕົງກັບ DB ຂອງເຈົ້າ
     $check_duplicate = mysqli_query($conn, "SELECT booking_id FROM bookings 
         WHERE customer_id = '$customer_id' 
         AND tour_id = '$tour_id' 
@@ -31,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['customer_id'])) {
         AND booking_date > (NOW() - INTERVAL 5 SECOND)");
 
     if ($check_duplicate && mysqli_num_rows($check_duplicate) > 0) {
-        header("Location: index.php?msg=success");
+        // ຖ້າຊ້ຳ ໃຫ້ດີດກັບໜ້າ add.php ເລີຍ
+        header("Location: add.php?msg=success");
         exit();
     }
 
@@ -63,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['customer_id'])) {
             }
         }
 
-        // ສົ່ງກັບໄປໜ້າລາຍການຈອງ
-        header("Location: index.php?msg=success");
+        // --- ຈຸດທີ່ແກ້ໄຂ: ໃຫ້ Redirect ກັບໄປໜ້າ add.php (ໜ້າຈອງທົວ) ---
+        header("Location: add.php?msg=success");
         exit();
         
     } else {
@@ -72,7 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['customer_id'])) {
         die("Error Saving Booking: " . mysqli_error($conn));
     }
 } else {
-    header("Location: index.php");
+    // ຖ້າບໍ່ມີຂໍ້ມູນ ໃຫ້ກັບໄປໜ້າ add.php
+    header("Location: add.php");
     exit();
 }
 ?>

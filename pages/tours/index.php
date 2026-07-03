@@ -6,16 +6,19 @@ include '../../includes/sidebar.php';
 
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 
-// SQL Join ເພື່ອເອົາຊື່ໄກ້ ແລະ ຂໍ້ມູນທົວ
-$sql = "SELECT t.*, g.fullname as guide_name, 
-       (SELECT SUM(num_people) FROM bookings WHERE tour_id = t.tour_id AND status != 'Cancelled') as booked_count
+// ຈຸດທີ່ແກ້ໄຂ: ໃຊ້ GROUP_CONCAT ເພື່ອດຶງຊື່ໄກ້ທຸກຄົນມາໂຊ
+$sql = "SELECT t.*, 
+       (SELECT SUM(num_people) FROM bookings WHERE tour_id = t.tour_id AND status != 'Cancelled') as booked_count,
+       GROUP_CONCAT(g.fullname SEPARATOR ', ') as all_guides
        FROM tours t
-       LEFT JOIN guides g ON t.guide_id = g.guide_id";
+       LEFT JOIN tour_assigned_guides tag ON t.tour_id = tag.tour_id
+       LEFT JOIN guides g ON tag.guide_id = g.guide_id";
 
 if ($search != '') {
     $sql .= " WHERE t.tour_name LIKE '%$search%' OR t.tour_code LIKE '%$search%'";
 }
-$sql .= " ORDER BY t.tour_id DESC";
+
+$sql .= " GROUP BY t.tour_id ORDER BY t.tour_id DESC";
 $result = mysqli_query($conn, $sql);
 ?>
 
@@ -34,7 +37,6 @@ $result = mysqli_query($conn, $sql);
     <?php include '../../includes/navbar.php'; ?>
 
     <div class="px-4 py-4">
-        <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-dark mb-1"><i class="fas fa-map-marked-alt text-primary me-2"></i>ລາຍງານແພັກເກັດທົວ</h2>
@@ -60,7 +62,6 @@ $result = mysqli_query($conn, $sql);
             </form>
         </div>
 
-        <!-- Table Card -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 tour-table">
@@ -68,7 +69,7 @@ $result = mysqli_query($conn, $sql);
                         <tr>
                             <th class="ps-4 py-3">ຮູບພາບ & ລະຫັດ</th>
                             <th>ຂໍ້ມູນແພັກເກັດ</th>
-                            <th>ໄກ້ຜູ້ນຳທ່ຽວ</th>
+                            <th>ໄກ້ຜູ້ນຳທ່ຽວ (ທັງໝົດ)</th>
                             <th class="text-center" width="180">ບ່ອນນັ່ງ (Booked)</th>
                             <th class="text-end">ລາຄາ/ທ່ານ</th>
                             <th class="text-center">ສະຖານະ</th>
@@ -79,7 +80,7 @@ $result = mysqli_query($conn, $sql);
                         <?php while($row = mysqli_fetch_assoc($result)): 
                             $booked = $row['booked_count'] ?? 0;
                             $max = $row['max_seats'];
-                            $percent = ($booked / $max) * 100;
+                            $percent = ($max > 0) ? ($booked / $max) * 100 : 0;
                             $remaining = $max - $booked;
                         ?>
                         <tr>
@@ -102,7 +103,9 @@ $result = mysqli_query($conn, $sql);
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="bg-info bg-opacity-10 p-2 rounded-3 text-info me-2"><i class="fas fa-user-tie"></i></div>
-                                    <div class="small fw-bold text-dark"><?php echo $row['guide_name'] ?: '<span class="text-muted fw-normal">ຍັງບໍ່ມີໄກ້</span>'; ?></div>
+                                    <div class="small fw-bold text-dark">
+                                        <?php echo $row['all_guides'] ?: '<span class="text-muted fw-normal">ຍັງບໍ່ມີໄກ້</span>'; ?>
+                                    </div>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -121,36 +124,22 @@ $result = mysqli_query($conn, $sql);
                             </td>
                             <td class="text-center">
                                 <?php 
-                                $today = date('Y-m-d'); // ວັນທີປັດຈຸບັນ (2026-06-24)
-                                $tour_date = $row['start_date']; // ວັນທີເດີນທາງ (2026-06-24)
-
-                                if ($tour_date <= $today) {
-                                    // ຖ້າຮອດມື້ເດີນທາງແລ້ວ ຫຼື ກາຍມາແລ້ວ ໃຫ້ປິດທັນທີ
-                                    echo '<span class="badge rounded-pill bg-secondary text-white px-3 py-2">
-                                            <i class="fas fa-check-circle me-1 small"></i> ຈົບການຂາຍ/ເດີນທາງແລ້ວ
-                                        </span>';
+                                $today = date('Y-m-d');
+                                if ($row['start_date'] <= $today) {
+                                    echo '<span class="badge rounded-pill bg-secondary text-white px-3 py-2">ຈົບ/ເດີນທາງແລ້ວ</span>';
                                 } else {
-                                    // ຖ້າຍັງບໍ່ຮອດມື້ເດີນທາງ ໃຫ້ເບິ່ງຕາມສະຖານະທີ່ແອດມິນຕັ້ງໄວ້
                                     if ($row['status'] == 'Active') {
-                                        echo '<span class="badge badge-subtle bg-success-subtle px-3 py-2">
-                                                <i class="fas fa-circle me-1 small"></i> ເປີດຂາຍ
-                                            </span>';
+                                        echo '<span class="badge badge-subtle bg-success-subtle px-3 py-2">ເປີດຂາຍ</span>';
                                     } else {
-                                        echo '<span class="badge badge-subtle bg-danger-subtle px-3 py-2">
-                                                <i class="fas fa-times-circle me-1 small"></i> ປິດການຈອງ
-                                            </span>';
+                                        echo '<span class="badge badge-subtle bg-danger-subtle px-3 py-2">ປິດການຈອງ</span>';
                                     }
                                 }
                                 ?>
                             </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-2">
-                                    <a href="edit.php?id=<?php echo $row['tour_id']; ?>" class="btn btn-light btn-action text-warning border shadow-sm" title="ແກ້ໄຂ">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button onclick="confirmDelete(<?php echo $row['tour_id']; ?>, 'delete.php')" class="btn btn-light btn-action text-danger border shadow-sm" title="ລຶບ">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <a href="edit.php?id=<?php echo $row['tour_id']; ?>" class="btn btn-light btn-action text-warning border shadow-sm"><i class="fas fa-edit"></i></a>
+                                    <button onclick="confirmDelete(<?php echo $row['tour_id']; ?>, 'delete.php')" class="btn btn-light btn-action text-danger border shadow-sm"><i class="fas fa-trash"></i></button>
                                 </div>
                             </td>
                         </tr>

@@ -4,8 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // 0. ການຈັດການ Error
-//    ຕັ້ງ APP_DEBUG = true ຊົ່ວຄາວເວລາ debug ເທົ່ານັ້ນ, ຕອນໃຊ້ງານຈິງໃຫ້ເປັນ false
-//    ເພື່ອບໍ່ໃຫ້ສະແດງໂຄງສ້າງ DB / path ໃຫ້ຄົນນອກເຫັນ
 if (!defined('APP_DEBUG')) {
     define('APP_DEBUG', false);
 }
@@ -25,7 +23,6 @@ mysqli_set_charset($conn, "utf8mb4");
 
 if (!$conn) die("Database Connection Failed");
 
-// ໂຫລດຟັງຊັນຊ່ວຍເຫຼືອ (path ອີງຕາມວ່າຢູ່ໜ້າ root ຫຼື ໜ້າຍ່ອຍ pages/)
 require_once __DIR__ . '/../includes/functions.php';
 
 // 2. ກຳນົດ URL ພື້ນຖານ
@@ -48,34 +45,33 @@ function isAdmin() {
 $current_page = basename($_SERVER['PHP_SELF']);
 $current_path = $_SERVER['PHP_SELF'];
 
-// ໜ້າທີ່ລູກຄ້າເຂົ້າໄດ້ໂດຍບໍ່ຕ້ອງ Login (ເພີ່ມ get_occupied_seats.php)
 $frontend_pages = [
-    'index.php', 
-    'booking_form.php', 
-    'process_booking.php', 
-    'checkout.php', 
-    'check_status.php', 
-    'save_review.php', 
-    'ticket.php', 
-    'login.php', 
-    'auth_action.php', 
-    'register.php', 
-    'register_action.php', 
-    'setup_db.php',
-    'get_occupied_seats.php' // *** ຕ້ອງມີບັນທັດນີ້ ***
+    'index.php', 'booking_form.php', 'process_booking.php', 'checkout.php', 
+    'check_status.php', 'save_review.php', 'ticket.php', 'login.php', 
+    'auth_action.php', 'register.php', 'register_action.php', 'setup_db.php',
+    'get_occupied_seats.php'
 ];
 
-if (!in_array($current_page, $frontend_pages) && !isset($_SESSION['user_id'])) {
+// ອະນຸຍາດໃຫ້ໄຟລ໌ບັນທຶກເງິນ ເຂົ້າເຖິງໄດ້ (ສຳລັບລູກຄ້າສົ່ງສະລິບ)
+$is_payment_save = (strpos($current_path, 'pages/payments/save.php') !== false);
+
+if (!in_array($current_page, $frontend_pages) && !$is_payment_save && !isset($_SESSION['user_id'])) {
     $is_sub = (strpos($current_path, 'pages/') !== false);
     header("Location: " . ($is_sub ? '../../login.php' : 'login.php'));
     exit();
 }
 
-// ການຈຳກັດສິດ Staff
+// ການຈຳກັດສິດ Staff (Lock ໃຫ້ຢູ່ແຕ່ໜ້າການຈອງ, ລູກຄ້າ, ຮັບເງິນ)
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'Staff') {
-    if (strpos($current_path, 'pages/users/') !== false || 
-        strpos($current_path, 'pages/coupons/') !== false) {
-        header("Location: " . (strpos($current_path, 'pages/') !== false ? '../dashboard/index.php' : 'pages/dashboard/index.php'));
+    $allowed_paths = [
+        'pages/bookings/', 'pages/customers/', 'pages/payments/', 'logout.php'
+    ];
+    $can_access = false;
+    foreach ($allowed_paths as $path) {
+        if (strpos($current_path, $path) !== false) { $can_access = true; break; }
+    }
+    if (!$can_access && !in_array($current_page, $frontend_pages)) {
+        header("Location: " . BASE_URL . "pages/bookings/index.php");
         exit();
     }
 }

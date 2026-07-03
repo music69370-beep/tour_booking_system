@@ -231,4 +231,11 @@ $tables = [
         FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
         FOREIGN KEY (driver_id) REFERENCES drivers(driver_id) ON DELETE SET NULL
     )",
+    "tour_assigned_guides" => "CREATE TABLE IF NOT EXISTS tour_assigned_guides (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        tour_id INT,
+        guide_id INT,
+        FOREIGN KEY (tour_id) REFERENCES tours(tour_id) ON DELETE CASCADE,
+        FOREIGN KEY (guide_id) REFERENCES guides(guide_id) ON DELETE CASCADE
+    )"
 ];
