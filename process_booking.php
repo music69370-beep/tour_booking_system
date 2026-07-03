@@ -1,11 +1,7 @@
 <?php
-// 1. ເປີດການສະແດງ Error ເພື່ອໃຫ້ຮູ້ບັນຫາແທ້ຈິງ (ຖ້າແກ້ແລ້ວຄ່ອຍປິດ)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 include 'config/db.php';
 /** @var mysqli $conn */
+// ການຈັດການ Error ຖືກຄວບຄຸມຢູ່ສ່ວນກາງໃນ config/db.php (APP_DEBUG)
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // --- 1. ຮັບຂໍ້ມູນລູກຄ້າຫຼັກ ---
@@ -20,14 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $emergency_name = mysqli_real_escape_string($conn, $_POST['emergency_name']);
     $emergency_phone = mysqli_real_escape_string($conn, $_POST['emergency_phone']);
     
-    // ຈັດການຮູບພາບບັດ
+    // ຈັດການຮູບພາບບັດ (ກວດສອບຄວາມປອດໄພຜ່ານ helper)
     $id_card_image = "";
-    if (!empty($_FILES['id_card_image']['name'])) {
-        $id_card_image = time() . "_lead_" . $_FILES['id_card_image']['name'];
-        if (!is_dir("assets/uploads/customers/")) {
-            mkdir("assets/uploads/customers/", 0777, true);
+    if (isset($_FILES['id_card_image'])) {
+        $upload = save_uploaded_image($_FILES['id_card_image'], "assets/uploads/customers/", "lead_");
+        if ($upload === false) {
+            die("ໄຟລ໌ບັດປະຈຳຕົວບໍ່ຖືກຕ້ອງ (ຮັບສະເພາະຮູບ jpg, png, gif, webp).");
         }
-        move_uploaded_file($_FILES['id_card_image']['tmp_name'], "assets/uploads/customers/" . $id_card_image);
+        $id_card_image = $upload;
     }
 
     // ບັນທຶກ ຫຼື ອັບເດດຂໍ້ມູນລູກຄ້າ
@@ -38,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                  email='$email', address='$address', emergency_name='$emergency_name', emergency_phone='$emergency_phone'";
     
     if (!mysqli_query($conn, $sql_cust)) {
-        die("Error Saving Customer: " . mysqli_error($conn));
+        error_log("Error Saving Customer: " . mysqli_error($conn));
+        die("ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກຂໍ້ມູນລູກຄ້າ ກະລຸນາລອງໃໝ່.");
     }
     
     // ດຶງ Customer ID
@@ -92,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: checkout.php?booking_id=$booking_id");
         exit();
     } else {
-        // ຖ້າມັນຂຶ້ນ Error ຢູ່ນີ້ ໝາຍຄວາມວ່າຖານຂໍ້ມູນເຈົ້າຍັງບໍ່ມີ Column ໃໝ່
-        die("Error Saving Booking: " . mysqli_error($conn) . "<br>SQL: " . $sql_book);
+        error_log("Error Saving Booking: " . mysqli_error($conn) . " | SQL: " . $sql_book);
+        die("ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກການຈອງ ກະລຸນາລອງໃໝ່ ຫຼື ຕິດຕໍ່ພະນັກງານ.");
     }
 }
 ?>

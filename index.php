@@ -2,8 +2,9 @@
 /** @var mysqli $conn */
 /** @var array $lang */ 
 
-$search_keyword = isset($_GET['keyword']) ? mysqli_real_escape_string($conn, $_GET['keyword']) : '';
-$category_filter = isset($_GET['cat']) ? mysqli_real_escape_string($conn, $_GET['cat']) : 'all';
+// ໃຊ້ prepared statement ດ້ານລຸ່ມແລ້ວ ຈຶ່ງບໍ່ຕ້ອງ escape ຢູ່ນີ້ (ກັນ escape ຊ້ຳ)
+$search_keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+$category_filter = isset($_GET['cat']) ? $_GET['cat'] : 'all';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo ($current_lang == 'lao') ? 'lo' : 'en'; ?>">
@@ -173,11 +174,26 @@ $category_filter = isset($_GET['cat']) ? mysqli_real_escape_string($conn, $_GET[
     <div class="row g-4">
         <?php
         $sql = "SELECT * FROM tours WHERE status = 'Active' AND start_date >= CURDATE()";
-        if ($category_filter != 'all') $sql .= " AND category = '$category_filter'";
-        if ($search_keyword != '') $sql .= " AND (tour_name LIKE '%$search_keyword%')";
+        $params = [];
+        $types  = "";
+        if ($category_filter != 'all') {
+            $sql .= " AND category = ?";
+            $types .= "s";
+            $params[] = $category_filter;
+        }
+        if ($search_keyword != '') {
+            $sql .= " AND (tour_name LIKE ?)";
+            $types .= "s";
+            $params[] = '%' . $search_keyword . '%';
+        }
         $sql .= " ORDER BY start_date ASC";
-        
-        $result = mysqli_query($conn, $sql);
+
+        $stmt = mysqli_prepare($conn, $sql);
+        if ($types !== "") {
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
+        }
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
         while($row = mysqli_fetch_assoc($result)):
             $tid = $row['tour_id'];
             

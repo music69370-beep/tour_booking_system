@@ -15,18 +15,14 @@ if (isset($_POST['save_payment'])) {
         $amount = $price_data['total_price'];
     }
 
-    // ຈັດການຮູບໃບບິນ
+    // ຈັດການຮູບໃບບິນ (ກວດສອບຄວາມປອດໄພຜ່ານ helper)
     $new_file_name = "";
-    if (!empty($_FILES['payment_slip']['name'])) {
-        $file_name = $_FILES['payment_slip']['name'];
-        $tmp_name = $_FILES['payment_slip']['tmp_name'];
-        $new_file_name = time() . "_" . $file_name;
-        
-        // ກວດສອບ ແລະ ສ້າງໂຟເດີຖ້າຍັງບໍ່ມີ
-        if (!is_dir("../../assets/uploads/payments/")) {
-            mkdir("../../assets/uploads/payments/", 0777, true);
+    if (isset($_FILES['payment_slip'])) {
+        $upload = save_uploaded_image($_FILES['payment_slip'], "../../assets/uploads/payments/");
+        if ($upload === false) {
+            die("ໄຟລ໌ໃບບິນບໍ່ຖືກຕ້ອງ (ຮັບສະເພາະຮູບ jpg, png, gif, webp).");
         }
-        move_uploaded_file($tmp_name, "../../assets/uploads/payments/" . $new_file_name);
+        $new_file_name = $upload;
     }
 
     // 1. ບັນທຶກຂໍ້ມູນລົງຕາຕະລາງ payments
@@ -70,7 +66,8 @@ if (isset($_POST['save_payment'])) {
             exit();
         }
     } else {
-        echo "Error: " . mysqli_error($conn);
+        error_log("Error Saving Payment: " . mysqli_error($conn));
+        die("ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກການຊຳລະເງິນ ກະລຸນາລອງໃໝ່.");
     }
 }
 ?>

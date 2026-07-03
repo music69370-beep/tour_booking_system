@@ -3,11 +3,30 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// 0. ການຈັດການ Error
+//    ຕັ້ງ APP_DEBUG = true ຊົ່ວຄາວເວລາ debug ເທົ່ານັ້ນ, ຕອນໃຊ້ງານຈິງໃຫ້ເປັນ false
+//    ເພື່ອບໍ່ໃຫ້ສະແດງໂຄງສ້າງ DB / path ໃຫ້ຄົນນອກເຫັນ
+if (!defined('APP_DEBUG')) {
+    define('APP_DEBUG', false);
+}
+if (APP_DEBUG) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    error_reporting(0);
+}
+
 // 1. ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
 $conn = mysqli_connect("localhost", "root", "", "tour_booking_db");
 mysqli_set_charset($conn, "utf8mb4");
 
 if (!$conn) die("Database Connection Failed");
+
+// ໂຫລດຟັງຊັນຊ່ວຍເຫຼືອ (path ອີງຕາມວ່າຢູ່ໜ້າ root ຫຼື ໜ້າຍ່ອຍ pages/)
+require_once __DIR__ . '/../includes/functions.php';
 
 // 2. ກຳນົດ URL ພື້ນຖານ
 if (!defined('BASE_URL')) {

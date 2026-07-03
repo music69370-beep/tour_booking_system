@@ -2,7 +2,7 @@
 include 'config/db.php'; 
 /** @var array $lang */ //
 // ຮັບຄ່າເບີໂທລະສັບຈາກ URL (ຄົ້ນຫາ)
-$phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']) : '';
+$phone = isset($_GET['phone']) ? trim($_GET['phone']) : '';
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo ($current_lang == 'lao') ? 'lo' : 'en'; ?>">
@@ -35,8 +35,8 @@ $phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']
         <div class="ms-auto d-flex align-items-center">
             <a href="index.php" class="nav-link text-white me-3 d-none d-sm-block"><?php echo $lang['nav_home']; ?></a>
             <div class="d-flex gap-1 p-1 bg-dark bg-opacity-25 rounded-pill">
-                <a href="?lang=lao&phone=<?php echo $phone; ?>" class="lang-btn <?php echo ($current_lang == 'lao') ? 'active' : ''; ?>">LAO</a>
-                <a href="?lang=eng&phone=<?php echo $phone; ?>" class="lang-btn <?php echo ($current_lang == 'eng') ? 'active' : ''; ?>">ENG</a>
+                <a href="?lang=lao&phone=<?php echo urlencode($phone); ?>" class="lang-btn <?php echo ($current_lang == 'lao') ? 'active' : ''; ?>">LAO</a>
+                <a href="?lang=eng&phone=<?php echo urlencode($phone); ?>" class="lang-btn <?php echo ($current_lang == 'eng') ? 'active' : ''; ?>">ENG</a>
             </div>
         </div>
     </div>
@@ -66,13 +66,16 @@ $phone = isset($_GET['phone']) ? mysqli_real_escape_string($conn, $_GET['phone']
         <div class="col-lg-10">
             <?php 
             if ($phone != '') {
-                $sql = "SELECT b.*, c.fullname, t.tour_name, t.tour_code, t.image, t.duration
+                $stmt = mysqli_prepare($conn, "SELECT b.*, c.fullname, t.tour_name, t.tour_code, t.image, t.duration
                         FROM bookings b
                         JOIN customers c ON b.customer_id = c.customer_id
                         JOIN tours t ON b.tour_id = t.tour_id
-                        WHERE c.phone LIKE '%$phone%'
-                        ORDER BY b.booking_id DESC";
-                $result = mysqli_query($conn, $sql);
+                        WHERE c.phone LIKE ?
+                        ORDER BY b.booking_id DESC");
+                $like_phone = '%' . $phone . '%';
+                mysqli_stmt_bind_param($stmt, "s", $like_phone);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
 
                 if (mysqli_num_rows($result) > 0) {
                     while($row = mysqli_fetch_assoc($result)) {

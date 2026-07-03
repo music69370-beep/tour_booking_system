@@ -1,30 +1,29 @@
 <?php
 include '../../config/db.php';
+/** @var mysqli $conn */
 
 if (isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
 
-    // 1. ດຶງຊື່ໄຟລ໌ຮູບພາບອອກມາກ່ອນຈະລຶບ
-    $res = mysqli_query($conn, "SELECT driver_image, license_image FROM vehicles WHERE vehicle_id = '$id'");
-    $data = mysqli_fetch_assoc($res);
-
-    if ($data) {
-        // 2. ລຶບໄຟລ໌ຮູບໃນ Folder
-        $upload_path = "../../assets/uploads/vehicles/";
-        if (!empty($data['driver_image']) && file_exists($upload_path . $data['driver_image'])) {
-            unlink($upload_path . $data['driver_image']);
-        }
-        if (!empty($data['license_image']) && file_exists($upload_path . $data['license_image'])) {
-            unlink($upload_path . $data['license_image']);
-        }
-
-        // 3. ລຶບຂໍ້ມູນໃນ Database
+    // 1. ກວດສອບວ່າມີລົດຄັນນີ້ແທ້ຫຼືບໍ່
+    $check = mysqli_query($conn, "SELECT vehicle_id FROM vehicles WHERE vehicle_id = '$id'");
+    
+    if (mysqli_num_rows($check) > 0) {
+        // 2. ລຶບຂໍ້ມູນໃນ Database 
+        // (ລະບົບຈະລຶບຂໍ້ມູນໃນ vehicle_outings ໃຫ້ເອງຖ້າເຈົ້າຕັ້ງ ON DELETE CASCADE ໄວ້)
         $sql = "DELETE FROM vehicles WHERE vehicle_id = '$id'";
+        
         if (mysqli_query($conn, $sql)) {
+            // ລຶບສຳເລັດ ກັບໄປໜ້າຫຼັກ
             header("Location: index.php?msg=deleted");
             exit();
+        } else {
+            echo "Error: " . mysqli_error($conn);
         }
     }
 }
+
+// ຖ້າບໍ່ມີ ID ຫຼື ຜິດພາດ ໃຫ້ກັບໄປໜ້າ index
 header("Location: index.php");
+exit();
 ?>

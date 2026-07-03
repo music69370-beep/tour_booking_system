@@ -47,10 +47,16 @@ include '../../includes/sidebar.php';
                                 <select name="guide_id" class="form-select bg-light border-0 py-2 shadow-none" required>
                                     <option value="">-- ເລືອກໄກ້ຜູ້ນຳທ່ຽວ --</option>
                                     <?php 
-                                    $g_res = mysqli_query($conn, "SELECT guide_id, fullname FROM guides WHERE status='Available'");
-                                    while($g = mysqli_fetch_assoc($g_res)) {
-                                        echo "<option value='{$g['guide_id']}'>{$g['fullname']}</option>";
-                                    }
+                                    // SQL ໃໝ່: ດຶງໄກ້ທັງໝົດທີ່ "ບໍ່ໄດ້ຖືທົວທີ່ກຳລັງ Active ຢູ່"
+                                        $g_res = mysqli_query($conn, "SELECT guide_id, fullname FROM guides 
+                                                                    WHERE guide_id NOT IN (
+                                                                        SELECT guide_id FROM tours 
+                                                                        WHERE status = 'Active' AND guide_id IS NOT NULL
+                                                                    )");
+
+                                        while($g = mysqli_fetch_assoc($g_res)) {
+                                            echo "<option value='{$g['guide_id']}'>{$g['fullname']}</option>";
+                                        }
                                     ?>
                                 </select>
                                 <small class="text-muted" style="font-size: 0.7rem;">* ຈະສະແດງສະເພາະໄກ້ທີ່ມີສະຖານະ "ວ່າງ"</small>

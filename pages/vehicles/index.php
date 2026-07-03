@@ -16,6 +16,7 @@ include '../../includes/sidebar.php';
             </a>
         </div>
 
+        <!-- ຕາຕະລາງພາຫະນະ -->
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
@@ -31,10 +32,24 @@ include '../../includes/sidebar.php';
                     </thead>
                     <tbody>
                         <?php
-                        $res = mysqli_query($conn, "SELECT * FROM vehicles ORDER BY vehicle_id DESC");
+                        // SQL: ດຶງຂໍ້ມູນລົດ ແລະ ໄປກວດເບິ່ງວ່າລົດຄັນນີ້ມີ Trip ທີ່ກຳລັງເດີນທາງ (On Trip) ຢູ່ຫຼືບໍ່
+                        $sql = "SELECT v.*, 
+                                (SELECT COUNT(*) FROM vehicle_outings WHERE vehicle_id = v.vehicle_id AND status = 'On Trip') as active_outings 
+                                FROM vehicles v 
+                                ORDER BY v.vehicle_id DESC";
+                        
+                        $res = mysqli_query($conn, $sql);
+                        
                         if(mysqli_num_rows($res) > 0):
                             while($row = mysqli_fetch_assoc($res)):
-                                $st = $row['status'];
+                                
+                                // Logic: ຖ້າມີລາຍການ On Trip ໃນຖານຂໍ້ມູນໃຫ້ຖືວ່າ Busy ອັດຕະໂນມັດ
+                                if($row['active_outings'] > 0) {
+                                    $st = 'Busy';
+                                } else {
+                                    $st = $row['status'];
+                                }
+
                                 $badge = ($st == 'Available') ? 'bg-success' : (($st == 'Busy') ? 'bg-warning text-dark' : 'bg-danger');
                         ?>
                             <tr>
@@ -53,18 +68,28 @@ include '../../includes/sidebar.php';
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden">
-                                        <a href="edit.php?id=<?php echo $row['vehicle_id']; ?>" class="btn btn-sm btn-white text-warning border-end" title="ແກ້ໄຂ"><i class="fas fa-edit"></i></a>
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['vehicle_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ"><i class="fas fa-trash"></i></a>
+                                    <div class="btn-group shadow-sm border rounded-pill overflow-hidden bg-white">
+                                        <a href="edit.php?id=<?php echo $row['vehicle_id']; ?>" class="btn btn-sm btn-white text-warning border-end px-3" title="ແກ້ໄຂ">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['vehicle_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger px-3" title="ລຶບ">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
-                        <?php endwhile; else: ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted">ຍັງບໍ່ມີຂໍ້ມູນລົດໃນລະບົບ</td></tr>
+                        <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    ຍັງບໍ່ມີຂໍ້ມູນລົດໃນລະບົບ
+                                </td>
+                            </tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
             </div>
+        </div>
         </div>
     </div>
 </main>
