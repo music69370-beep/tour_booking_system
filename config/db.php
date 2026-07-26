@@ -18,7 +18,7 @@ if (APP_DEBUG) {
 }
 
 // 1. ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
-$conn = mysqli_connect("localhost", "root", "", "tour_booking_db");
+$conn = mysqli_connect("localhost", "tour_admin", "123", "tour_booking_db");
 mysqli_set_charset($conn, "utf8mb4");
 
 if (!$conn) die("Database Connection Failed");

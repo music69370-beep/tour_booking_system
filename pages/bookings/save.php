@@ -1,5 +1,4 @@
 <?php
-// 1. ເປີດ Error Reporting ເພື່ອເຊັກບັນຫາ
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -8,9 +7,11 @@ include '../../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_booking'])) {
     
-    // --- ຮັບຂໍ້ມູນການຈອງຫຼັກ ---
+    // ດຶງ ID ພະນັກງານຈາກ Session
+    $user_id = $_SESSION['user_id']; 
+
     $customer_id    = mysqli_real_escape_string($conn, $_POST['customer_id']);
-    $tour_id       = mysqli_real_escape_string($conn, $_POST['tour_id']);
+    $tour_id        = mysqli_real_escape_string($conn, $_POST['tour_id']);
     $travel_date    = mysqli_real_escape_string($conn, $_POST['travel_date']);
     $num_people     = intval($_POST['num_people']);
     $room_type      = mysqli_real_escape_string($conn, $_POST['room_type']);
@@ -19,25 +20,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_booking'])) {
     
     $single_fee = ($room_type == 'Single') ? 200000 : 0;
 
-    // --- 2. ບັນທຶກລົງຕາຕະລາງ bookings ---
-    $sql_book = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, room_type, total_price, single_supplement_fee, selected_seats, status) 
-                 VALUES ('$customer_id', '$tour_id', '$travel_date', $num_people, '$room_type', '$total_price', '$single_fee', '$selected_seats', 'Pending')";
+    // ເພີ່ມ Column 'created_by' ໃນການ INSERT
+    $sql_book = "INSERT INTO bookings (customer_id, tour_id, travel_date, num_people, room_type, total_price, single_supplement_fee, selected_seats, status, created_by) 
+                 VALUES ('$customer_id', '$tour_id', '$travel_date', $num_people, '$room_type', '$total_price', '$single_fee', '$selected_seats', 'Pending', '$user_id')";
 
     if (mysqli_query($conn, $sql_book)) {
-        $booking_id = mysqli_insert_id($conn); // ເອົາ ID ການຈອງທີ່ຫາຊິສ້າງນີ້
+        $booking_id = mysqli_insert_id($conn);
 
-
-        // ຊອກຫາສ່ວນ Loop ບັນທຶກຜູ້ຮ່ວມທາງ (ປະມານແຖວທີ 30) ແລ້ວວາງທັບ
         if (isset($_POST['participant_names']) && is_array($_POST['participant_names'])) {
             $p_names  = $_POST['participant_names'];
-            $p_phones = $_POST['participant_phones'] ?? []; // ປ່ຽນມາຮັບຄ່າເບີໂທ
+            $p_phones = $_POST['participant_phones'] ?? [];
 
             foreach ($p_names as $index => $name) {
                 $clean_name  = mysqli_real_escape_string($conn, trim($name));
                 $clean_phone = isset($p_phones[$index]) ? mysqli_real_escape_string($conn, trim($p_phones[$index])) : '';
                 
                 if (!empty($clean_name)) {
-                    // ບັນທຶກລົງ Column participant_phone (ທີ່ມີຢູ່ແລ້ວໃນ Schema)
                     $sql_part = "INSERT INTO booking_participants (booking_id, participant_name, participant_phone) 
                                 VALUES ('$booking_id', '$clean_name', '$clean_phone')";
                     mysqli_query($conn, $sql_part);
@@ -45,15 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_booking'])) {
             }
         }
 
-        // ບັນທຶກສຳເລັດ ໃຫ້ກັບໄປໜ້າລາຍການ
         header("Location: index.php?msg=success");
         exit();
-        
     } else {
         die("ເກີດຂໍ້ຜິດພາດໃນການ SQL: " . mysqli_error($conn));
     }
-} else {
-    header("Location: add.php");
-    exit();
 }
-?>
