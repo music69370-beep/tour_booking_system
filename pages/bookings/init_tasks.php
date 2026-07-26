@@ -5,7 +5,7 @@ include '../../config/db.php';
 if (isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
 
-    // 1. ກວດສອບກ່ອນວ່າມີວຽກຢູ່ແລ້ວບໍ່ (ກັນການສ້າງຊ້ຳ)
+    // 1. ກວດສອບກ່ອນວ່າມີວຽກຢູ່ແລ້ວບໍ່
     $check = mysqli_query($conn, "SELECT * FROM booking_tasks WHERE booking_id = '$id'");
     
     if (mysqli_num_rows($check) == 0) {
@@ -20,12 +20,16 @@ if (isset($_GET['id'])) {
 
         foreach ($default_tasks as $task) {
             $task_safe = mysqli_real_escape_string($conn, $task);
-            mysqli_query($conn, "INSERT INTO booking_tasks (booking_id, task_label, is_completed) VALUES ('$id', '$task_safe', 0)");
+            $sql = "INSERT INTO booking_tasks (booking_id, task_label, is_completed) VALUES ('$id', '$task_safe', 0)";
+            
+            if (!mysqli_query($conn, $sql)) {
+                // ຖ້າ Insert ບໍ່ໄດ້ ໃຫ້ຢຸດ ແລະ ໂຊ Error ເພື່ອຫາສາເຫດ
+                die("ເກີດຂໍ້ຜິດພາດໃນການສ້າງວຽກ: " . mysqli_error($conn));
+            }
         }
     }
     
-    // ສົ່ງກັບໄປໜ້າ View ເພື່ອເບິ່ງຜົນ
-    header("Location: view.php?id=$id&msg=success");
+    header("Location: view.php?id=$id&msg=success#task-section");
     exit();
 } else {
     header("Location: index.php");

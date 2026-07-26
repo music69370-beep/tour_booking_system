@@ -1,6 +1,6 @@
 <?php
 include '../../config/db.php';
-
+/** @var mysqli $conn */
 if (isset($_POST['confirm_cancel'])) {
     $id = mysqli_real_escape_string($conn, $_POST['booking_id']);
     $refund = mysqli_real_escape_string($conn, $_POST['refund_amount']);

@@ -375,8 +375,15 @@ function generateParticipantFields() {
             container.innerHTML += `
                 <div class="participant-item shadow-sm">
                     <div class="row g-3">
-                        <div class="col-md-6"><label class="small fw-bold text-muted">ຄົນທີ ${i}: ຊື່ ແລະ ນາມສະກຸນ</label><input type="text" name="participant_names[]" class="form-control" required></div>
-                        <div class="col-md-6"><label class="small fw-bold text-muted">ບັດປະຈຳໂຕ / ພາສປອດ</label><input type="text" name="participant_id_cards[]" class="form-control" required></div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted">ຄົນທີ ${i}: ຊື່ ແລະ ນາມສະກຸນ</label>
+                            <input type="text" name="participant_names[]" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- ປ່ຽນບ່ອນນີ້ -->
+                            <label class="small fw-bold text-muted">ເບີໂທລະສັບ</label>
+                            <input type="text" name="participant_phones[]" class="form-control" placeholder="020..." required>
+                        </div>
                     </div>
                 </div>`;
         }

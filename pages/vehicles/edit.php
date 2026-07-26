@@ -2,7 +2,7 @@
 include '../../config/db.php'; 
 include '../../includes/header.php'; 
 include '../../includes/sidebar.php'; 
-
+/** @var mysqli $conn */
 $id = mysqli_real_escape_string($conn, $_GET['id']);
 $res = mysqli_query($conn, "SELECT * FROM vehicles WHERE vehicle_id = '$id'");
 $row = mysqli_fetch_assoc($res);

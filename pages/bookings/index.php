@@ -65,14 +65,15 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                             <th>ລູກຄ້າ</th>
                             <th>ແພັກເກັດທົວ</th>
                             <th class="text-end">ລາຄາລວມ</th>
-                            <th class="text-center">ຈັດການຫ້ອງ</th>
+                            <th class="text-center">ລາຍການວຽກ</th>
                             <th class="text-center">ສະຖານະ</th>
                             <th class="text-center">ຈັດການ</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name
+                        $sql = "SELECT b.*, c.fullname, c.phone, t.tour_name,
+                                (SELECT payment_slip FROM payments WHERE booking_id = b.booking_id ORDER BY payment_id DESC LIMIT 1) as slip
                                 FROM bookings b
                                 JOIN customers c ON b.customer_id = c.customer_id
                                 JOIN tours t ON b.tour_id = t.tour_id";
@@ -90,6 +91,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                             while($row = mysqli_fetch_assoc($result)):
                                 $bid = $row['booking_id'];
                                 $st = $row['status'];
+                                $slip_url = "../../assets/uploads/payments/" . $row['slip'];
                         ?>
                             <tr>
                                 <td class="ps-4">
@@ -106,8 +108,8 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 </td>
                                 <td class="text-end fw-bold text-danger"><?php echo number_format($row['total_price']); ?></td>
                                 <td class="text-center">
-                                    <a href="view.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-outline-warning rounded-pill px-3">
-                                        <i class="fas fa-bed me-1"></i> ຈັດເບີຫ້ອງ
+                                    <a href="view.php?id=<?php echo $bid; ?>#task-section" class="btn btn-sm btn-outline-info rounded-pill px-3">
+                                        <i class="fas fa-tasks me-1"></i> ກວດວຽກ
                                     </a>
                                 </td>
                                 <td class="text-center">
@@ -119,14 +121,24 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group border rounded-pill overflow-hidden shadow-sm bg-white">
-                                        <!-- ປຸ່ມອະນຸມັດ (ແກ້ໄຂໃຫ້ສະແດງສະເພາະ Admin ເທົ່ານັ້ນ) -->
+                                        
+                                        <!-- ປຸ່ມເບິ່ງສະລິບ (ປ່ຽນມາໃຊ້ຟັງຊັນ JavaScript Pop-up) -->
+                                        <?php if(!empty($row['slip'])): ?>
+                                            <button type="button" onclick="showSlip('<?php echo $slip_url; ?>')" class="btn btn-sm btn-white text-primary border-end" title="ເບິ່ງສະລິບ">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn btn-sm btn-white text-muted border-end" disabled title="ບໍ່ມີສະລິບ">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </button>
+                                        <?php endif; ?>
+
                                         <?php if($st == 'Pending' && isAdmin()): ?> 
                                             <a href="javascript:void(0)" onclick="confirmApprove(<?php echo $bid; ?>, 'approve.php')" class="btn btn-sm btn-white text-success border-end" title="ອະນຸມັດ">
                                                 <i class="fas fa-check-circle"></i>
                                             </a>
                                         <?php endif; ?>
 
-                                        <!-- ປຸ່ມຍົກເລີກ (ໃຫ້ສະແດງສະເພາະ Admin ເທົ່ານັ້ນ) -->
                                         <?php if($st != 'Cancelled' && isAdmin()): ?>
                                             <a href="cancel_form.php?id=<?php echo $bid; ?>" class="btn btn-sm btn-white text-secondary border-end" title="ຍົກເລີກ">
                                                 <i class="fas fa-times-circle"></i>
@@ -148,10 +160,42 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['searc
     </div>
 </main>
 
+<!-- Modal ສຳລັບໂຊຮູບສະລິບ (Pop-up) -->
+<div class="modal fade" id="slipModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-5 border-0 shadow-lg">
+            <div class="modal-header border-0 bg-primary text-white p-4">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-invoice-dollar me-2"></i>ຫຼັກຖານການໂອນເງິນ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-2 text-center bg-light">
+                <img id="slipImage" src="" class="img-fluid rounded-4 shadow-sm border" style="max-height: 75vh;">
+            </div>
+            <div class="modal-footer border-0 bg-light justify-content-center p-3">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">ປິດໜ້າຕ່າງ</button>
+                <a id="downloadSlip" href="" download class="btn btn-primary rounded-pill px-4">
+                    <i class="fas fa-download me-1"></i> ດາວໂຫລດຮູບ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ຟັງຊັນເປີດ Pop-up ແລະ ເອົາຮູບໄປໃສ່
+function showSlip(url) {
+    document.getElementById('slipImage').src = url;
+    document.getElementById('downloadSlip').href = url;
+    var myModal = new bootstrap.Modal(document.getElementById('slipModal'));
+    myModal.show();
+}
+</script>
+
 <style>
     .btn-white { background: #fff; border: none; padding: 5px 10px; }
     .btn-white:hover { background: #f8f9fa; }
     .btn-group .btn { font-size: 0.85rem; }
+    .modal-content { overflow: hidden; }
 </style>
 
 <?php include '../../includes/footer.php'; ?>

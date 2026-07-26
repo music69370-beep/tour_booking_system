@@ -274,6 +274,7 @@ function handlePeopleChange() {
     updateTotal();
 }
 
+// ຊອກຫາຟັງຊັນນີ້ແລ້ວວາງທັບບ່ອນເກົ່າ
 function generateParticipants() {
     const num = parseInt($('#num_people').val()) || 1;
     const container = $('#participant_inputs');
@@ -281,9 +282,24 @@ function generateParticipants() {
     if (num > 1) {
         $('#participant_section').show();
         for (let i = 2; i <= num; i++) {
-            container.append(`<div class="participant-item shadow-sm bg-white mb-3 p-3 rounded-4 border"><div class="row g-3"><div class="col-md-7"><label class="small fw-bold">ຜູ້ຮ່ວມທາງທີ ${i}: ຊື່ເຕັມ</label><input type="text" name="participant_names[]" class="form-control" required></div><div class="col-md-5"><label class="small fw-bold">ບັດປະຈຳຕົວ</label><input type="text" name="participant_id_cards[]" class="form-control"></div></div></div>`);
+            container.append(`
+                <div class="participant-item shadow-sm bg-white mb-3 p-3 rounded-4 border">
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="small fw-bold">ຜູ້ຮ່ວມທາງທີ ${i}: ຊື່ເຕັມ</label>
+                            <input type="text" name="participant_names[]" class="form-control" placeholder="ຊື່ ແລະ ນາມສະກຸນ" required>
+                        </div>
+                        <div class="col-md-5">
+                            <!-- ປ່ຽນບ່ອນນີ້: ຈາກບັດປະຈຳຕົວ ເປັນ ເບີໂທລະສັບ -->
+                            <label class="small fw-bold">ເບີໂທລະສັບ</label>
+                            <input type="text" name="participant_phones[]" class="form-control" placeholder="020...">
+                        </div>
+                    </div>
+                </div>`);
         }
-    } else { $('#participant_section').hide(); }
+    } else { 
+        $('#participant_section').hide(); 
+    }
 }
 
 function renderSeatMap() {
