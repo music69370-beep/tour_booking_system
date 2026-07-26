@@ -78,7 +78,7 @@ include '../../includes/sidebar.php';
                                     <a href="edit.php?id=<?php echo $row['driver_id']; ?>" class="btn btn-sm btn-white text-warning border-end" title="ແກ້ໄຂ">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['driver_id']; ?>, 'delete.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ">
+                                    <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $row['driver_id']; ?>, 'save.php')" class="btn btn-sm btn-white text-danger" title="ລຶບ">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </div>

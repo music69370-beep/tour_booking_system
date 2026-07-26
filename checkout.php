@@ -204,15 +204,18 @@ if(!$data) { echo "ບໍ່ພົບຂໍ້ມູນການຈອງ"; exit
                     <small class="text-muted">Booking ID: #BK-<?php echo $booking_id; ?></small>
                 </div>
 
-                <!-- QR Section -->
-                <div class="qr-section">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/BCEL_One_Logo.png" class="bcel-logo" alt="BCEL One">
+                <!-- ສ່ວນ QR Section ທີ່ປັບປຸງໃໝ່ -->
+                <div class="qr-section text-center">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/BCEL_One_Logo.png" class="bcel-logo" alt="BCEL One" style="height:35px; margin-bottom:15px;">
                     <br>
-                    <div class="qr-frame">
-                        <div id="qrcode"></div>
+                    <div class="qr-frame" style="display:inline-block; padding:15px; background:#fff; border-radius:20px; border:1px solid #eee; box-shadow:0 10px 25px rgba(0,0,0,0.05);">
+                        <!-- ໃຊ້ API ສ້າງຮູບ QR Code ຕົວຢ່າງ -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TourBooking_Payment_<?php echo $booking_id; ?>" 
+                            alt="Shop QR Code" 
+                            style="width: 200px; height: 200px; border-radius: 10px;">
                     </div>
                     <div class="mt-3 small text-muted">
-                        <i class="fas fa-info-circle me-1"></i> ລະບົບໄດ້ລະບຸຍອດເງິນ ແລະ ເລກທີການຈອງໃນ QR ນີ້ໃຫ້ທ່ານແລ້ວ
+                        <i class="fas fa-info-circle me-1"></i> ກະລຸນາສະແກນ ແລະ ໂອນເງິນຕາມຍອດຂ້າງເທິງ
                     </div>
                 </div>
 

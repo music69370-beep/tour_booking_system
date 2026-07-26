@@ -86,7 +86,13 @@ $result = mysqli_query($conn, $sql);
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <img src="../../assets/uploads/tours/<?php echo $row['image']; ?>" width="90" height="60" class="shadow-sm border">
+                                    <?php 
+                                        $img = $row['image'];
+                                        // ກວດເຊັກວ່າເປັນ Link ອອນລາຍ ຫຼື ຮູບໃນເຄື່ອງ
+                                        $display_img = (strpos($img, 'http') === 0) ? $img : "../../assets/uploads/tours/" . $img;
+                                    ?>
+                                    <img src="<?php echo $display_img; ?>" width="90" height="60" class="shadow-sm border" style="object-fit: cover; border-radius: 8px;">
+                                    
                                     <div class="ms-3">
                                         <div class="badge bg-primary-subtle badge-subtle mb-1"><?php echo $row['tour_code']; ?></div>
                                         <div class="text-muted small"><?php echo $row['category']; ?></div>

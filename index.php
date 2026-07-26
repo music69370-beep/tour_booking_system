@@ -242,8 +242,14 @@ $category_filter = isset($_GET['cat']) ? $_GET['cat'] : 'all';
         ?>
         <div class="col-lg-4 col-md-6">
             <div class="tour-card shadow-sm">
+                <!-- ປ່ຽນຈາກຂອງເກົ່າ ເປັນໂຄ້ດຊຸດນີ້ -->
                 <div class="tour-img-box">
-                    <img src="assets/uploads/tours/<?php echo $row['image']; ?>" class="tour-img">
+                    <?php 
+                        $img = $row['image'];
+                        // ກວດເຊັກວ່າເປັນ Link ອອນລາຍ ຫຼື ຮູບໃນເຄື່ອງ
+                        $display_img = (strpos($img, 'http') === 0) ? $img : "assets/uploads/tours/" . $img;
+                    ?>
+                    <img src="<?php echo $display_img; ?>" class="tour-img" style="object-fit: cover;">
                     <div class="price-badge"><?php echo number_format($row['price']); ?> ກີບ</div>
                 </div>
                 <div class="card-body p-4">
@@ -288,12 +294,22 @@ $category_filter = isset($_GET['cat']) ? $_GET['cat'] : 'all';
                                     </div>
 
                                     <div class="carousel-inner">
+                                        <!-- 1. ຮູບຫຼັກ -->
                                         <div class="carousel-item active">
-                                            <img src="assets/uploads/tours/<?php echo $row['image']; ?>" class="d-block w-100" style="height: 350px; object-fit: cover;">
+                                            <?php 
+                                                $main_img = $row['image'];
+                                                $display_main = (strpos($main_img, 'http') === 0) ? $main_img : "assets/uploads/tours/" . $main_img;
+                                            ?>
+                                            <img src="<?php echo $display_main; ?>" class="d-block w-100" style="height: 350px; object-fit: cover;">
                                         </div>
-                                        <?php foreach($gallery_images as $img): ?>
+
+                                        <!-- 2. ຮູບໃນ Gallery (ຮູບເພີ່ມເຕີມ) -->
+                                        <?php foreach($gallery_images as $g_img): ?>
                                             <div class="carousel-item">
-                                                <img src="assets/uploads/tours/<?php echo $img; ?>" class="d-block w-100" style="height: 350px; object-fit: cover;">
+                                                <?php 
+                                                    $display_gal = (strpos($g_img, 'http') === 0) ? $g_img : "assets/uploads/tours/" . $g_img;
+                                                ?>
+                                                <img src="<?php echo $display_gal; ?>" class="d-block w-100" style="height: 350px; object-fit: cover;">
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
